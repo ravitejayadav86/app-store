@@ -50,4 +50,3 @@ class PurchaseOut(BaseModel):
     purchased_at: datetime
     class Config:
         from_attributes = True
-        
