@@ -89,3 +89,22 @@ def download_file(
         raise HTTPException(403, "Please purchase this app first")
     from fastapi.responses import FileResponse
     return FileResponse(app.file_path, filename=os.path.basename(app.file_path))
+@router.post("/submit", response_model=schemas.AppOut, status_code=201)
+def submit_app(
+    app: schemas.AppCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_app = models.App(
+        name=app.name,
+        description=app.description,
+        price=app.price,
+        category=app.category,
+        developer=current_user.username,
+        version=app.version,
+        is_active=True
+    )
+    db.add(db_app)
+    db.commit()
+    db.refresh(db_app)
+    return db_app
