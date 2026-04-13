@@ -5,6 +5,19 @@ export default function Intro() {
   const [phase, setPhase] = useState(0);
   const navigate = useNavigate();
 
+  const [particles] = useState(() => {
+    return [...Array(20)].map((_, i) => ({
+      width: Math.random() * 4 + 1,
+      height: Math.random() * 4 + 1,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      opacity: Math.random() * 0.5 + 0.1,
+      animationDuration: Math.random() * 3 + 2,
+      animationDelay: Math.random() * 2,
+      color: i % 2 === 0 ? "#7c4dff" : "#382079ff"
+    }));
+  });
+
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 500);
     const t2 = setTimeout(() => setPhase(2), 1800);
@@ -12,8 +25,9 @@ export default function Intro() {
     const t4 = setTimeout(() => {
       navigate(localStorage.getItem("token") ? "/" : "/login");
     }, 4200);
+
     return () => [t1, t2, t3, t4].forEach(clearTimeout);
-  }, []);
+  }, [navigate]);
 
   return (
     <div style={{
@@ -54,18 +68,18 @@ export default function Intro() {
       `}</style>
 
       {/* Background particles */}
-      {[...Array(20)].map((_, i) => (
+      {particles.map((p, i) => (
         <div key={i} style={{
           position: "absolute",
-          width: Math.random() * 4 + 1,
-          height: Math.random() * 4 + 1,
-          background: i % 2 === 0 ? "#7c4dff" : "#382079ff",
+          width: p.width,
+          height: p.height,
+          background: p.color,
           borderRadius: "50%",
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          opacity: Math.random() * 0.5 + 0.1,
-          animation: `pulse-ring ${Math.random() * 3 + 2}s ease-out infinite`,
-          animationDelay: `${Math.random() * 2}s`,
+          left: p.left,
+          top: p.top,
+          opacity: p.opacity,
+          animation: `pulse-ring ${p.animationDuration}s ease-out infinite`,
+          animationDelay: `${p.animationDelay}s`,
         }} />
       ))}
 
@@ -77,8 +91,8 @@ export default function Intro() {
         transition: "opacity 0.8s ease",
       }}>
         <div style={{
-          width: 120,
-          height: 120,
+          width: 140,
+          height: 140,
           borderRadius: "50%",
           border: "3px solid transparent",
           borderTop: "3px solid #700a0aff",
@@ -87,8 +101,6 @@ export default function Intro() {
           position: "absolute",
           top: -10,
           left: -10,
-          width: 140,
-          height: 140,
         }} />
         <div style={{
           width: 120,

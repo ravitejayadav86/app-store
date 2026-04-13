@@ -10,7 +10,7 @@ export default function Profile() {
     useEffect(() => {
         getMe().then(({ data }) => setUser(data)).catch(() => navigate("/login"));
         getPurchases().then(({ data }) => setPurchases(data)).catch(() => {});
-    }, []);
+    }, [navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
