@@ -6,6 +6,7 @@ import AppDetail from "./pages/AppDetail";
 import Profile from "./pages/Profile";
 import Submit from "./pages/Submit";
 import AdminDashboard from "./pages/AdminDashboard";
+import Intro from "./pages/Intro";
 
 const PrivateRoute = ({ children }) => {
   return localStorage.getItem("token") ? children : <Navigate to="/login" />;
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/intro" element={<Intro />} />
         <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
