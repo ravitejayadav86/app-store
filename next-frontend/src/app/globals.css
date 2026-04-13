@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #7dd3fc;
+  --color-secondary: #88b4cc;
+  --color-tertiary: #c8a0f0;
+  --color-background: #0a0e1a;
+  --color-surface: #0f1524;
+  --color-on-surface: #e0e8f0;
+  --color-on-surface-variant: #a0b4c4;
+  --color-surface-container: #141c2e;
+  --color-surface-container-low: #111828;
+  --color-surface-container-high: #1a2438;
+  --color-surface-container-highest: #202c42;
+  --color-outline: #4a6070;
+  --color-outline-variant: #2a3a48;
+  --color-primary-fixed-dim: #7dd3fc;
+  
+  --color-on-primary: #001f2e;
+  --color-tertiary-container: #3d2060;
+  --color-on-tertiary-container: #e8d0ff;
+  
+  --font-inter: "Inter", sans-serif;
+}
+
+:root {
+  --background: #0a0e1a;
+  --foreground: #e0e8f0;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+}
+
+.glass-panel {
+    background: rgba(15, 21, 36, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(125, 211, 252, 0.1);
+}
+.glass-panel-elevated {
+    background: rgba(15, 21, 36, 0.75);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(125, 211, 252, 0.15);
+}
+.frozen-glow {
+    box-shadow: 0 0 30px rgba(125, 211, 252, 0.05);
+}
+.hero-gradient {
+    background: radial-gradient(circle at center, rgba(125, 211, 252, 0.15) 0%, rgba(10, 14, 26, 0) 70%);
+}
