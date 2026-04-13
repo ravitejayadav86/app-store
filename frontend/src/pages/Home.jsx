@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getApps } from "../api";
 
@@ -7,7 +7,6 @@ const EMOJIS = ["🎮", "🎵", "📱", "🚀", "⚡", "🌟", "🎨", "🔥"];
 
 export default function Home() {
     const [apps, setApps] = useState([]);
-    const [filtered, setFiltered] = useState([]);
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
@@ -17,23 +16,28 @@ export default function Home() {
 
     useEffect(() => {
         getApps()
-            .then(({ data }) => { setApps(data); setFiltered(data); })
+            .then(({ data }) => setApps(data))
             .catch(() => setError("Failed to load apps"))
             .finally(() => setLoading(false));
     }, []);
 
-    useEffect(() => {
+    const filtered = useMemo(() => {
         let result = [...apps];
-        if (search) result = result.filter(a =>
-            a.name.toLowerCase().includes(search.toLowerCase()) ||
-            a.description?.toLowerCase().includes(search.toLowerCase())
-        );
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            result = result.filter(a =>
+                a.name.toLowerCase().includes(lowerSearch) ||
+                a.description?.toLowerCase().includes(lowerSearch)
+            );
+        }
         if (category !== "All") result = result.filter(a => a.category === category);
+        
         if (sortBy === "price-low") result.sort((a, b) => a.price - b.price);
-        if (sortBy === "price-high") result.sort((a, b) => b.price - a.price);
-        if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
-        if (sortBy === "newest") result.sort((a, b) => b.id - a.id);
-        setFiltered(result);
+        else if (sortBy === "price-high") result.sort((a, b) => b.price - a.price);
+        else if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
+        else if (sortBy === "newest") result.sort((a, b) => b.id - a.id);
+        
+        return result;
     }, [search, category, sortBy, apps]);
 
     const handleLogout = () => {
