@@ -5,12 +5,11 @@ import { getApps } from "../api";
 export default function Home() {
     const [apps, setApps] = useState([]);
     const [error, setError] = useState("");
+    const [search, setSearch] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
-        getApps()
-            .then(({ data }) => setApps(data))
-            .catch(() => setError("Failed to load apps"));
+        getApps().then(({ data }) => setApps(data)).catch(() => setError("Failed to load apps"));
     }, []);
 
     const handleLogout = () => {
@@ -18,177 +17,103 @@ export default function Home() {
         navigate("/login");
     };
 
+    const filtered = apps.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+    const icons = ["🎮","🎵","📱","🚀","⚡","🌟","🎨","🔥","🛠️","📊","🎯","🧩"];
+
     return (
-        <div style={{ minHeight: "100vh", padding: "24px" }}>
+        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff" }}>
             <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
-        .app-card {
-          animation: fadeIn 0.5s ease forwards;
-          transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .app-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(224,64,251,0.3);
-        }
-        .nav-btn:hover {
-          transform: scale(1.05);
-          opacity: 0.9;
-        }
-        .logo-float {
-          animation: float 3s ease-in-out infinite;
-          display: inline-block;
-        }
-      `}</style>
+                * { box-sizing: border-box; }
+                .app-card { transition: transform 0.3s, box-shadow 0.3s; cursor:pointer; }
+                .app-card:hover { transform: scale(1.05); box-shadow: 0 8px 30px rgba(229,9,20,0.4); }
+                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; transition:color 0.2s; }
+                .nav-link:hover { color:#fff; }
+                .search-input { background:#333; border:none; border-radius:4px; padding:8px 16px; color:#fff; font-size:14px; outline:none; width:240px; }
+                .search-input::placeholder { color:#8c8c8c; }
+                .tag { display:inline-block; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:700; background:#e5090422; color:#e50914; margin-bottom:10px; }
+                .view-btn { padding:8px 20px; background:#e50914; border:none; border-radius:4px; color:#fff; font-size:13px; font-weight:700; cursor:pointer; transition:background 0.2s; }
+                .view-btn:hover { background:#f40612; }
+            `}</style>
 
             {/* Navbar */}
-            <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "rgba(255,255,255,0.05)",
-                backdropFilter: "blur(20px)",
-                border: "1px solid rgba(224,64,251,0.2)",
-                borderRadius: 16,
-                padding: "14px 24px",
-                maxWidth: 1100,
-                margin: "0 auto 32px",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span className="logo-float" style={{ fontSize: 28 }}>⚡</span>
-                    <span style={{
-                        fontSize: 22,
-                        fontWeight: 900,
-                        background: "linear-gradient(135deg, #e040fb, #00e5ff)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                    }}>AnimeStore</span>
+            <nav style={{ background:"rgba(20,20,20,0.95)", backdropFilter:"blur(10px)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #222" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:32 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <span style={{ fontSize:28 }}>🐼</span>
+                        <span style={{ fontSize:22, fontWeight:900, color:"#e50914", letterSpacing:2 }}>PANDASTORE</span>
+                    </div>
+                    <div style={{ display:"flex", gap:20 }}>
+                        <Link to="/home" className="nav-link">Home</Link>
+                        <Link to="/submit" className="nav-link">Submit App</Link>
+                        <Link to="/admin" className="nav-link">Admin</Link>
+                        <Link to="/profile" className="nav-link">Profile</Link>
+                    </div>
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                    <Link to="/submit">
-                        <button className="nav-btn" style={{
-                            padding: "8px 20px",
-                            background: "linear-gradient(135deg, #00e5ff, #7c4dff)",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 12,
-                        }}>🚀 Submit App</button>
-                    </Link>
-                    <Link to="/admin">
-                        <button className="nav-btn" style={{
-                            padding: "8px 20px",
-                            background: "linear-gradient(135deg, #ff6b6b, #e040fb)",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 12,
-                        }}>🛡️ Admin</button>
-                    </Link>
-                    <Link to="/profile">
-                        <button className="nav-btn" style={{
-                            padding: "8px 20px",
-                            background: "rgba(255,255,255,0.1)",
-                            color: "#fff",
-                            border: "1px solid rgba(255,255,255,0.2)",
-                            borderRadius: 12,
-                        }}>👤 Profile</button>
-                    </Link>
-                    <button className="nav-btn" onClick={handleLogout} style={{
-                        padding: "8px 20px",
-                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
-                        color: "#fff",
-                        borderRadius: 12,
-                    }}>Logout 🚪</button>
+                <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                    <input className="search-input" placeholder="🔍  Search apps..." value={search} onChange={e => setSearch(e.target.value)} />
+                    <button onClick={handleLogout} style={{ padding:"8px 20px", background:"transparent", border:"1px solid #e5e5e5", borderRadius:4, color:"#e5e5e5", fontSize:14, cursor:"pointer" }}>Sign Out</button>
                 </div>
-            </div>
+            </nav>
 
-            {/* Hero */}
-            <div style={{
-                textAlign: "center",
-                maxWidth: 1100,
-                margin: "0 auto 40px",
-            }}>
-                <h1 style={{
-                    fontSize: 48,
-                    fontWeight: 900,
-                    background: "linear-gradient(135deg, #e040fb, #00e5ff, #ff6b6b)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    marginBottom: 12,
-                }}>Discover Amazing Apps ✨</h1>
-                <p style={{ color: "#9090bb", fontSize: 18 }}>
-                    Find and download the best apps in the universe 🌌
-                </p>
+            {/* Hero Banner */}
+            <div style={{ background:"linear-gradient(to bottom, #1a1a1a, #141414)", padding:"80px 48px 60px", borderBottom:"1px solid #222" }}>
+                <div style={{ maxWidth:600 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#e50914", letterSpacing:3, marginBottom:16, textTransform:"uppercase" }}>🐼 PandaStore Original</div>
+                    <h1 style={{ fontSize:52, fontWeight:900, lineHeight:1.1, marginBottom:20 }}>Discover Amazing Apps</h1>
+                    <p style={{ color:"#a3a3a3", fontSize:18, lineHeight:1.6, marginBottom:32 }}>Find, download and share the best apps in the universe. Built by creators, for creators.</p>
+                    <div style={{ display:"flex", gap:16 }}>
+                        <Link to="/submit">
+                            <button style={{ padding:"14px 32px", background:"#e50914", border:"none", borderRadius:4, color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer" }}>🚀 Submit Your App</button>
+                        </Link>
+                        <Link to="/profile">
+                            <button style={{ padding:"14px 32px", background:"rgba(109,109,110,0.7)", border:"none", borderRadius:4, color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer" }}>👤 My Profile</button>
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             {/* Apps Grid */}
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                {error && <p style={{ color: "#ff6b6b", textAlign: "center" }}>{error}</p>}
-                {apps.length === 0 && (
-                    <div style={{ textAlign: "center", color: "#9090bb", marginTop: 60 }}>
-                        <div style={{ fontSize: 64, marginBottom: 16 }}>🌠</div>
-                        <p style={{ fontSize: 18 }}>No apps available yet</p>
+            <div style={{ padding:"48px", maxWidth:1400, margin:"0 auto" }}>
+                <h2 style={{ fontSize:24, fontWeight:700, marginBottom:24, color:"#e5e5e5" }}>
+                    {search ? `Search results for "${search}"` : "All Apps"}
+                </h2>
+                {error && <p style={{ color:"#e87c03" }}>{error}</p>}
+                {filtered.length === 0 && !error && (
+                    <div style={{ textAlign:"center", color:"#737373", padding:"80px 0" }}>
+                        <div style={{ fontSize:64, marginBottom:16 }}>🐼</div>
+                        <p style={{ fontSize:18 }}>No apps found</p>
                     </div>
                 )}
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                    gap: 24,
-                }}>
-                    {apps.map((app, i) => (
-                        <div key={app.id} className="app-card" style={{
-                            background: "rgba(255,255,255,0.05)",
-                            backdropFilter: "blur(20px)",
-                            border: "1px solid rgba(224,64,251,0.2)",
-                            borderRadius: 20,
-                            padding: 24,
-                            animationDelay: `${i * 0.1}s`,
-                        }}>
-                            <div style={{ fontSize: 40, marginBottom: 12, textAlign: "center" }}>
-                                {["🎮", "🎵", "📱", "🚀", "⚡", "🌟", "🎨", "🔥"][i % 8]}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:20 }}>
+                    {filtered.map((app, i) => (
+                        <div key={app.id} className="app-card" style={{ background:"#1f1f1f", borderRadius:8, overflow:"hidden", border:"1px solid #2a2a2a" }}>
+                            <div style={{ height:140, background:`linear-gradient(135deg, #${['1a1a2e','0d1b2a','1b1b2f','2d1b3d','1a2a1a'][i%5]}, #${['16213e','1a1a2e','2d1b3d','0d1b2a','2a1a1a'][i%5]})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:52 }}>
+                                {icons[i % icons.length]}
                             </div>
-                            <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>{app.name}</h3>
-                            <span style={{
-                                display: "inline-block",
-                                padding: "3px 10px",
-                                borderRadius: 20,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "linear-gradient(135deg, #e040fb33, #7c4dff33)",
-                                border: "1px solid #e040fb55",
-                                color: "#e040fb",
-                                marginBottom: 10,
-                            }}>{app.category}</span>
-                            <p style={{ color: "#9090bb", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
-                                {app.description}
-                            </p>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <span style={{
-                                    fontSize: 20,
-                                    fontWeight: 900,
-                                    background: "linear-gradient(135deg, #00e5ff, #e040fb)",
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
-                                }}>${app.price}</span>
-                                <Link to={`/apps/${app.id}`}>
-                                    <button style={{
-                                        padding: "8px 20px",
-                                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
-                                        color: "#fff",
-                                        fontSize: 14,
-                                        borderRadius: 12,
-                                    }}>View 👁️</button>
-                                </Link>
+                            <div style={{ padding:16 }}>
+                                <div className="tag">{app.category}</div>
+                                <h3 style={{ fontSize:16, fontWeight:700, marginBottom:6, color:"#fff" }}>{app.name}</h3>
+                                <p style={{ color:"#737373", fontSize:13, marginBottom:12, lineHeight:1.5, height:40, overflow:"hidden" }}>{app.description || "No description available"}</p>
+                                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                                    <span style={{ fontSize:16, fontWeight:700, color:app.price === 0 ? "#46d369" : "#e5e5e5" }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
+                                    <Link to={`/apps/${app.id}`}>
+                                        <button className="view-btn">View</button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            {/* Footer */}
+            <footer style={{ borderTop:"1px solid #222", padding:"40px 48px", color:"#737373", fontSize:13 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+                    <span style={{ fontSize:20 }}>🐼</span>
+                    <span style={{ color:"#e50914", fontWeight:700 }}>PANDASTORE</span>
+                </div>
+                <p>© 2026 PandaStore. All rights reserved.</p>
+            </footer>
         </div>
     );
 }

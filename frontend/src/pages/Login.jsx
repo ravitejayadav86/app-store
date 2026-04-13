@@ -14,7 +14,7 @@ export default function Login() {
         try {
             const { data } = await login({ username, password });
             localStorage.setItem("token", data.access_token);
-            navigate("/");
+            navigate("/home");
         } catch {
             setError("Invalid username or password");
         } finally {
@@ -23,108 +23,42 @@ export default function Login() {
     };
 
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-        }}>
+        <div style={{ minHeight:"100vh", background:"#141414", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24 }}>
             <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 20px #e040fb; }
-          50% { box-shadow: 0 0 40px #e040fb, 0 0 60px #7c4dff; }
-        }
-        .login-card {
-          animation: fadeIn 0.6s ease forwards;
-        }
-        .anime-btn {
-          animation: pulse 2s infinite;
-        }
-        .anime-btn:hover {
-          transform: scale(1.05);
-          background: linear-gradient(135deg, #ff80ff, #7c4dff) !important;
-        }
-        .title-float {
-          animation: float 3s ease-in-out infinite;
-          display: inline-block;
-        }
-      `}</style>
+                * { box-sizing: border-box; }
+                .panda-input { width:100%; padding:16px; margin-bottom:16px; background:#333; border:none; border-radius:4px; color:#fff; font-size:16px; outline:none; }
+                .panda-input:focus { background:#454545; }
+                .panda-input::placeholder { color:#8c8c8c; }
+                .panda-btn { width:100%; padding:16px; background:#e50914; border:none; border-radius:4px; color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px; transition:background 0.2s; }
+                .panda-btn:hover { background:#f40612; }
+                .panda-btn:disabled { background:#831010; cursor:default; }
+            `}</style>
 
-            <div className="login-card" style={{
-                background: "rgba(255,255,255,0.05)",
-                backdropFilter: "blur(20px)",
-                border: "1px solid rgba(224,64,251,0.3)",
-                borderRadius: 24,
-                padding: 40,
-                width: "100%",
-                maxWidth: 420,
-            }}>
-                <div style={{ textAlign: "center", marginBottom: 32 }}>
-                    <span className="title-float" style={{ fontSize: 48 }}>⚔️</span>
-                    <h1 style={{
-                        fontSize: 32,
-                        fontWeight: 900,
-                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        marginTop: 8,
-                    }}>Welcome Back!</h1>
-                    <p style={{ color: "#9090bb", marginTop: 6 }}>Login to your account</p>
-                </div>
+            {/* Logo */}
+            <div style={{ marginBottom:40, textAlign:"center" }}>
+                <div style={{ fontSize:60, marginBottom:8 }}>🐼</div>
+                <div style={{ fontSize:32, fontWeight:900, color:"#e50914", letterSpacing:2 }}>PANDASTORE</div>
+            </div>
+
+            {/* Card */}
+            <div style={{ background:"#000", borderRadius:8, padding:60, width:"100%", maxWidth:450 }}>
+                <h1 style={{ color:"#fff", fontSize:32, fontWeight:700, marginBottom:28 }}>Sign In</h1>
 
                 {error && (
-                    <div style={{
-                        background: "rgba(255,50,50,0.15)",
-                        border: "1px solid rgba(255,50,50,0.4)",
-                        borderRadius: 12,
-                        padding: "10px 16px",
-                        marginBottom: 16,
-                        color: "#ff6b6b",
-                        fontSize: 14,
-                    }}>{error}</div>
+                    <div style={{ background:"#e87c0333", border:"1px solid #e87c03", borderRadius:4, padding:"12px 16px", marginBottom:16, color:"#e87c03", fontSize:14 }}>
+                        {error}
+                    </div>
                 )}
 
-                <input
-                    placeholder="Username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleLogin()}
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleLogin()}
-                />
+                <input className="panda-input" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
+                <input className="panda-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
 
-                <button
-                    className="anime-btn"
-                    onClick={handleLogin}
-                    disabled={loading}
-                    style={{
-                        width: "100%",
-                        padding: 14,
-                        fontSize: 16,
-                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
-                        color: "#fff",
-                        marginTop: 8,
-                    }}
-                >
-                    {loading ? "Logging in..." : "Login ✨"}
+                <button className="panda-btn" onClick={handleLogin} disabled={loading}>
+                    {loading ? "Signing in..." : "Sign In"}
                 </button>
 
-                <p style={{ textAlign: "center", marginTop: 20, color: "#9090bb" }}>
-                    Don't have an account? <Link to="/register">Register</Link>
+                <p style={{ color:"#737373", marginTop:20, fontSize:16 }}>
+                    New to PandaStore? <Link to="/register" style={{ color:"#fff", fontWeight:700, textDecoration:"none" }}>Sign up now</Link>
                 </p>
             </div>
         </div>
