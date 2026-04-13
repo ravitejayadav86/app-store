@@ -45,6 +45,10 @@ export default function Intro() {
           0%, 100% { text-shadow: 0 0 20px #e50914, 0 0 40px #b9090b; }
           50% { text-shadow: 0 0 40px #ff0000, 0 0 80px #000; }
         }
+        @keyframes revealPage {
+          from { opacity: 0; transform: scale(0.98); filter: blur(10px); }
+          to { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
@@ -125,7 +129,7 @@ export default function Intro() {
         margin: 0,
         opacity: phase >= 1 ? 1 : 0,
         transform: phase >= 1 ? "translateY(0)" : "translateY(30px)",
-        transition: "all 0.8s ease",
+        transition: "all 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
         animation: phase >= 1 ? "glow 2s infinite" : "none",
         letterSpacing: 2,
       }}>PANDASTORE</h1>
@@ -138,7 +142,7 @@ export default function Intro() {
         letterSpacing: 4,
         opacity: phase >= 2 ? 1 : 0,
         transform: phase >= 2 ? "translateY(0)" : "translateY(20px)",
-        transition: "all 0.8s ease",
+        transition: "all 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
         textTransform: "uppercase",
       }}>Discover · Download · Create</p>
 

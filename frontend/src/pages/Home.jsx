@@ -46,42 +46,44 @@ export default function Home() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", padding: "24px" }}>
+        <div style={{ minHeight: "100vh", padding: "24px", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
+        @keyframes revealPage {
+          from { opacity: 0; transform: scale(0.98); filter: blur(10px); }
+          to { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+        @keyframes revealItem {
+          from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-6px); }
         }
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.6; }
-        }
         .app-card {
-          animation: fadeIn 0.5s ease forwards;
-          transition: transform 0.3s, box-shadow 0.3s;
+          animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           opacity: 0;
         }
         .app-card:hover {
-          transform: translateY(-10px) scale(1.02);
-          box-shadow: 0 25px 50px rgba(229,9,20,0.35);
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 20px 40px rgba(229,9,20,0.25);
         }
-        .nav-btn { transition: all 0.3s; }
-        .nav-btn:hover { transform: scale(1.05); opacity: 0.9; }
-        .cat-pill { transition: all 0.3s; cursor: pointer; }
-        .cat-pill:hover { transform: scale(1.08); }
+        .nav-btn { 
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+          cursor: pointer;
+        }
+        .nav-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .nav-btn:active { transform: scale(0.96); }
+        .cat-pill { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; }
+        .cat-pill:hover { transform: translateY(-2px); }
+        .cat-pill:active { transform: scale(0.94); }
         .logo-float { animation: float 3s ease-in-out infinite; display: inline-block; }
-        .search-input:focus { border-color: #e50914 !important; }
+        .search-input { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .search-input:focus { border-color: #e50914 !important; box-shadow: 0 0 15px rgba(229,9,20,0.1); transform: scale(1.01); }
         .spinner { animation: spin 1s linear infinite; display: inline-block; }
         select {
           background: rgba(255,255,255,0.07);
@@ -93,7 +95,9 @@ export default function Home() {
           font-size: 14px;
           outline: none;
           cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        select:hover { border-color: #e5091444; }
         select option { background: #141414; }
       `}</style>
 
@@ -247,7 +251,7 @@ export default function Home() {
                             border: "1px solid rgba(224,64,251,0.2)",
                             borderRadius: 20,
                             padding: 24,
-                            animationDelay: `${i * 0.08}s`,
+                            animationDelay: `${i * 0.05}s`,
                         }}>
                             <div style={{ fontSize: 40, marginBottom: 12, textAlign: "center" }}>
                                 {EMOJIS[app.id % 8]}

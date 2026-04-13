@@ -30,16 +30,40 @@ export default function AdminDashboard() {
     };
 
     return (
-        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff" }}>
+        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; }
+                @keyframes revealPage {
+                    from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
+                    to { opacity: 1; filter: blur(0); transform: scale(1); }
+                }
+                @keyframes revealItem {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; transition: color 0.3s; }
                 .nav-link:hover { color:#fff; }
-                .app-row { background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:20px 24px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
-                .app-row:hover { border-color:#444; }
-                .approve-btn { padding:10px 20px; background:#46d369; border:none; border-radius:4px; color:#000; font-size:13px; font-weight:700; cursor:pointer; }
-                .approve-btn:hover { background:#3bc95e; }
-                .reject-btn { padding:10px 20px; background:#e50914; border:none; border-radius:4px; color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
-                .reject-btn:hover { background:#f40612; }
+                .app-row { 
+                    background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:20px 24px; 
+                    margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; 
+                    gap:16px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    opacity: 0;
+                }
+                .app-row:hover { border-color:#e50914; transform: translateX(8px); }
+                .approve-btn { 
+                    padding:10px 20px; background:#46d369; border:none; border-radius:4px; 
+                    color:#000; font-size:13px; font-weight:700; cursor:pointer;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .approve-btn:hover { background:#3bc95e; transform: translateY(-2px); }
+                .approve-btn:active { transform: scale(0.94); }
+                .reject-btn { 
+                    padding:10px 20px; background:#e50914; border:none; border-radius:4px; 
+                    color:#fff; font-size:13px; font-weight:700; cursor:pointer;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .reject-btn:hover { background:#f40612; transform: translateY(-2px); }
+                .reject-btn:active { transform: scale(0.94); }
             `}</style>
             <nav style={{ background:"rgba(20,20,20,0.95)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #222" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:32 }}>
@@ -62,8 +86,8 @@ export default function AdminDashboard() {
                         <p style={{ color:"#737373", fontSize:18 }}>No pending apps</p>
                     </div>
                 )}
-                {pending.map((app) => (
-                    <div key={app.id} className="app-row">
+                {pending.map((app, i) => (
+                    <div key={app.id} className="app-row" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
                         <div style={{ flex:1 }}>
                             <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8 }}>
                                 <h3 style={{ fontSize:18, fontWeight:700 }}>{app.name}</h3>

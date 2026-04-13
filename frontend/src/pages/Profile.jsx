@@ -24,14 +24,32 @@ export default function Profile() {
     );
 
     return (
-        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff" }}>
+        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
                 * { box-sizing: border-box; }
-                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; }
+                @keyframes revealPage {
+                    from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
+                    to { opacity: 1; filter: blur(0); transform: scale(1); }
+                }
+                @keyframes revealItem {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; transition: color 0.3s; }
                 .nav-link:hover { color:#fff; }
-                .info-card { background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:20px; }
-                .purchase-item { background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:16px 20px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; transition:border-color 0.2s; }
-                .purchase-item:hover { border-color:#e50914; }
+                .info-card { 
+                    background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:20px; 
+                    animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    opacity: 0;
+                }
+                .purchase-item { 
+                    background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:16px 20px; 
+                    margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; 
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    opacity: 0;
+                }
+                .purchase-item:hover { border-color:#e50914; transform: translateX(8px); }
             `}</style>
 
             {/* Navbar */}
@@ -53,7 +71,11 @@ export default function Profile() {
             <div style={{ maxWidth:800, margin:"0 auto", padding:"48px 24px" }}>
 
                 {/* Profile Header */}
-                <div style={{ display:"flex", alignItems:"center", gap:24, marginBottom:40, padding:32, background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a" }}>
+                <div style={{ 
+                    display:"flex", alignItems:"center", gap:24, marginBottom:40, padding:32, 
+                    background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a",
+                    animation: "revealItem 1s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+                }}>
                     <div style={{ width:80, height:80, borderRadius:"50%", background:"#e50914", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>🐼</div>
                     <div>
                         <h1 style={{ fontSize:28, fontWeight:700, marginBottom:4 }}>{user.username}</h1>
@@ -71,7 +93,7 @@ export default function Profile() {
                         { label:"Total Purchases", value: purchases.length },
                         { label:"Account Status", value: user.is_active ? "Active" : "Inactive" },
                     ].map((item, i) => (
-                        <div key={i} className="info-card" style={{ textAlign:"center" }}>
+                        <div key={i} className="info-card" style={{ textAlign:"center", animationDelay: `${0.1 + i * 0.1}s` }}>
                             <p style={{ color:"#737373", fontSize:12, marginBottom:8, textTransform:"uppercase", letterSpacing:1 }}>{item.label}</p>
                             <p style={{ fontSize:20, fontWeight:700 }}>{item.value}</p>
                         </div>
@@ -90,8 +112,8 @@ export default function Profile() {
                             </Link>
                         </div>
                     ) : (
-                        purchases.map((p) => (
-                            <div key={p.id} className="purchase-item">
+                        purchases.map((p, i) => (
+                            <div key={p.id} className="purchase-item" style={{ animationDelay: `${0.4 + i * 0.05}s` }}>
                                 <div>
                                     <p style={{ fontWeight:700, marginBottom:4 }}>App ID: {p.app_id}</p>
                                     <p style={{ color:"#737373", fontSize:13 }}>{new Date(p.purchased_at).toLocaleDateString()}</p>

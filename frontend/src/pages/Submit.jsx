@@ -44,10 +44,14 @@ export default function Submit() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", padding: 24 }}>
+        <div style={{ minHeight: "100vh", padding: 24, animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(30px); }
+        @keyframes revealPage {
+          from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
+          to { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+        @keyframes driftUp {
+          from { opacity: 0; transform: translateY(40px); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes float {
@@ -55,14 +59,29 @@ export default function Submit() {
           50% { transform: translateY(-8px); }
         }
         @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 20px #ff6b6b; }
-          50% { box-shadow: 0 0 40px #ff6b6b, 0 0 60px #e040fb; }
+          0%, 100% { box-shadow: 0 0 20px rgba(229,9,20,0.2); }
+          50% { box-shadow: 0 0 40px rgba(229,9,20,0.4), 0 0 60px rgba(115,115,115,0.1); }
         }
-        .submit-card { animation: fadeIn 0.6s ease forwards; }
+        .submit-card { animation: driftUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .title-float { animation: float 3s ease-in-out infinite; display: inline-block; }
-        .submit-btn { animation: pulse 2s infinite; }
-        .submit-btn:hover { transform: scale(1.05); transition: 0.2s; }
+        .submit-btn { animation: pulse 2s infinite; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; border: none; }
+        .submit-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .submit-btn:active { transform: scale(0.96); }
         .cat-btn:hover { transform: scale(1.05); }
+        input {
+          width: 100%;
+          padding: 12px 16px;
+          margin-bottom: 14px;
+          border-radius: 12px;
+          border: 2px solid #333;
+          background: rgba(255,255,255,0.07);
+          color: #fff;
+          font-size: 15px;
+          font-family: 'Nunito', sans-serif;
+          outline: none;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        input:focus { border-color: #e5091444; background: rgba(255,255,255,0.1); transform: scale(1.01); }
         select {
           width: 100%;
           padding: 12px 16px;
@@ -74,7 +93,9 @@ export default function Submit() {
           font-size: 15px;
           font-family: 'Nunito', sans-serif;
           outline: none;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        select:hover { border-color: #e5091444; }
         select option { background: #141414; color: #fff; }
         textarea {
           width: 100%;
@@ -89,8 +110,9 @@ export default function Submit() {
           outline: none;
           resize: vertical;
           min-height: 100px;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        textarea:focus { border-color: #e50914; }
+        textarea:focus { border-color: #e5091444; background: rgba(255,255,255,0.1); transform: scale(1.01); }
         textarea::placeholder { color: #737373; }
       `}</style>
 
