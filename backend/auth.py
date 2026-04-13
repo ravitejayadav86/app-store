@@ -5,8 +5,8 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from . import models, schemas
-from .database import get_db
+import models, schemas
+from database import get_db
 import os
 
 SECRET_KEY  = os.getenv("SECRET_KEY", "fallback-secret")
