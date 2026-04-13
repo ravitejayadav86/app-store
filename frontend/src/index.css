@@ -10,9 +10,7 @@
   --font-main: 'Outfit', sans-serif;
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.8);
-  /* 120Hz-tuned easing — shorter duration, sharper curve */
-  --transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --transition-spring: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -22,30 +20,14 @@
   font-family: var(--font-main);
 }
 
-/* 120Hz smooth rendering: native smooth scroll + GPU compositing on html */
-html {
-  scroll-behavior: smooth;
-  /* hint to the browser to use a separate compositor thread for scrolling */
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-}
-
 body {
   background-color: var(--panda-black);
   background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, var(--panda-black) 70%);
   color: #ffffff;
   min-height: 100vh;
   line-height: 1.5;
-  /* Sub-pixel antialiasing for crisp text at high refresh rates */
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeSpeed;
   overflow-x: hidden;
-  /* Prevent scroll chaining that causes jank on trackpads */
-  overscroll-behavior-y: contain;
-  /* Promote the body to its own GPU layer for composited scrolling */
-  transform: translateZ(0);
-  will-change: scroll-position;
 }
 
 ::-webkit-scrollbar {
@@ -86,26 +68,24 @@ a:hover {
   to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
-/* float: only transform, no filter — keeps it on the GPU compositor */
 @keyframes float {
-  0%, 100% { transform: translateY(0) translateZ(0); }
-  50% { transform: translateY(-10px) translateZ(0); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-/* driftUp: opacity + transform only = GPU composited */
 @keyframes driftUp {
-  from { opacity: 0; transform: translateY(30px) translateZ(0); }
-  to   { opacity: 1; transform: translateY(0) translateZ(0); }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideLeft {
-  from { opacity: 0; transform: translateX(-30px) translateZ(0); }
-  to   { opacity: 1; transform: translateX(0) translateZ(0); }
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideRight {
-  from { opacity: 0; transform: translateX(30px) translateZ(0); }
-  to   { opacity: 1; transform: translateX(0) translateZ(0); }
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes singularityPulse {
@@ -138,29 +118,11 @@ a:hover {
   100% { transform: scale(3); filter: blur(20px); opacity: 0; }
 }
 
-/* revealItem: pure transform + opacity, no layout shift */
 @keyframes revealItem {
-  0%   { opacity: 0; transform: translateY(16px) scale(0.97) translateZ(0); }
-  100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
-}
-
-/* revealPage: blurless version for 120Hz — blur causes rasterization jank */
-@keyframes revealPage {
-  from { opacity: 0; transform: scale(0.99) translateZ(0); }
-  to   { opacity: 1; transform: scale(1) translateZ(0); }
-}
-
-/* GPU utility class — promotes any element to its own compositor layer */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .logo-float {
   animation: float 4s ease-in-out infinite;
-  will-change: transform;
 }
