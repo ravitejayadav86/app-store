@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import { getMe, getPurchases, downloadApp, getSubmissions } from "../api";
+import useParallax from "../hooks/useParallax";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
     const [purchases, setPurchases] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const navigate = useNavigate();
+    const parallax = useParallax(12);
 
     useEffect(() => {
         getMe().then(({ data }) => setUser(data)).catch(() => navigate("/login"));
@@ -58,20 +58,21 @@ export default function Profile() {
                     max-width: 900px;
                     margin: 60px auto;
                     padding: 0 24px;
-                    animation: driftUp 1s var(--transition) forwards;
                 }
                 .user-hero {
                     background: var(--panda-glass);
                     backdrop-filter: blur(40px);
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     border-radius: 32px;
                     padding: 48px;
                     display: flex;
                     align-items: center;
                     gap: 40px;
                     margin-bottom: 40px;
-                    box-shadow: var(--shadow-lg);
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+                    animation: float 10s ease-in-out infinite;
                 }
+                @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
                 .avatar-lg {
                     width: 120px;
                     height: 120px;
@@ -81,11 +82,11 @@ export default function Profile() {
                     align-items: center;
                     justify-content: center;
                     font-size: 56px;
-                    box-shadow: 0 20px 40px rgba(229, 9, 20, 0.2);
+                    box-shadow: 0 20px 40px rgba(0, 243, 255, 0.2);
                 }
                 .stat-card {
                     background: var(--panda-glass);
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     border-radius: 20px;
                     padding: 24px;
                     text-align: center;
@@ -139,7 +140,10 @@ export default function Profile() {
                 <button className="nav-btn-secondary" onClick={handleLogout}>Sign Out</button>
             </nav>
 
-            <main className="profile-stage">
+            <main className="profile-stage" style={{ 
+                transform: `translate(${parallax.x}px, ${parallax.y}px)`,
+                transition: "transform 0.2s ease-out"
+            }}>
                 <div className="user-hero">
                     <div className="avatar-lg">🐼</div>
                     <div style={{ flex: 1 }}>

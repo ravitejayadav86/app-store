@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { getApp, purchaseApp, downloadApp } from "../api";
+import { getApp, purchaseApp, downloadApp, getPurchases } from "../api";
+import useParallax from "../hooks/useParallax";
 
 const EMOJIS = ["🎮", "🎵", "📱", "🚀", "⚡", "🌟", "🎨", "🔥"];
 
@@ -12,6 +11,7 @@ export default function AppDetail() {
     const [purchased, setPurchased] = useState(false);
     const navigate = useNavigate();
     const [downloading, setDownloading] = useState(false);
+    const parallax = useParallax(15);
 
     useEffect(() => {
         getApp(id).then(({ data }) => setApp(data)).catch(() => setMsg("App not found"));
@@ -98,96 +98,36 @@ export default function AppDetail() {
                     background: var(--panda-glass);
                     border-color: #fff;
                 }
-                .hero-stage {
-                    position: relative;
-                    width: 100%;
-                    max-width: 1000px;
+                .detail-stage {
+                    max-width: 1100px;
                     margin: 60px auto;
+                    padding: 0 24px;
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 60px;
-                    align-items: center;
-                    padding: 0 40px;
+                    grid-template-columns: 400px 1fr;
+                    gap: 80px;
                 }
-                .emoji-stage {
-                    position: relative;
-                    aspect-ratio: 1;
+                .app-artwork {
+                    width: 400px;
+                    height: 400px;
                     background: var(--panda-glass);
-                    border: 1px solid var(--panda-border);
-                    border-radius: 40px;
+                    border: 1px solid #c0c0c0;
+                    border-radius: 64px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 120px;
-                    box-shadow: var(--shadow-lg);
-                    z-index: 2;
-                    animation: float 6s ease-in-out infinite;
-                }
-                .emoji-stage:hover {
-                    animation: float 6s ease-in-out infinite, glitch 0.5s infinite;
-                    border-color: #fff;
-                }
-                .emoji-reflection {
-                    position: absolute;
-                    inset: -40px;
-                    background: var(--panda-red);
-                    filter: blur(120px);
-                    opacity: 0.15;
-                    border-radius: 50%;
-                    z-index: 1;
-                }
-                .status-badge {
-                    display: inline-block;
-                    padding: 6px 16px;
-                    background: var(--panda-glass);
-                    border: 1px solid var(--panda-border);
-                    border-radius: 100px;
-                    font-size: 12px;
-                    font-weight: 800;
-                    color: var(--panda-blue);
-                    text-transform: uppercase;
-                    letter-spacing: 1.5px;
-                    margin-bottom: 24px;
-                }
-                .action-btn-primary {
-                    width: 100%;
-                    padding: 18px;
-                    background: var(--panda-gradient);
-                    color: #fff;
-                    font-weight: 800;
-                    font-size: 16px;
-                    border-radius: 16px;
-                    border: none;
+                    font-size: 200px;
+                    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
                     transition: var(--transition);
-                    cursor: pointer;
+                    animation: float 8s ease-in-out infinite;
+                    backdrop-filter: blur(20px);
                 }
-                .action-btn-primary:hover:not(:disabled) {
-                    transform: translateY(-4px);
-                    box-shadow: 0 12px 30px rgba(229, 9, 20, 0.4);
-                    animation: glitch 0.3s infinite;
-                }
-                .action-btn-secondary {
-                    width: 100%;
-                    padding: 18px;
-                    background: #fff;
-                    color: #000;
-                    font-weight: 800;
-                    font-size: 16px;
-                    border-radius: 16px;
-                    border: none;
-                    margin-top: 16px;
-                    transition: var(--transition);
-                    cursor: pointer;
-                }
-                .action-btn-secondary:hover:not(:disabled) {
-                    transform: translateY(-4px);
-                    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.3);
-                }
+                @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-20px) rotate(1deg); } }
+                
                 .info-pill {
                     background: var(--panda-glass);
                     border: 1px solid var(--panda-border);
-                    padding: 12px 20px;
-                    border-radius: 16px;
+                    padding: 16px 24px;
+                    border-radius: 20px;
                     display: flex;
                     flex-direction: column;
                     gap: 4px;
@@ -195,12 +135,60 @@ export default function AppDetail() {
                 .info-label {
                     font-size: 11px;
                     text-transform: uppercase;
-                    font-weight: 700;
+                    font-weight: 800;
                     color: #666;
+                    letter-spacing: 1px;
                 }
                 .info-value {
-                    font-size: 14px;
-                    font-weight: 800;
+                    font-size: 16px;
+                    font-weight: 900;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 6px 16px;
+                    background: rgba(0, 243, 255, 0.1);
+                    color: var(--panda-blue);
+                    border: 1px solid var(--panda-blue);
+                    border-radius: 100px;
+                    font-size: 12px;
+                    font-weight: 900;
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                    margin-bottom: 24px;
+                }
+                .action-btn-primary {
+                    width: 100%;
+                    padding: 20px;
+                    background: var(--panda-gradient);
+                    color: #fff;
+                    font-weight: 900;
+                    font-size: 16px;
+                    border-radius: 20px;
+                    border: none;
+                    transition: var(--transition);
+                    cursor: pointer;
+                    box-shadow: 0 10px 30px rgba(0, 243, 255, 0.2);
+                }
+                .action-btn-primary:hover:not(:disabled) {
+                    transform: translateY(-4px);
+                    box-shadow: 0 15px 40px rgba(0, 243, 255, 0.4);
+                }
+                .action-btn-secondary {
+                    width: 100%;
+                    padding: 20px;
+                    background: #fff;
+                    color: #000;
+                    font-weight: 900;
+                    font-size: 16px;
+                    border-radius: 20px;
+                    border: none;
+                    margin-top: 16px;
+                    transition: var(--transition);
+                    cursor: pointer;
+                }
+                .action-btn-secondary:hover:not(:disabled) {
+                    transform: translateY(-4px);
+                    box-shadow: 0 15px 40px rgba(255, 255, 255, 0.3);
                 }
             `}</style>
 
@@ -212,15 +200,19 @@ export default function AppDetail() {
                 <button className="back-btn" onClick={() => navigate(-1)}>Back to Browse</button>
             </nav>
 
-            <main className="hero-stage">
-                <div style={{ position: "relative", animation: "driftUp 1s var(--transition) forwards" }}>
-                    <div className="emoji-reflection" style={{ animation: "singularityPulse 4s infinite" }} />
-                    <div className="emoji-stage">{appEmoji}</div>
+            <main className="detail-stage" style={{ 
+                transform: `translate(${parallax.x}px, ${parallax.y}px)`, 
+                transition: "transform 0.2s ease-out" 
+            }}>
+                <div style={{ position: "relative" }}>
+                    <div className="app-artwork">
+                        {appEmoji}
+                    </div>
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 40 }}>
                         <div className="info-pill">
                             <span className="info-label">Developer</span>
-                            <span className="info-value">{app.developer}</span>
+                            <span className="info-value">{app.developer || "PandaTeam"}</span>
                         </div>
                         <div className="info-pill">
                             <span className="info-label">Version</span>
@@ -229,47 +221,47 @@ export default function AppDetail() {
                     </div>
                 </div>
 
-                <div style={{ animation: "slideRight 1s var(--transition) forwards" }}>
+                <div style={{ padding: "20px 0" }}>
                     <div className="status-badge">{app.category}</div>
-                    <h1 style={{ fontSize: 56, fontWeight: 900, letterSpacing: -2, marginBottom: 20, lineHeight: 1 }}>{app.name}</h1>
-                    <p style={{ color: "#888", fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
+                    <h1 style={{ fontSize: 64, fontWeight: 900, letterSpacing: -3, marginBottom: 20, lineHeight: 1 }}>{app.name}</h1>
+                    <p style={{ color: "#888", fontSize: 20, lineHeight: 1.6, marginBottom: 40, maxWidth: 600 }}>
                         {app.description || "The definitive experience for modern users. This application pushes the boundaries of what's possible in the Cosmic Era."}
                     </p>
 
-                    <div style={{ display: "flex", alignItems: "flex-end", gap: 24, marginBottom: 40 }}>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 24, marginBottom: 60 }}>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, textTransform: "uppercase", fontWeight: 800, color: "var(--panda-blue)", marginBottom: 8, letterSpacing: 1 }}>Investment</div>
-                            <div style={{ fontSize: 48, fontWeight: 900, color: app.price === 0 ? "var(--panda-blue)" : "#fff" }}>
+                            <div style={{ fontSize: 13, textTransform: "uppercase", fontWeight: 900, color: "var(--panda-blue)", marginBottom: 8, letterSpacing: 2 }}>Investment Access</div>
+                            <div style={{ fontSize: 56, fontWeight: 900, color: app.price === 0 ? "var(--panda-blue)" : "#fff" }}>
                                 {app.price === 0 ? "Complimentary" : `$${app.price}`}
                             </div>
                         </div>
                     </div>
 
                     {msg && (
-                        <div style={{ background: purchased ? "rgba(0, 210, 255, 0.1)" : "rgba(229, 9, 20, 0.1)", border: `1px solid ${purchased ? "var(--panda-blue)" : "var(--panda-red)"}`, borderRadius: 12, padding: 16, marginBottom: 24, color: purchased ? "var(--panda-blue)" : "var(--panda-red)", fontWeight: 700, fontSize: 14 }}>
+                        <div style={{ background: purchased ? "rgba(0, 243, 255, 0.1)" : "rgba(229, 9, 20, 0.1)", border: `1px solid ${purchased ? "var(--panda-blue)" : "var(--panda-red)"}`, borderRadius: 20, padding: "20px 24px", marginBottom: 32, color: purchased ? "var(--panda-blue)" : "var(--panda-red)", fontWeight: 800, fontSize: 14 }}>
                             {msg}
                         </div>
                     )}
 
                     <button className="action-btn-primary" onClick={handlePurchase} disabled={loading || purchased}>
-                        {loading ? "Authenticating..." : purchased ? "Owned" : app.price === 0 ? "Add to My Collection" : "Acquire License"}
+                        {loading ? "Authenticating..." : purchased ? "Licensed & Secured" : app.price === 0 ? "Add to My Collection" : "Acquire License"}
                     </button>
 
                     {(purchased || app.price === 0) && (
                         app.file_path ? (
                             <button className="action-btn-secondary" onClick={handleDownload} disabled={downloading}>
-                                {downloading ? "Transmitting..." : "Download Resources"}
+                                {downloading ? "Transmitting Binary..." : "Download Resources"}
                             </button>
                         ) : (
                             <div style={{ 
-                                marginTop: 16, 
-                                padding: 16, 
+                                marginTop: 24, 
+                                padding: 24, 
                                 background: "rgba(255, 255, 255, 0.05)", 
                                 border: "1px dashed var(--panda-border)", 
-                                borderRadius: 16,
+                                borderRadius: 24,
                                 textAlign: "center",
                                 color: "#666",
-                                fontSize: 13
+                                fontSize: 14
                             }}>
                                 📡 No binary resources are currently associated with this transmission.
                             </div>
@@ -280,4 +272,3 @@ export default function AppDetail() {
         </div>
     );
 }
-

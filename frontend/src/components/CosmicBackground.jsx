@@ -1,87 +1,97 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const CosmicBackground = () => {
-  const stars = useMemo(() => {
-    return [...Array(150)].map((_, i) => ({
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      size: Math.random() * 2 + 1,
-      duration: Math.random() * 3 + 2,
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.7 + 0.3,
-      color: i % 5 === 0 ? 'var(--panda-red)' : i % 8 === 0 ? 'var(--panda-blue)' : '#fff'
-    }));
-  }, []);
+const AntiGravityBackground = () => {
+    const canvasRef = useRef(null);
 
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'black',
-      zIndex: -1,
-      overflow: 'hidden',
-      backgroundAttachment: 'fixed'
-    }}>
-      <style>{`
-        .nebula {
-          position: absolute;
-          width: 80vw;
-          height: 80vh;
-          border-radius: 50%;
-          filter: blur(120px);
-          opacity: 0.15;
-          mix-blend-mode: screen;
-          pointer-events: none;
-        }
-        .nebula-red {
-          background: var(--panda-red);
-          top: -20%;
-          left: -10%;
-          animation: float 20s ease-in-out infinite alternate;
-        }
-        .nebula-blue {
-          background: var(--panda-blue);
-          bottom: -20%;
-          right: -10%;
-          animation: float 25s ease-in-out infinite alternate-reverse;
-        }
-        @keyframes drift {
-          from { transform: translateY(0); }
-          to { transform: translateY(-50px); }
-        }
-      `}</style>
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
 
-      {/* Nebula Clouds */}
-      <div className="nebula nebula-red" />
-      <div className="nebula nebula-blue" />
+        let particles = [];
+        const particleCount = 100;
+        
+        const resize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
 
-      {/* Interactive Stars Grid */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        animation: 'drift 60s linear infinite alternate'
-      }}>
-        {stars.map((star, i) => (
-          <div
-            key={i}
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 2 + 1;
+                this.speedY = Math.random() * 0.5 + 0.2;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.hue = Math.random() > 0.5 ? 190 : 280; // Cyan or Purple
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                
+                if (this.y < -10) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.opacity})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `hsl(${this.hue}, 100%, 70%)`;
+                ctx.fill();
+            }
+        }
+
+        const init = () => {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        };
+
+        const render = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        window.addEventListener('resize', resize);
+        resize();
+        init();
+        render();
+
+        return () => {
+            window.removeEventListener('resize', resize);
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
             style={{
-              position: 'absolute',
-              left: star.left,
-              top: star.top,
-              width: star.size,
-              height: star.size,
-              backgroundColor: star.color,
-              borderRadius: '50%',
-              opacity: star.opacity,
-              boxShadow: `0 0 ${star.size * 2}px ${star.color}`,
-              animation: `starTwinkle ${star.duration}s ease-in-out infinite`,
-              animationDelay: `${star.delay}s`
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: -1,
+                background: 'radial-gradient(circle at 50% 100%, #0a0a14 0%, #050505 100%)',
+                pointerEvents: 'none'
             }}
-          />
-        ))}
-      </div>
-    </div>
-  );
+        />
+    );
 };
 
-export default CosmicBackground;
+export default AntiGravityBackground;

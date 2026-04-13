@@ -2,15 +2,30 @@
 
 :root {
   --panda-red: #e50914;
-  --panda-blue: #00d2ff;
+  --panda-blue: #00f3ff; /* Neon Cyan */
+  --panda-purple: #bc13fe; /* Bioluminescent Purple */
+  --panda-silver: #e0e0e0;
   --panda-black: #050505;
+  --panda-obsidian: #0a0a14;
   --panda-glass: rgba(255, 255, 255, 0.03);
-  --panda-border: rgba(255, 255, 255, 0.08);
-  --panda-gradient: linear-gradient(135deg, var(--panda-red), var(--panda-blue));
+  --panda-glass-heavy: rgba(10, 10, 20, 0.6);
+  --panda-border: rgba(255, 255, 255, 0.1);
+  --panda-gradient: linear-gradient(135deg, var(--panda-blue), var(--panda-purple));
   --font-main: 'Outfit', sans-serif;
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.8);
-  --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bobbing {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(4px) rotate(-1deg); }
+}
+
+.anti-gravity {
+  animation: bobbing 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 * {

@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getApps } from "../api";
+import useParallax from "../hooks/useParallax";
 
 const CATEGORIES = ["All", "Utilities", "Games", "Education", "Music", "Productivity", "Social", "Health", "Finance"];
 const EMOJIS = ["🎮", "🎵", "📱", "🚀", "⚡", "🌟", "🎨", "🔥"];
@@ -13,6 +13,7 @@ export default function Home() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const parallax = useParallax(20); // Intensity of the inverse parallax
 
     useEffect(() => {
         getApps()
@@ -94,15 +95,21 @@ export default function Home() {
                 }
                 .dashboard-bar {
                     max-width: 1100px;
-                    margin: 0 auto 40px;
+                    margin: -30px auto 60px;
                     background: var(--panda-glass);
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     border-radius: 20px;
-                    padding: 16px 24px;
                     display: flex;
-                    gap: 16px;
                     align-items: center;
-                    backdrop-filter: blur(10px);
+                    padding: 0 24px;
+                    gap: 16px;
+                    backdrop-filter: blur(40px);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    transition: var(--transition);
+                }
+                .dashboard-bar:focus-within {
+                    border-color: var(--panda-blue);
+                    box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
                 }
                 .search-field {
                     flex: 1;
@@ -111,10 +118,11 @@ export default function Home() {
                     color: #fff;
                     font-size: 16px;
                     outline: none;
+                    padding: 16px 0;
                 }
                 .filter-select {
                     background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     color: #fff;
                     padding: 8px 16px;
                     border-radius: 12px;
@@ -142,7 +150,7 @@ export default function Home() {
                     white-space: nowrap;
                     font-size: 14px;
                     font-weight: 600;
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     background: var(--panda-glass);
                     color: #777;
                     transition: var(--transition);
@@ -166,7 +174,7 @@ export default function Home() {
                 }
                 .panda-card {
                     background: rgba(255, 255, 255, 0.02);
-                    border: 1px solid var(--panda-border);
+                    border: 1px solid #c0c0c0;
                     border-radius: 24px;
                     padding: 32px;
                     transition: var(--transition);
@@ -217,6 +225,8 @@ export default function Home() {
                     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
                     animation: glitch 0.3s infinite;
                 }
+                .anti-gravity { animation: float 6s ease-in-out infinite; }
+                @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
             `}</style>
 
             <nav className="glass-nav">
@@ -238,23 +248,30 @@ export default function Home() {
                 </div>
             </nav>
 
-            <header className="hero-section" style={{ animation: "driftUp 1s var(--transition) forwards" }}>
-                <h1 style={{ 
+            <header className="hero-section" style={{ 
+                transform: `translate(${-parallax.x}px, ${-parallax.y}px)`, 
+                transition: "transform 0.2s ease-out" 
+            }}>
+                <h1 className="anti-gravity" style={{ 
                     fontSize: " clamp(32px, 5vw, 64px)", 
                     fontWeight: 900, 
                     lineHeight: 1.1,
                     marginBottom: 20,
                     letterSpacing: -2,
-                    animation: "revealPage 1.5s var(--transition) forwards"
+                    animation: "revealPage 1.5s var(--transition) forwards",
+                    color: "#c0c0c0"
                 }}>
-                    The future of <span style={{ color: "var(--panda-blue)", textShadow: "0 0 20px var(--panda-blue)" }}>apps</span> is here.
+                    The future of <span style={{ color: "var(--panda-blue)", textShadow: "0 0 30px var(--panda-blue)" }}>apps</span> is weightless.
                 </h1>
-                <p style={{ color: "#888", fontSize: 18, maxWidth: 600, margin: "0 auto", opacity: 0, animation: "fadeIn 1s var(--transition) 0.5s forwards" }}>
-                    Explore a curated collection of next-generation applications optimized for the Cosmic Era.
+                <p style={{ fontSize: 18, color: "#888", maxWidth: 600, margin: "0 auto 40px" }}>
+                    Welcome to the orbit of PandaStore. A decentralized transmission hub for ethereal software and auditory experiences.
                 </p>
             </header>
 
-            <div className="dashboard-bar">
+            <div className="dashboard-bar anti-gravity" style={{ 
+                transform: `translate(${parallax.x * 0.5}px, ${parallax.y * 0.5}px)`,
+                animationDelay: "0.2s"
+            }}>
                 <span style={{ fontSize: 20 }}>🔍</span>
                 <input 
                     className="search-field" 
