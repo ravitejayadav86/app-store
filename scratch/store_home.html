@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GLACIER GAMES | Store</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#88b4cc",
+                    "outline-variant": "#2a3a48",
+                    "on-secondary": "#001f2e",
+                    "inverse-on-surface": "#0a0e1a",
+                    "on-tertiary-container": "#e8d0ff",
+                    "secondary-container": "#1a3a4e",
+                    "on-secondary-container": "#c0d8e8",
+                    "on-surface": "#e0e8f0",
+                    "on-secondary-fixed-variant": "#2a4a5e",
+                    "on-error": "#1a0000",
+                    "tertiary-container": "#3d2060",
+                    "on-tertiary-fixed-variant": "#4d2a73",
+                    "secondary-fixed-dim": "#88b4cc",
+                    "on-secondary-fixed": "#0d1f2b",
+                    "primary-fixed-dim": "#7dd3fc",
+                    "error-container": "#3d1414",
+                    "surface-container-high": "#1a2438",
+                    "on-surface-variant": "#a0b4c4",
+                    "on-primary": "#001f2e",
+                    "surface-bright": "#1a2438",
+                    "primary": "#7dd3fc",
+                    "background": "#0a0e1a",
+                    "surface-tint": "#7dd3fc",
+                    "surface-variant": "#1a2438",
+                    "surface-dim": "#0f1524",
+                    "secondary-fixed": "#c0d8e8",
+                    "surface-container-lowest": "#0a0e1a",
+                    "on-tertiary": "#1a002e",
+                    "on-primary-fixed": "#001f2e",
+                    "on-tertiary-fixed": "#1a002e",
+                    "surface-container-low": "#111828",
+                    "inverse-surface": "#e0e8f0",
+                    "primary-fixed": "#c8eaff",
+                    "tertiary-fixed-dim": "#c8a0f0",
+                    "surface-container-highest": "#202c42",
+                    "tertiary": "#c8a0f0",
+                    "primary-container": "#0e4d6e",
+                    "tertiary-fixed": "#e8d0ff",
+                    "on-primary-container": "#c8eaff",
+                    "surface-container": "#141c2e",
+                    "on-primary-fixed-variant": "#004d73",
+                    "inverse-primary": "#0a4c6e",
+                    "surface": "#0f1524",
+                    "on-error-container": "#ffb3b3",
+                    "outline": "#4a6070",
+                    "on-background": "#e0e8f0",
+                    "error": "#ff6b6b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(15, 21, 36, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(125, 211, 252, 0.1);
+        }
+        .glass-panel-elevated {
+            background: rgba(15, 21, 36, 0.75);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(125, 211, 252, 0.15);
+        }
+        .frozen-glow {
+            box-shadow: 0 0 30px rgba(125, 211, 252, 0.05);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(125, 211, 252, 0.15) 0%, rgba(10, 14, 26, 0) 70%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full bg-slate-950/60 backdrop-blur-xl border-b border-sky-300/10 shadow-[0_0_30px_rgba(125,211,252,0.05)] flex justify-between items-center px-8 h-20 w-full z-50">
+<div class="text-2xl font-semibold tracking-tighter text-sky-300">GLACIER GAMES</div>
+<div class="hidden md:flex items-center space-x-8 font-inter tracking-tight">
+<a class="text-sky-300 border-b-2 border-sky-300 pb-1 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Store</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Library</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Community</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Support</a>
+</div>
+<div class="flex items-center space-x-6 text-sky-300">
+<div class="relative group hidden lg:block">
+<input class="bg-surface-container border-sky-300/20 rounded-full px-4 py-1.5 text-sm focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search games..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1.5 text-slate-400">search</span>
+</div>
+<button class="active:scale-95 transition-transform hover:text-sky-200">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<button class="active:scale-95 transition-transform hover:text-sky-200">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative h-[870px] flex items-center justify-center overflow-hidden px-8">
+<div class="absolute inset-0 hero-gradient"></div>
+<div class="relative z-10 max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="space-y-6">
+<span class="inline-block px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest uppercase">New Release</span>
+<h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter text-on-surface leading-tight">
+                        CRYSTAL <br/> <span class="text-primary drop-shadow-[0_0_20px_rgba(125,211,252,0.3)]">VANGUARD</span>
+</h1>
+<p class="text-lg text-on-surface-variant max-w-lg leading-relaxed">
+                        Journey through the frozen echoes of a forgotten civilization. Master the elements in this hyper-realistic 3D action RPG.
+                    </p>
+<div class="flex flex-wrap gap-4 pt-4">
+<button class="px-8 py-4 bg-primary text-on-primary font-bold rounded-lg hover:bg-primary-fixed-dim transition-all hover:scale-105 active:scale-95 frozen-glow">
+                            Play Now
+                        </button>
+<button class="px-8 py-4 glass-panel text-primary font-bold rounded-lg hover:bg-sky-300/10 transition-all hover:scale-105 active:scale-95">
+                            Watch Trailer
+                        </button>
+</div>
+</div>
+<div class="relative flex justify-center items-center group">
+<div class="absolute inset-0 bg-primary/20 blur-[100px] rounded-full group-hover:bg-primary/30 transition-all duration-700"></div>
+<img alt="3D Character" class="relative z-20 w-full max-w-[500px] animate-pulse-subtle" data-alt="A stylized 3D warrior character floating in mid-air with translucent ice-blue crystalline armor, glowing blue eyes, and ethereal energy particles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChEtbd1CjYB_SM-O5F4WkId0kNUwQABkM4L3tho6C8NYhCgNF4g_d2UiANpn5ODGF2cA4ifaa2wBBsQDdjnxEgnDYSy29_ki0EUCIOxOPr5WsMb0-dspo5BCOJjJKmRU-cjdaVG3LIEi6IeR4eOHsfRKj34ya33xaLLm4473TPyYH-Md3g1eWT-LIvuwkaSlzFY6p7K8IL_PtGq7XexK0tYtldpWFwLUZzfdgllwBpqWQhk58of6xo01OWoTmDnZaXlauU0nVhFwE"/>
+<!-- Decor elements -->
+<div class="absolute top-0 right-0 w-32 h-32 glass-panel-elevated rounded-2xl rotate-12 -z-10 animate-bounce"></div>
+<div class="absolute bottom-10 left-0 w-24 h-24 glass-panel-elevated rounded-full -rotate-12 -z-10"></div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Top Releases -->
+<section class="max-w-7xl mx-auto px-8 py-24">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-4xl font-bold tracking-tight text-on-surface">Top Releases</h2>
+<p class="text-on-surface-variant">Most played experiences this month</p>
+</div>
+<button class="text-primary flex items-center gap-2 hover:underline font-semibold">
+                    View All <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Large Card -->
+<div class="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl glass-panel frozen-glow cursor-pointer transition-all duration-500 hover:scale-[1.02]">
+<img alt="Game 1" class="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" data-alt="Cinematic wide shot of a futuristic neon city under a frozen sky with purple and blue atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAMtYmOMbeifsaCTO1Tj3p-9xeYVNrU4a8fW2-pmtfDo9F6zylw_sl9AljjWJVwIu3491asuVj0MUym_EgOck9oIOobl2-SUr-dPHIE3qI6GARk6RXf13vW6XUYLHP7_hqWpZYpU3i2IvedflhEC84Ilh9IHY7VXjYPWp94w7zcvaUNAx5-ntvN9iCKd5D1afIHGVTuVjY6XOwFO98GlCYs0TF18Tqen88G4eJPPPBaI7f6tneKb6eaJcRFRqSuXBUIkFCPWqqHQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 p-8 w-full">
+<div class="flex justify-between items-center mb-2">
+<span class="text-primary font-bold text-sm tracking-widest uppercase">Popular Now</span>
+<span class="bg-primary text-on-primary px-3 py-1 rounded-full text-xs font-bold">$59.99</span>
+</div>
+<h3 class="text-3xl font-bold text-white mb-2">Neon Frost: Overdrive</h3>
+<p class="text-slate-300 text-sm mb-4">Master the streets in this high-octane racing simulator.</p>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-sky-300 text-xl">stadia_controller</span>
+<span class="material-symbols-outlined text-sky-300 text-xl">bolt</span>
+</div>
+</div>
+</div>
+<!-- Small Card 1 -->
+<div class="group relative overflow-hidden rounded-xl glass-panel frozen-glow cursor-pointer transition-all duration-500 hover:scale-[1.02]">
+<div class="aspect-square relative">
+<img alt="Game 2" class="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" data-alt="Abstract 3D shapes and patterns in crystalline blue and white textures resembling ice formations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9-emRn92e985RuXyglxu1_N5i5HTc0JwED6a1hctbpRFNvIoWv0cvIiwE3_tmYeq98lWkj_7SwTwzVuSqBEk1Tbfhss1NN5UYbyjonyl9GW15-2gmiega6zVc3PZoKMT94PAhAl3PrVZ-87n8UvTZtV3GoAKQeZ9oGCSffxsZBk_JbqCT57CfQEmcal8eiSifiVrF1WFKkHMXpOYpCdipp1Ibj7KWN6IhUUclXvgPrV71ZtvrtsrYx9tse-691xhqWZWikt1_Nsc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+<div class="absolute bottom-0 p-6 w-full">
+<h3 class="text-xl font-bold text-sky-300 mb-1">Ether Shift</h3>
+<p class="text-slate-400 text-xs">Tactical Puzzle Strategy</p>
+</div>
+</div>
+</div>
+<!-- Small Card 2 -->
+<div class="group relative overflow-hidden rounded-xl glass-panel frozen-glow cursor-pointer transition-all duration-500 hover:scale-[1.02]">
+<div class="aspect-square relative">
+<img alt="Game 3" class="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" data-alt="Top down view of a lush alien jungle with bioluminescent plants and vibrant teal and violet colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU0QBGaltwv9oW_6lP9oiFqqHL2hT4K4BLGxvjIRVE8YGy9pUZb3aXGMuuVO6mJ6gt7gt5S72yJpuB90SJSWs7lhkf7b1IICkCBaNiaK09-A4xscUcK9VGK0Bhc-VypMwTqmttg6g2J_cGMD_YdGAucvvLduHMkyM6w1dlp0gTfNMoGc9sBkwFPj-j71FsVtJErBWW1H4vvcuVOJ_Qxa1ktrew7HWmibUDnkDVRZk10Z3W_WUWlslkqqJg30bti4viztGMSQkbYUI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+<div class="absolute bottom-0 p-6 w-full">
+<h3 class="text-xl font-bold text-sky-300 mb-1">Verdant Abyss</h3>
+<p class="text-slate-400 text-xs">Survival Expedition</p>
+</div>
+</div>
+</div>
+<!-- Horizontal Card -->
+<div class="md:col-span-2 group relative overflow-hidden rounded-xl glass-panel frozen-glow cursor-pointer transition-all duration-500 hover:scale-[1.02]">
+<div class="flex h-full min-h-[160px]">
+<img alt="Game 4" class="w-1/3 object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" data-alt="Dark computer setup with multiple monitors glowing in cool blue and cyan tones against a dark wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADoohaGouEd_xDmRlQcd_C9gRcdGl4ikHhBP18pCtYKI-xGVARUNrVu2HxJuE7Wi0neul9dC49g7Jq0SLpwOrd3YGnPTJS0feGswXfJwzY5ryWk4mn6O1aE15J4T3eOqDMyGnI2vqUqBRP1XHO7Ny_lEhibdfJgWS445UYgXuoXg6jHPiWG2oB8pvL_CXqya6Qjp7ahQqyumz205QTRUQL3N1X8sbaJAPrSndrpIcw8-VWNwVVSPHZ59t1M1FM5eKvhlWd8CypxpI"/>
+<div class="w-2/3 p-6 flex flex-col justify-center">
+<h3 class="text-2xl font-bold text-sky-300 mb-1">Circuit Breaker</h3>
+<p class="text-slate-400 text-sm mb-3">Hack your way through the digital underworld.</p>
+<span class="text-primary text-sm font-bold">$19.99</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Coming Soon Carousel Placeholder -->
+<section class="max-w-7xl mx-auto px-8 py-12">
+<div class="glass-panel-elevated rounded-3xl p-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-tertiary/10 blur-[80px] rounded-full -mr-20 -mt-20"></div>
+<div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div>
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-6">Coming Soon</h2>
+<div class="space-y-8">
+<div class="flex gap-6 items-start">
+<div class="w-20 h-20 rounded-xl glass-panel flex-shrink-0 flex items-center justify-center font-bold text-primary text-xl">OCT</div>
+<div>
+<h4 class="text-xl font-bold text-on-surface">Nova Horizon</h4>
+<p class="text-on-surface-variant text-sm">A vast space exploration simulator with procedural universe generation.</p>
+</div>
+</div>
+<div class="flex gap-6 items-start opacity-70">
+<div class="w-20 h-20 rounded-xl glass-panel flex-shrink-0 flex items-center justify-center font-bold text-slate-400 text-xl">NOV</div>
+<div>
+<h4 class="text-xl font-bold text-on-surface">Shadow Archive</h4>
+<p class="text-on-surface-variant text-sm">Psychological horror set in a decaying digital library.</p>
+</div>
+</div>
+</div>
+<button class="mt-10 px-8 py-3 bg-tertiary-container text-on-tertiary-container rounded-lg font-bold hover:scale-105 transition-all">Pre-order Details</button>
+</div>
+<div class="rounded-2xl overflow-hidden aspect-video border border-white/5">
+<img alt="Coming Soon Teaser" class="w-full h-full object-cover" data-alt="Atmospheric deep space view with a distant nebula in glowing shades of violet, blue, and cosmic dust" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALVUxM17DE28ymYg6IZSlA0I2oWRVI0lSggn8P00w23zhaNxJyoUW5CA3GyWS0YCMHxmst47KEPtub0u5_b7BoR5hYxSp5f0aJoX4Yara7Ss8KL-MpJzkD4rVNm4XQDaYWvds1KD8dP6pfnWza0smo6zQDYyCE6D5_TQO4ygGiZMs812wN_5LXxbXrPm6cZaQiRB0ta4WxWb5mWWcxRRs6JRVcJbcLyekOq1ulqFaxuhRM3WobFA9agsfwjHILoGHp78AIW6TSAng"/>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-950 border-t border-sky-300/10 w-full py-12 px-8">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto space-y-8 md:space-y-0">
+<div class="flex flex-col items-center md:items-start space-y-4">
+<div class="text-sky-300 font-bold text-xl tracking-tighter">GLACIER GAMING</div>
+<p class="text-slate-500 font-inter text-sm">© 2024 GLACIER GAMING. ALL RIGHTS RESERVED.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8 font-inter text-sm">
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Cookies</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Contact</a>
+</div>
+<div class="flex space-x-6">
+<a class="text-slate-400 hover:text-sky-300 transition-all" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-sky-300 transition-all" href="#"><span class="material-symbols-outlined">forum</span></a>
+<a class="text-slate-400 hover:text-sky-300 transition-all" href="#"><span class="material-symbols-outlined">rss_feed</span></a>
+</div>
+</div>
+</footer>
+</body></html>

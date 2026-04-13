@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#88b4cc",
+                    "outline-variant": "#2a3a48",
+                    "on-secondary": "#001f2e",
+                    "inverse-on-surface": "#0a0e1a",
+                    "on-tertiary-container": "#e8d0ff",
+                    "secondary-container": "#1a3a4e",
+                    "on-secondary-container": "#c0d8e8",
+                    "on-surface": "#e0e8f0",
+                    "on-secondary-fixed-variant": "#2a4a5e",
+                    "on-error": "#1a0000",
+                    "tertiary-container": "#3d2060",
+                    "on-tertiary-fixed-variant": "#4d2a73",
+                    "secondary-fixed-dim": "#88b4cc",
+                    "on-secondary-fixed": "#0d1f2b",
+                    "primary-fixed-dim": "#7dd3fc",
+                    "error-container": "#3d1414",
+                    "surface-container-high": "#1a2438",
+                    "on-surface-variant": "#a0b4c4",
+                    "on-primary": "#001f2e",
+                    "surface-bright": "#1a2438",
+                    "primary": "#7dd3fc",
+                    "background": "#0a0e1a",
+                    "surface-tint": "#7dd3fc",
+                    "surface-variant": "#1a2438",
+                    "surface-dim": "#0f1524",
+                    "secondary-fixed": "#c0d8e8",
+                    "surface-container-lowest": "#0a0e1a",
+                    "on-tertiary": "#1a002e",
+                    "on-primary-fixed": "#001f2e",
+                    "on-tertiary-fixed": "#1a002e",
+                    "surface-container-low": "#111828",
+                    "inverse-surface": "#e0e8f0",
+                    "primary-fixed": "#c8eaff",
+                    "tertiary-fixed-dim": "#c8a0f0",
+                    "surface-container-highest": "#202c42",
+                    "tertiary": "#c8a0f0",
+                    "primary-container": "#0e4d6e",
+                    "tertiary-fixed": "#e8d0ff",
+                    "on-primary-container": "#c8eaff",
+                    "surface-container": "#141c2e",
+                    "on-primary-fixed-variant": "#004d73",
+                    "inverse-primary": "#0a4c6e",
+                    "surface": "#0f1524",
+                    "on-error-container": "#ffb3b3",
+                    "outline": "#4a6070",
+                    "on-background": "#e0e8f0",
+                    "error": "#ff6b6b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(15, 21, 36, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(125, 211, 252, 0.1);
+        }
+        .glass-panel-elevated {
+            background: rgba(15, 21, 36, 0.75);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(125, 211, 252, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-mask {
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 w-full bg-slate-950/60 backdrop-blur-xl border-b border-sky-300/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-semibold tracking-tighter text-sky-300 font-inter">GLACIER GAMES</span>
+<div class="hidden md:flex items-center gap-8 font-inter tracking-tight">
+<a class="text-sky-300 border-b-2 border-sky-300 pb-1 hover:text-sky-200 transition-all duration-300 active:scale-95" href="#">Store</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Library</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Community</a>
+<a class="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95" href="#">Support</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-sky-300 transition-colors cursor-pointer">shopping_cart</span>
+</div>
+<div class="flex items-center gap-3 bg-sky-300/10 px-4 py-2 rounded-full border border-sky-300/20 cursor-pointer hover:bg-sky-300/20 transition-all">
+<span class="material-symbols-outlined text-sky-300" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-sm font-semibold text-sky-300">Commander_Rex</span>
+</div>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Immersive Header -->
+<section class="relative h-[819px] w-full overflow-hidden">
+<div class="absolute inset-0 hero-mask">
+<img class="w-full h-full object-cover" data-alt="Cinematic wide shot of a futuristic sci-fi city with neon lights and flying vehicles under a dark blue starlit sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAH8RE3R5oCx-OrI1dJofaYonyHd9vWCS-ABTVnPfFTOM8HJ4ojQnvtlO1bjJyFTg_usOeOFrY50ZVhlfwKLrziZbA6SIDUYFsnShTdHJvh7aA-FQL0DDZg66aeORCX3Z73QY9IHT1SPYHgmp7PRtk8626NURj3NNjoIfa4Hr7LlZ8s7fFf2yaqHhAnoSnY73kwyixdAaLdwIIXkYoR6D8Hm5DZ4F3Vvqu68P-GLVqypOvoDu-SybdjzDLG4T9b8Rszli7AhMTzkE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-end pb-24 px-8 md:px-20 max-w-7xl mx-auto">
+<div class="inline-flex items-center gap-2 px-3 py-1 glass-panel-elevated rounded-full text-xs font-bold tracking-widest text-tertiary mb-6 uppercase">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+                    Available Now
+                </div>
+<h1 class="text-6xl md:text-8xl font-black tracking-tighter text-on-surface mb-4">NEBULA <span class="text-primary italic">BREACH</span></h1>
+<p class="max-w-2xl text-lg text-on-surface-variant leading-relaxed">
+                    Survive the edge of the galaxy in this high-octane sci-fi action epic. Master gravity-defying combat and reclaim the lost sectors from the Void Collective.
+                </p>
+</div>
+</section>
+<!-- Main Content & Sidebar Grid -->
+<section class="px-8 md:px-20 max-w-7xl mx-auto -mt-16 relative z-20 pb-20">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Main Content (Screenshots & Description) -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Glassmorphic Image Gallery -->
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2 group relative overflow-hidden rounded-xl border border-sky-300/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
+<img class="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Close up of a high-tech sci-fi soldier in glowing blue armor holding a futuristic energy weapon in a dark corridor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxZ_4HGlaVzKzqgUGll2A4uEUrHgNJ4lBVug9ujKqqTlNq0qBjnCb_VqgjANwiIbQtXM6Djmy94Q0NsYtlneLSuIX0a47GH9TTwSpwjc2qsa-KxMGlBPi8qpnaVxoKr9drI-6v5vuRtzzKWneSYYH77Qq9DLtALNTsADIE4NAtYJkqEJZaCpnmf6dZLFXokTjIxsQiE0kOfKVOouh0Aou3JSYm8TSOUnFK7-8zxH_QgEJjPWqG1TksX92ImGGPmWamN9r-7hbQfI4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+<span class="text-sm font-medium text-sky-300">Intense Close-Quarters Combat</span>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl border border-sky-300/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
+<img class="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Stunning orbital view of a purple crystalline planet with rings and distant stars in deep space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvQuyphMtjCjHAGyVz2GPoW6obQJUdS8DHbVoRTUbiD2gokA1K6Cfe1ymjI5Icokz8VzPvXjCL1skgLC2409twEedYyXg9IjLWW1wb6_kIb-dAFtC_csBg9izK-NneANQew9cTBvjApK9fw1Un6E4ZAwkieWc306QgXVyNcsT0PrwximxBinedDA33JBqVP1ZFt6-tzgrzPmnfk7htwQPb6w69ExXBu2uMQm-E7ZfRahbMzG4nfFITvQijgBREbodm5WctL-tVeI4"/>
+</div>
+<div class="group relative overflow-hidden rounded-xl border border-sky-300/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
+<img class="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Detailed interior of a futuristic spaceship cockpit with glowing screens and buttons looking out into a nebula" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_aYD8ZozJHjjLpaB7ezV0UmkvLE-8KqHMIGTmATUxnz24WdoT1GFOGhnywLOiEDNecYAezV-gjhWfPtCJGnpK-W_FlFoBk1JnQeXZ_d_II8367shn_ise5CI7WNc7GsTnU_4LoaW7nK1PDEcXNepALd2_TJ22BdVZTrKe0e-jFimS_1jZ3w5TgW8p_t-dLfsrKfJ9yo8VStzPR-MXqHQi9d2ydRr38IdjjzX4Ii6J6h9kwGCT_4P5pOh9Bz06VscIWx115ETLr34"/>
+</div>
+</div>
+<!-- About Section -->
+<div class="glass-panel p-8 rounded-xl">
+<h2 class="text-2xl font-bold text-on-surface mb-4">About the Game</h2>
+<div class="space-y-4 text-on-surface-variant leading-relaxed">
+<p>Nebula Breach pushes the boundaries of tactical action. Infiltrate massive Dyson Spheres, navigate asteroid fields, and engage in visceral combat that seamlessly transitions between ground and space.</p>
+<p>Featuring a dynamic story where every tactical decision influences the political landscape of the star system. Will you be a liberator or a conqueror?</p>
+</div>
+</div>
+</div>
+<!-- Sidebar (Game Details) -->
+<aside class="lg:col-span-4 space-y-6">
+<!-- Purchase Box -->
+<div class="glass-panel-elevated p-6 rounded-xl space-y-6 sticky top-28 shadow-[0_0_50px_rgba(125,211,252,0.1)]">
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-on-surface-variant text-sm font-medium">Standard Edition</span>
+<span class="text-3xl font-black text-on-surface">$59.99</span>
+</div>
+<button class="w-full py-4 rounded-lg bg-primary text-on-primary font-bold text-lg shadow-[0_0_20px_rgba(125,211,252,0.4)] hover:shadow-[0_0_35px_rgba(125,211,252,0.6)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+                                BUY NOW
+                            </button>
+</div>
+<div class="h-px bg-sky-300/10"></div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Publisher</span>
+<span class="text-on-surface font-semibold">GLACIER GAMING</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Release Date</span>
+<span class="text-on-surface font-semibold">DEC 12, 2023</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Reviews</span>
+<span class="text-primary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    9.4/10
+                                </span>
+</div>
+</div>
+<div class="h-px bg-sky-300/10"></div>
+<div class="space-y-3">
+<span class="text-xs font-bold text-on-surface-variant tracking-wider uppercase">Tags</span>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-sky-300/5 border border-sky-300/10 rounded-full text-xs text-sky-300">Sci-Fi</span>
+<span class="px-3 py-1 bg-sky-300/5 border border-sky-300/10 rounded-full text-xs text-sky-300">Tactical</span>
+<span class="px-3 py-1 bg-sky-300/5 border border-sky-300/10 rounded-full text-xs text-sky-300">Open World</span>
+<span class="px-3 py-1 bg-sky-300/5 border border-sky-300/10 rounded-full text-xs text-sky-300">Singleplayer</span>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 py-3 glass-panel rounded-lg text-sm font-semibold hover:bg-sky-300/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">favorite</span>
+                                Wishlist
+                            </button>
+<button class="flex-1 py-3 glass-panel rounded-lg text-sm font-semibold hover:bg-sky-300/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">share</span>
+                                Share
+                            </button>
+</div>
+</div>
+<!-- System Requirements -->
+<div class="glass-panel p-6 rounded-xl">
+<h3 class="text-sm font-bold text-on-surface mb-4 uppercase tracking-wider">Recommended Specs</h3>
+<div class="space-y-3 text-xs text-on-surface-variant">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm">memory</span>
+<span>AMD Ryzen 7 5800X / Intel i7-12700K</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm">videogame_asset</span>
+<span>RTX 3080 / RX 6800 XT (10GB VRAM)</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm">storage</span>
+<span>120 GB Available Space (NVMe SSD Required)</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 border-t border-sky-300/10 bg-slate-950">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="text-sky-300 font-bold text-xl tracking-tighter">GLACIER GAMES</span>
+<p class="text-slate-500 font-inter text-sm">© 2024 GLACIER GAMING. ALL RIGHTS RESERVED.</p>
+</div>
+<div class="flex gap-8 font-inter text-sm">
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Cookies</a>
+<a class="text-slate-500 hover:text-sky-300 transition-colors" href="#">Contact</a>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-slate-500 hover:text-sky-300 cursor-pointer">language</span>
+<span class="material-symbols-outlined text-slate-500 hover:text-sky-300 cursor-pointer">settings</span>
+</div>
+</div>
+</footer>
+</body></html>
