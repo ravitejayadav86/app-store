@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-const api = axios.create({ baseURL: "http://127.0.0.1:8000" });
+const api = axios.create({ 
+    baseURL: import.meta.env.VITE_API_URL || "https://app-store-backend-dbci.onrender.com" 
+});
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -59,27 +61,27 @@ export default function Submit() {
         .submit-card { animation: fadeIn 0.6s ease forwards; }
         .title-float { animation: float 3s ease-in-out infinite; display: inline-block; }
         .submit-btn { animation: pulse 2s infinite; }
-        .submit-btn:hover { transform: scale(1.05); }
+        .submit-btn:hover { transform: scale(1.05); transition: 0.2s; }
         .cat-btn:hover { transform: scale(1.05); }
         select {
           width: 100%;
           padding: 12px 16px;
           margin-bottom: 14px;
           border-radius: 12px;
-          border: 2px solid #4a4a8a;
+          border: 2px solid #333;
           background: rgba(255,255,255,0.07);
           color: #fff;
           font-size: 15px;
           font-family: 'Nunito', sans-serif;
           outline: none;
         }
-        select option { background: #302b63; color: #fff; }
+        select option { background: #141414; color: #fff; }
         textarea {
           width: 100%;
           padding: 12px 16px;
           margin-bottom: 14px;
           border-radius: 12px;
-          border: 2px solid #4a4a8a;
+          border: 2px solid #333;
           background: rgba(255,255,255,0.07);
           color: #fff;
           font-size: 15px;
@@ -88,8 +90,8 @@ export default function Submit() {
           resize: vertical;
           min-height: 100px;
         }
-        textarea:focus { border-color: #ff6b6b; }
-        textarea::placeholder { color: #9090bb; }
+        textarea:focus { border-color: #e50914; }
+        textarea::placeholder { color: #737373; }
       `}</style>
 
             {/* Navbar */}
@@ -109,10 +111,10 @@ export default function Submit() {
                 <span style={{
                     fontSize: 20,
                     fontWeight: 900,
-                    background: "linear-gradient(135deg, #e040fb, #00e5ff)",
+                    background: "linear-gradient(135deg, #e50914, #737373)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
-                }}>⚡ AnimeStore</span>
+                }}>🐼 PANDASTORE</span>
                 <Link to="/">
                     <button style={{
                         padding: "8px 20px",
@@ -135,16 +137,16 @@ export default function Submit() {
                 margin: "0 auto",
             }}>
                 <div style={{ textAlign: "center", marginBottom: 32 }}>
-                    <span className="title-float" style={{ fontSize: 48 }}>🚀</span>
+                    <span className="title-float" style={{ fontSize: 48 }}>🐼</span>
                     <h1 style={{
                         fontSize: 32,
                         fontWeight: 900,
-                        background: "linear-gradient(135deg, #ff6b6b, #e040fb)",
+                        background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         marginTop: 8,
                     }}>Submit Your App</h1>
-                    <p style={{ color: "#9090bb", marginTop: 6 }}>
+                    <p style={{ color: "#737373", marginTop: 6 }}>
                         Share your app with the world 🌍
                     </p>
                 </div>
@@ -219,12 +221,16 @@ export default function Submit() {
                         width: "100%",
                         padding: 14,
                         fontSize: 16,
-                        background: "linear-gradient(135deg, #ff6b6b, #e040fb)",
+                        background: "linear-gradient(135deg, #e50914, #b9090b)",
                         color: "#fff",
                         marginTop: 8,
+                        border: "none",
+                        borderRadius: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
                     }}
                 >
-                    {loading ? "Submitting..." : "Submit App 🚀"}
+                    {loading ? "Submitting..." : "Submit App 🐼"}
                 </button>
             </div>
         </div>

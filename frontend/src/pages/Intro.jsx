@@ -14,7 +14,7 @@ export default function Intro() {
       opacity: Math.random() * 0.5 + 0.1,
       animationDuration: Math.random() * 3 + 2,
       animationDelay: Math.random() * 2,
-      color: i % 2 === 0 ? "#7c4dff" : "#382079ff"
+      color: i % 2 === 0 ? "#e50914" : "#333"
     }));
   });
 
@@ -42,8 +42,8 @@ export default function Intro() {
     }}>
       <style>{`
         @keyframes glow {
-          0%, 100% { text-shadow: 0 0 20px #3f2904ff, 0 0 40px #7c4dff; }
-          50% { text-shadow: 0 0 40px #a00b0bff, 0 0 80px #04234aff; }
+          0%, 100% { text-shadow: 0 0 20px #e50914, 0 0 40px #b9090b; }
+          50% { text-shadow: 0 0 40px #ff0000, 0 0 80px #000; }
         }
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(30px); }
@@ -95,8 +95,8 @@ export default function Intro() {
           height: 140,
           borderRadius: "50%",
           border: "3px solid transparent",
-          borderTop: "3px solid #700a0aff",
-          borderRight: "3px solid #e040fb",
+          borderTop: "3px solid #e50914",
+          borderRight: "3px solid #333",
           animation: "rotate 1.5s linear infinite",
           position: "absolute",
           top: -10,
@@ -119,7 +119,7 @@ export default function Intro() {
       <h1 style={{
         fontSize: 48,
         fontWeight: 900,
-        background: "linear-gradient(135deg, #5a3cacff, #13209bff, #00e5ff)",
+        background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         margin: 0,
@@ -128,7 +128,7 @@ export default function Intro() {
         transition: "all 0.8s ease",
         animation: phase >= 1 ? "glow 2s infinite" : "none",
         letterSpacing: 2,
-      }}>APP STORE</h1>
+      }}>PANDASTORE</h1>
 
       {/* Tagline */}
       <p style={{
@@ -155,7 +155,7 @@ export default function Intro() {
       }}>
         <div style={{
           height: "100%",
-          background: "linear-gradient(135deg, #7c4dff, #1c1089ff)",
+          background: "linear-gradient(135deg, #e50914, #b9090b)",
           borderRadius: 2,
           animation: phase >= 1 ? "expand 3s ease forwards" : "none",
         }} />

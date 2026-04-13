@@ -74,18 +74,18 @@ export default function Home() {
         }
         .app-card:hover {
           transform: translateY(-10px) scale(1.02);
-          box-shadow: 0 25px 50px rgba(224,64,251,0.35);
+          box-shadow: 0 25px 50px rgba(229,9,20,0.35);
         }
         .nav-btn { transition: all 0.3s; }
         .nav-btn:hover { transform: scale(1.05); opacity: 0.9; }
         .cat-pill { transition: all 0.3s; cursor: pointer; }
         .cat-pill:hover { transform: scale(1.08); }
         .logo-float { animation: float 3s ease-in-out infinite; display: inline-block; }
-        .search-input:focus { border-color: #e040fb !important; }
+        .search-input:focus { border-color: #e50914 !important; }
         .spinner { animation: spin 1s linear infinite; display: inline-block; }
         select {
           background: rgba(255,255,255,0.07);
-          border: 2px solid #4a4a8a;
+          border: 2px solid #333;
           color: #fff;
           padding: 10px 14px;
           border-radius: 12px;
@@ -94,17 +94,16 @@ export default function Home() {
           outline: none;
           cursor: pointer;
         }
-        select option { background: #302b63; }
+        select option { background: #141414; }
       `}</style>
 
-            {/* Navbar */}
             <div style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "rgba(255,255,255,0.05)",
+                background: "rgba(20,20,20,0.95)",
                 backdropFilter: "blur(20px)",
-                border: "1px solid rgba(224,64,251,0.2)",
+                border: "1px solid rgba(229,9,20,0.2)",
                 borderRadius: 16,
                 padding: "14px 24px",
                 marginBottom: 32,
@@ -112,18 +111,18 @@ export default function Home() {
                 margin: "0 auto 32px",
             }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span className="logo-float" style={{ fontSize: 28 }}>⚡</span>
+                    <span className="logo-float" style={{ fontSize: 28 }}>🐼</span>
                     <span style={{
                         fontSize: 22, fontWeight: 900,
-                        background: "linear-gradient(135deg, #e040fb, #00e5ff)",
+                        background: "linear-gradient(135deg, #e50914, #737373)",
                         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                    }}>AnimeStore</span>
+                    }}>PANDASTORE</span>
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                     <Link to="/submit">
                         <button className="nav-btn" style={{
                             padding: "8px 18px",
-                            background: "linear-gradient(135deg, #ff6b6b, #e040fb)",
+                            background: "linear-gradient(135deg, #e50914, #b9090b)",
                             color: "#fff", borderRadius: 12,
                         }}>🚀 Submit</button>
                     </Link>
@@ -136,8 +135,9 @@ export default function Home() {
                     </Link>
                     <button className="nav-btn" onClick={handleLogout} style={{
                         padding: "8px 18px",
-                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
+                        background: "linear-gradient(135deg, #333, #000)",
                         color: "#fff", borderRadius: 12,
+                        border: "1px solid #444",
                     }}>Logout 🚪</button>
                 </div>
             </div>
@@ -146,11 +146,11 @@ export default function Home() {
             <div style={{ textAlign: "center", maxWidth: 1100, margin: "0 auto 36px" }}>
                 <h1 style={{
                     fontSize: 48, fontWeight: 900,
-                    background: "linear-gradient(135deg, #e040fb, #00e5ff, #ff6b6b)",
+                    background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
                     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                     marginBottom: 12,
-                }}>Discover Amazing Apps ✨</h1>
-                <p style={{ color: "#9090bb", fontSize: 18 }}>
+                }}>Discover Amazing Apps 🐼</h1>
+                <p style={{ color: "#737373", fontSize: 18 }}>
                     Find and download the best apps in the universe 🌌
                 </p>
             </div>
@@ -169,7 +169,7 @@ export default function Home() {
                         flex: 1, minWidth: 200,
                         padding: "12px 16px",
                         borderRadius: 12,
-                        border: "2px solid #4a4a8a",
+                        border: "2px solid #333",
                         background: "rgba(255,255,255,0.07)",
                         color: "#fff", fontSize: 15,
                         fontFamily: "'Nunito', sans-serif",
@@ -201,10 +201,10 @@ export default function Home() {
                             border: "none",
                             fontSize: 13, fontWeight: 700,
                             background: category === cat
-                                ? "linear-gradient(135deg, #e040fb, #7c4dff)"
+                                ? "linear-gradient(135deg, #e50914, #b9090b)"
                                 : "rgba(255,255,255,0.08)",
-                            color: category === cat ? "#fff" : "#9090bb",
-                            boxShadow: category === cat ? "0 0 15px rgba(224,64,251,0.4)" : "none",
+                            color: category === cat ? "#fff" : "#737373",
+                            boxShadow: category === cat ? "0 0 15px rgba(229,9,20,0.4)" : "none",
                         }}
                     >{cat}</button>
                 ))}
@@ -253,32 +253,32 @@ export default function Home() {
                                 {EMOJIS[app.id % 8]}
                             </div>
                             <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>{app.name}</h3>
-                            <span style={{
+                             <span style={{
                                 display: "inline-block",
                                 padding: "3px 10px", borderRadius: 20,
                                 fontSize: 12, fontWeight: 700,
-                                background: "linear-gradient(135deg, #e040fb33, #7c4dff33)",
-                                border: "1px solid #e040fb55",
-                                color: "#e040fb", marginBottom: 10,
+                                background: "rgba(229,9,20,0.15)",
+                                border: "1px solid #e5091455",
+                                color: "#e50914", marginBottom: 10,
                             }}>{app.category}</span>
-                            <p style={{ color: "#9090bb", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
+                            <p style={{ color: "#737373", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
                                 {app.description?.length > 80
                                     ? app.description.slice(0, 80) + "..."
                                     : app.description}
                             </p>
-                            <p style={{ color: "#9090bb", fontSize: 12, marginBottom: 12 }}>
+                            <p style={{ color: "#737373", fontSize: 12, marginBottom: 12 }}>
                                 👨‍💻 {app.developer}
                             </p>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span style={{
                                     fontSize: 20, fontWeight: 900,
-                                    background: "linear-gradient(135deg, #00e5ff, #e040fb)",
+                                    background: "linear-gradient(135deg, #fff, #e50914)",
                                     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                                 }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
                                 <Link to={`/apps/${app.id}`}>
                                     <button style={{
                                         padding: "8px 20px",
-                                        background: "linear-gradient(135deg, #e040fb, #7c4dff)",
+                                        background: "linear-gradient(135deg, #e50914, #b9090b)",
                                         color: "#fff", fontSize: 14, borderRadius: 10,
                                     }}>View 👁️</button>
                                 </Link>
