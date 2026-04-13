@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getMe, getPurchases, downloadApp } from "../api";
+import { getMe, getPurchases, downloadApp, getSubmissions } from "../api";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
     const [purchases, setPurchases] = useState([]);
+    const [submissions, setSubmissions] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         getMe().then(({ data }) => setUser(data)).catch(() => navigate("/login"));
         getPurchases().then(({ data }) => setPurchases(data)).catch(() => {});
+        getSubmissions().then(({ data }) => setSubmissions(data)).catch(() => {});
     }, [navigate]);
 
     const handleLogout = () => {
@@ -160,10 +162,42 @@ export default function Profile() {
                         <div style={{ fontSize: 20, fontWeight: 900 }}>{purchases.length} Apps</div>
                     </div>
                     <div className="stat-card">
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "#666", textTransform: "uppercase", marginBottom: 8 }}>Status</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: "var(--panda-blue)" }}>Verified</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#666", textTransform: "uppercase", marginBottom: 8 }}>Missions</div>
+                        <div style={{ fontSize: 20, fontWeight: 900 }}>{submissions.length} Submissions</div>
                     </div>
                 </div>
+
+                <section style={{ marginBottom: 60 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+                        <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: -0.5 }}>My Transmissions</h2>
+                        <Link to="/submit" className="badge-premium" style={{ textDecoration: "none", background: "var(--panda-gradient)", color: "#fff", border: "none" }}>+ New Broadcast</Link>
+                    </div>
+                    {submissions.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: 40, background: "rgba(255,255,255,0.01)", borderRadius: 24, border: "1px dashed var(--panda-border)" }}>
+                            <p style={{ color: "#444", fontSize: 14 }}>No data transmissions detected from this vessel.</p>
+                        </div>
+                    ) : (
+                        submissions.map((s, i) => (
+                            <div key={s.id} className="purchase-row" style={{ animation: `revealItem 0.8s var(--transition) ${i * 0.05}s forwards`, opacity: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                                    <div style={{ fontSize: 24 }}>{s.category === "Music" ? "🎵" : "🚀"}</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800 }}>{s.name}</div>
+                                        <div style={{ fontSize: 12, color: "#666" }}>v{s.version} • {s.category}</div>
+                                    </div>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                                    {s.is_approved ? (
+                                        <span style={{ fontSize: 10, fontWeight: 900, color: "var(--panda-blue)", padding: "4px 10px", border: "1px solid var(--panda-blue)", borderRadius: 100 }}>LIVE</span>
+                                    ) : (
+                                        <span style={{ fontSize: 10, fontWeight: 900, color: "#666", padding: "4px 10px", border: "1px solid #333", borderRadius: 100 }}>PENDING REVIEW</span>
+                                    )}
+                                    <Link to={`/app/${s.id}`} style={{ fontSize: 12, color: "#888", fontWeight: 700, textDecoration: "none" }}>View Page</Link>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </section>
 
                 <section>
                     <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 24, letterSpacing: -0.5 }}>Command History</h2>

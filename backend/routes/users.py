@@ -16,3 +16,10 @@ def my_purchases(
 ):
     from sqlalchemy.orm import joinedload
     return db.query(models.Purchase).options(joinedload(models.Purchase.app)).filter(models.Purchase.user_id == current_user.id).all()
+
+@router.get("/me/submissions", response_model=List[schemas.AppOut])
+def my_submissions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return db.query(models.App).filter(models.App.developer == current_user.username).all()

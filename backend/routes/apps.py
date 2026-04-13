@@ -26,17 +26,6 @@ def get_app(app_id: int, db: Session = Depends(get_db)):
     if not app:
         raise HTTPException(404, "App not found")
     return app
-@router.post("/submit", response_model=schemas.AppOut, status_code=201)
-def submit_app(
-    app: schemas.AppCreate,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
-):
-    db_app = models.App(**app.dict(), is_approved=False, is_active=False)
-    db.add(db_app)
-    db.commit()
-    db.refresh(db_app)
-    return db_app
 @router.post("/{app_id}/purchase", response_model=schemas.PurchaseOut, status_code=201)
 def purchase_app(
     app_id: int,
