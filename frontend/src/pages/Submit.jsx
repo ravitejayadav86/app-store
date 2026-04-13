@@ -59,8 +59,8 @@ export default function Submit() {
           50% { transform: translateY(-8px); }
         }
         @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 20px rgba(229,9,20,0.2); }
-          50% { box-shadow: 0 0 40px rgba(229,9,20,0.4), 0 0 60px rgba(115,115,115,0.1); }
+          0%, 100% { box-shadow: 0 0 20px rgba(0,210,255,0.2); }
+          50% { box-shadow: 0 0 40px rgba(0,210,255,0.4), 0 0 60px rgba(229,9,20,0.1); }
         }
         .submit-card { animation: driftUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .title-float { animation: float 3s ease-in-out infinite; display: inline-block; }
@@ -81,7 +81,7 @@ export default function Submit() {
           outline: none;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        input:focus { border-color: #e5091444; background: rgba(255,255,255,0.1); transform: scale(1.01); }
+        input:focus { border-color: #00d2ff88; background: rgba(255,255,255,0.1); transform: scale(1.01); }
         select {
           width: 100%;
           padding: 12px 16px;
@@ -95,7 +95,7 @@ export default function Submit() {
           outline: none;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        select:hover { border-color: #e5091444; }
+        select:hover { border-color: #00d2ff88; }
         select option { background: #141414; color: #fff; }
         textarea {
           width: 100%;
@@ -112,7 +112,7 @@ export default function Submit() {
           min-height: 100px;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        textarea:focus { border-color: #e5091444; background: rgba(255,255,255,0.1); transform: scale(1.01); }
+        textarea:focus { border-color: #00d2ff88; background: rgba(255,255,255,0.1); transform: scale(1.01); }
         textarea::placeholder { color: #737373; }
       `}</style>
 
@@ -123,7 +123,7 @@ export default function Submit() {
                 alignItems: "center",
                 background: "rgba(255,255,255,0.05)",
                 backdropFilter: "blur(20px)",
-                border: "1px solid rgba(224,64,251,0.2)",
+                border: "1px solid #00d2ff44",
                 borderRadius: 16,
                 padding: "14px 24px",
                 marginBottom: 32,
@@ -133,10 +133,11 @@ export default function Submit() {
                 <span style={{
                     fontSize: 20,
                     fontWeight: 900,
-                    background: "linear-gradient(135deg, #e50914, #737373)",
+                    background: "linear-gradient(135deg, #e50914, #00d2ff)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
-                }}>🐼 PANDASTORE</span>
+                    letterSpacing: 2
+                }}>PANDASTORE</span>
                 <Link to="/">
                     <button style={{
                         padding: "8px 20px",
@@ -151,7 +152,7 @@ export default function Submit() {
             <div className="submit-card" style={{
                 background: "rgba(255,255,255,0.05)",
                 backdropFilter: "blur(20px)",
-                border: "1px solid rgba(255,107,107,0.3)",
+                border: "1px solid #e5091444",
                 borderRadius: 24,
                 padding: 40,
                 width: "100%",
@@ -163,7 +164,7 @@ export default function Submit() {
                     <h1 style={{
                         fontSize: 32,
                         fontWeight: 900,
-                        background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
+                        background: "linear-gradient(135deg, #e50914, #fff, #00d2ff)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         marginTop: 8,
@@ -243,7 +244,7 @@ export default function Submit() {
                         width: "100%",
                         padding: 14,
                         fontSize: 16,
-                        background: "linear-gradient(135deg, #e50914, #b9090b)",
+                        background: "linear-gradient(135deg, #e50914, #00d2ff)",
                         color: "#fff",
                         marginTop: 8,
                         border: "none",

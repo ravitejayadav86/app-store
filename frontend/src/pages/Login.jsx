@@ -44,22 +44,22 @@ export default function Login() {
                     font-size:16px; outline:none;
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 }
-                .panda-input:focus { background:#454545; border-color: #e5091444; transform: scale(1.02); }
+                .panda-input:focus { background:#454545; border-color: #00d2ff88; transform: scale(1.02); }
                 .panda-input::placeholder { color:#8c8c8c; }
                 .panda-btn { 
-                    width:100%; padding:16px; background:#e50914; border:none; border-radius:4px; 
+                    width:100%; padding:16px; background:linear-gradient(135deg, #e50914, #00d2ff); border:none; border-radius:4px; 
                     color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px; 
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
                 }
-                .panda-btn:hover { background:#f40612; transform: translateY(-2px); }
+                .panda-btn:hover { background:linear-gradient(135deg, #f40612, #33dcff); transform: translateY(-2px); box-shadow: 0 0 20px rgba(0,210,255,0.4); }
                 .panda-btn:active { transform: scale(0.96); }
-                .panda-btn:disabled { background:#831010; cursor:default; transform: none; }
+                .panda-btn:disabled { background:#333; cursor:default; transform: none; box-shadow: none; }
             `}</style>
 
             {/* Logo */}
             <div style={{ marginBottom:40, textAlign:"center", animation: "float 4s ease-in-out infinite" }}>
                 <div style={{ fontSize:60, marginBottom:8 }}>🐼</div>
-                <div style={{ fontSize:32, fontWeight:900, color:"#e50914", letterSpacing:2 }}>PANDASTORE</div>
+                <div style={{ fontSize:32, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</div>
             </div>
 
             {/* Card */}
@@ -80,7 +80,7 @@ export default function Login() {
                 </button>
 
                 <p style={{ color:"#737373", marginTop:20, fontSize:16 }}>
-                    New to PandaStore? <Link to="/register" style={{ color:"#fff", fontWeight:700, textDecoration:"none" }}>Sign up now</Link>
+                    New to PandaStore? <Link to="/register" style={{ color:"#00d2ff", fontWeight:700, textDecoration:"none" }}>Sign up now</Link>
                 </p>
             </div>
         </div>

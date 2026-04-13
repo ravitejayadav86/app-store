@@ -49,13 +49,13 @@ export default function AdminDashboard() {
                     animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     opacity: 0;
                 }
-                .app-row:hover { border-color:#e50914; transform: translateX(8px); }
+                .app-row:hover { border-color:#00d2ff; transform: translateX(8px); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
                 .approve-btn { 
-                    padding:10px 20px; background:#46d369; border:none; border-radius:4px; 
+                    padding:10px 20px; background:#00d2ff; border:none; border-radius:4px; 
                     color:#000; font-size:13px; font-weight:700; cursor:pointer;
                     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 }
-                .approve-btn:hover { background:#3bc95e; transform: translateY(-2px); }
+                .approve-btn:hover { background:#33dcff; transform: translateY(-2px); }
                 .approve-btn:active { transform: scale(0.94); }
                 .reject-btn { 
                     padding:10px 20px; background:#e50914; border:none; border-radius:4px; 
@@ -65,21 +65,21 @@ export default function AdminDashboard() {
                 .reject-btn:hover { background:#f40612; transform: translateY(-2px); }
                 .reject-btn:active { transform: scale(0.94); }
             `}</style>
-            <nav style={{ background:"rgba(20,20,20,0.95)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #222" }}>
+            <nav style={{ background:"rgba(20,20,20,0.95)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #00d2ff44" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:32 }}>
                     <Link to="/home" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
                         <span style={{ fontSize:28 }}>🐼</span>
-                        <span style={{ fontSize:22, fontWeight:900, color:"#e50914", letterSpacing:2 }}>PANDASTORE</span>
+                        <span style={{ fontSize:22, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</span>
                     </Link>
                     <Link to="/home" className="nav-link">Home</Link>
                     <Link to="/profile" className="nav-link">Profile</Link>
                 </div>
-                <span style={{ color:"#e50914", fontWeight:700 }}>Admin Panel</span>
+                <span style={{ color:"#00d2ff", fontWeight:700 }}>Admin Panel</span>
             </nav>
             <div style={{ maxWidth:900, margin:"0 auto", padding:"48px 24px" }}>
                 <h1 style={{ fontSize:28, fontWeight:700, marginBottom:8 }}>Pending Apps</h1>
                 <p style={{ color:"#737373", marginBottom:32 }}>Review and approve submitted apps</p>
-                {msg && <div style={{ background:"#46d36922", border:"1px solid #46d369", borderRadius:4, padding:"12px 16px", marginBottom:20, color:"#46d369", fontSize:14 }}>{msg}</div>}
+                {msg && <div style={{ background:"#00d2ff22", border:"1px solid #00d2ff", borderRadius:4, padding:"12px 16px", marginBottom:20, color:"#00d2ff", fontSize:14 }}>{msg}</div>}
                 {loading && <div style={{ textAlign:"center", padding:"60px 0", color:"#737373" }}>Loading...</div>}
                 {!loading && pending.length === 0 && (
                     <div style={{ textAlign:"center", padding:"60px 0", background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a" }}>
@@ -91,13 +91,13 @@ export default function AdminDashboard() {
                         <div style={{ flex:1 }}>
                             <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8 }}>
                                 <h3 style={{ fontSize:18, fontWeight:700 }}>{app.name}</h3>
-                                <span style={{ padding:"2px 10px", background:"#e5091422", border:"1px solid #e50914", borderRadius:4, fontSize:11, fontWeight:700, color:"#e50914" }}>{app.category}</span>
+                                <span style={{ padding:"2px 10px", background:"#00d2ff22", border:"1px solid #00d2ff", borderRadius:4, fontSize:11, fontWeight:700, color:"#00d2ff" }}>{app.category}</span>
                             </div>
                             <p style={{ color:"#737373", fontSize:13, marginBottom:8 }}>{app.description || "No description"}</p>
                             <div style={{ display:"flex", gap:20, fontSize:12, color:"#737373" }}>
                                 <span>Dev: {app.developer}</span>
                                 <span>v{app.version}</span>
-                                <span style={{ color: app.price === 0 ? "#46d369" : "#e5e5e5", fontWeight:700 }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
+                                <span style={{ color: app.price === 0 ? "#00d2ff" : "#e5e5e5", fontWeight:700 }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
                             </div>
                         </div>
                         <div style={{ display:"flex", gap:10 }}>

@@ -14,7 +14,7 @@ export default function Intro() {
       opacity: Math.random() * 0.5 + 0.1,
       animationDuration: Math.random() * 3 + 2,
       animationDelay: Math.random() * 2,
-      color: i % 2 === 0 ? "#e50914" : "#333"
+      color: i % 2 === 0 ? "#e50914" : (i % 3 === 0 ? "#00d2ff" : "#fff")
     }));
   });
 
@@ -42,8 +42,8 @@ export default function Intro() {
     }}>
       <style>{`
         @keyframes glow {
-          0%, 100% { text-shadow: 0 0 20px #e50914, 0 0 40px #b9090b; }
-          50% { text-shadow: 0 0 40px #ff0000, 0 0 80px #000; }
+          0%, 100% { text-shadow: 0 0 20px #e50914, 0 0 40px #00d2ff; }
+          50% { text-shadow: 0 0 40px #00d2ff, 0 0 80px #e50914; }
         }
         @keyframes revealPage {
           from { opacity: 0; transform: scale(0.98); filter: blur(10px); }
@@ -99,8 +99,8 @@ export default function Intro() {
           height: 140,
           borderRadius: "50%",
           border: "3px solid transparent",
-          borderTop: "3px solid #e50914",
-          borderRight: "3px solid #333",
+          borderTop: "3px solid #00d2ff",
+          borderRight: "3px solid #e50914",
           animation: "rotate 1.5s linear infinite",
           position: "absolute",
           top: -10,
@@ -116,14 +116,14 @@ export default function Intro() {
           alignItems: "center",
           justifyContent: "center",
           fontSize: 48,
-        }}>🏪</div>
+        }}>🐼</div>
       </div>
 
       {/* App name */}
       <h1 style={{
         fontSize: 48,
         fontWeight: 900,
-        background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
+        background: "linear-gradient(135deg, #e50914, #fff, #00d2ff)",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         margin: 0,
@@ -159,7 +159,7 @@ export default function Intro() {
       }}>
         <div style={{
           height: "100%",
-          background: "linear-gradient(135deg, #e50914, #b9090b)",
+          background: "linear-gradient(135deg, #e50914, #00d2ff)",
           borderRadius: 2,
           animation: phase >= 1 ? "expand 3s ease forwards" : "none",
         }} />

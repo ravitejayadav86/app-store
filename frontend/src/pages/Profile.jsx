@@ -49,7 +49,7 @@ export default function Profile() {
                     animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     opacity: 0;
                 }
-                .purchase-item:hover { border-color:#e50914; transform: translateX(8px); }
+                .purchase-item:hover { border-color:#00d2ff; transform: translateX(8px); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
             `}</style>
 
             {/* Navbar */}
@@ -57,7 +57,7 @@ export default function Profile() {
                 <div style={{ display:"flex", alignItems:"center", gap:32 }}>
                     <Link to="/home" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
                         <span style={{ fontSize:28 }}>🐼</span>
-                        <span style={{ fontSize:22, fontWeight:900, color:"#e50914", letterSpacing:2 }}>PANDASTORE</span>
+                        <span style={{ fontSize:22, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</span>
                     </Link>
                     <div style={{ display:"flex", gap:20 }}>
                         <Link to="/home" className="nav-link">Home</Link>
@@ -73,14 +73,15 @@ export default function Profile() {
                 {/* Profile Header */}
                 <div style={{ 
                     display:"flex", alignItems:"center", gap:24, marginBottom:40, padding:32, 
-                    background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a",
-                    animation: "revealItem 1s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+                    background:"#1f1f1f", borderRadius:8, border:"1px solid #00d2ff33",
+                    animation: "revealItem 1s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                    boxShadow: "0 0 30px rgba(0,210,255,0.05)"
                 }}>
-                    <div style={{ width:80, height:80, borderRadius:"50%", background:"#e50914", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>🐼</div>
+                    <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg, #e50914, #00d2ff)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>🐼</div>
                     <div>
                         <h1 style={{ fontSize:28, fontWeight:700, marginBottom:4 }}>{user.username}</h1>
                         <p style={{ color:"#737373", fontSize:14 }}>{user.email}</p>
-                        <span style={{ display:"inline-block", marginTop:8, padding:"4px 12px", background: user.is_admin ? "#e5091422" : "#46d36922", border:`1px solid ${user.is_admin ? "#e50914" : "#46d369"}`, borderRadius:4, fontSize:12, fontWeight:700, color: user.is_admin ? "#e50914" : "#46d369" }}>
+                        <span style={{ display:"inline-block", marginTop:8, padding:"4px 12px", background: user.is_admin ? "#e5091422" : "#00d2ff22", border:`1px solid ${user.is_admin ? "#e50914" : "#00d2ff"}`, borderRadius:4, fontSize:12, fontWeight:700, color: user.is_admin ? "#e50914" : "#00d2ff" }}>
                             {user.is_admin ? "⚡ Admin" : "⭐ Member"}
                         </span>
                     </div>
@@ -108,7 +109,7 @@ export default function Profile() {
                             <div style={{ fontSize:48, marginBottom:12 }}>🐼</div>
                             <p style={{ color:"#737373", marginBottom:20 }}>No purchases yet</p>
                             <Link to="/home">
-                                <button style={{ padding:"12px 28px", background:"#e50914", border:"none", borderRadius:4, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer" }}>Browse Apps</button>
+                                <button style={{ padding:"12px 28px", background:"linear-gradient(135deg, #e50914, #00d2ff)", border:"none", borderRadius:4, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", transition:"all 0.3s" }}>Browse Apps</button>
                             </Link>
                         </div>
                     ) : (
@@ -118,7 +119,7 @@ export default function Profile() {
                                     <p style={{ fontWeight:700, marginBottom:4 }}>App ID: {p.app_id}</p>
                                     <p style={{ color:"#737373", fontSize:13 }}>{new Date(p.purchased_at).toLocaleDateString()}</p>
                                 </div>
-                                <span style={{ color:"#46d369", fontSize:13, fontWeight:700 }}>✓ Purchased</span>
+                                <span style={{ color:"#00d2ff", fontSize:13, fontWeight:700 }}>✓ Purchased</span>
                             </div>
                         ))
                     )}

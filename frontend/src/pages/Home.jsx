@@ -65,12 +65,13 @@ export default function Home() {
         }
         .app-card {
           animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
           opacity: 0;
         }
         .app-card:hover {
           transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(229,9,20,0.25);
+          box-shadow: 0 20px 40px rgba(0,210,255,0.25);
+          border-color: #00d2ff;
         }
         .nav-btn { 
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
@@ -118,8 +119,9 @@ export default function Home() {
                     <span className="logo-float" style={{ fontSize: 28 }}>🐼</span>
                     <span style={{
                         fontSize: 22, fontWeight: 900,
-                        background: "linear-gradient(135deg, #e50914, #737373)",
+                        background: "linear-gradient(135deg, #e50914, #00d2ff)",
                         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                        letterSpacing: 2
                     }}>PANDASTORE</span>
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
@@ -127,21 +129,20 @@ export default function Home() {
                         <button className="nav-btn" style={{
                             padding: "8px 18px",
                             background: "linear-gradient(135deg, #e50914, #b9090b)",
-                            color: "#fff", borderRadius: 12,
+                            color: "#fff", borderRadius: 12, border: "none", fontWeight: 700
                         }}>🚀 Submit</button>
                     </Link>
                     <Link to="/profile">
                         <button className="nav-btn" style={{
                             padding: "8px 18px",
-                            background: "rgba(255,255,255,0.1)",
-                            color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12,
+                            background: "transparent",
+                            color: "#00d2ff", border: "1px solid #00d2ff", borderRadius: 12, fontWeight: 700
                         }}>👤 Profile</button>
                     </Link>
                     <button className="nav-btn" onClick={handleLogout} style={{
                         padding: "8px 18px",
-                        background: "linear-gradient(135deg, #333, #000)",
-                        color: "#fff", borderRadius: 12,
-                        border: "1px solid #444",
+                        background: "transparent",
+                        color: "#fff", borderRadius: 12, border: "1px solid #444", fontWeight: 700
                     }}>Logout 🚪</button>
                 </div>
             </div>
@@ -150,7 +151,7 @@ export default function Home() {
             <div style={{ textAlign: "center", maxWidth: 1100, margin: "0 auto 36px" }}>
                 <h1 style={{
                     fontSize: 48, fontWeight: 900,
-                    background: "linear-gradient(135deg, #e50914, #fff, #b9090b)",
+                    background: "linear-gradient(135deg, #e50914, #fff, #00d2ff)",
                     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                     marginBottom: 12,
                 }}>Discover Amazing Apps 🐼</h1>
@@ -205,10 +206,10 @@ export default function Home() {
                             border: "none",
                             fontSize: 13, fontWeight: 700,
                             background: category === cat
-                                ? "linear-gradient(135deg, #e50914, #b9090b)"
+                                ? "linear-gradient(135deg, #e50914, #00d2ff)"
                                 : "rgba(255,255,255,0.08)",
                             color: category === cat ? "#fff" : "#737373",
-                            boxShadow: category === cat ? "0 0 15px rgba(229,9,20,0.4)" : "none",
+                            boxShadow: category === cat ? "0 0 15px rgba(0,210,255,0.4)" : "none",
                         }}
                     >{cat}</button>
                 ))}
@@ -261,11 +262,11 @@ export default function Home() {
                                 display: "inline-block",
                                 padding: "3px 10px", borderRadius: 20,
                                 fontSize: 12, fontWeight: 700,
-                                background: "rgba(229,9,20,0.15)",
-                                border: "1px solid #e5091455",
-                                color: "#e50914", marginBottom: 10,
+                                background: "rgba(0,210,255,0.15)",
+                                border: "1px solid rgba(0,210,255,0.5)",
+                                color: "#00d2ff", marginBottom: 10,
                             }}>{app.category}</span>
-                            <p style={{ color: "#737373", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
+                            <p style={{ color: "#a3a3a3", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
                                 {app.description?.length > 80
                                     ? app.description.slice(0, 80) + "..."
                                     : app.description}
@@ -276,14 +277,15 @@ export default function Home() {
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span style={{
                                     fontSize: 20, fontWeight: 900,
-                                    background: "linear-gradient(135deg, #fff, #e50914)",
+                                    background: "linear-gradient(135deg, #fff, #00d2ff)",
                                     WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                                 }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
                                 <Link to={`/apps/${app.id}`}>
                                     <button style={{
                                         padding: "8px 20px",
-                                        background: "linear-gradient(135deg, #e50914, #b9090b)",
-                                        color: "#fff", fontSize: 14, borderRadius: 10,
+                                        background: "linear-gradient(135deg, #00d2ff, #007bff)",
+                                        color: "#000", fontSize: 14, borderRadius: 10, fontWeight: 700,
+                                        border: "none", cursor: "pointer"
                                     }}>View 👁️</button>
                                 </Link>
                             </div>
