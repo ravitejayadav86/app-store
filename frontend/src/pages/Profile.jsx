@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getMe, getPurchases } from "../api";
+import { getMe, getPurchases, downloadApp } from "../api";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -18,118 +18,208 @@ export default function Profile() {
     };
 
     if (!user) return (
-        <div style={{ minHeight:"100vh", background:"#141414", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <div style={{ color:"#e50914", fontSize:32 }}>🐼 Loading...</div>
+        <div style={{ minHeight: "100vh", background: "var(--panda-black)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ color: "var(--panda-red)", fontSize: 32, fontWeight: 800 }}>🐼 Loading...</div>
         </div>
     );
 
     return (
-        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+        <div style={{ minHeight: "100vh", paddingBottom: 100, animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-                * { box-sizing: border-box; }
-                @keyframes revealPage {
-                    from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
-                    to { opacity: 1; filter: blur(0); transform: scale(1); }
+                .glass-nav {
+                    background: rgba(10, 10, 15, 0.8);
+                    backdrop-filter: blur(20px);
+                    border-bottom: 1px solid var(--panda-border);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    padding: 0 48px;
+                    height: 72px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
                 }
-                @keyframes revealItem {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
+                .nav-btn-secondary {
+                    padding: 8px 20px;
+                    background: transparent;
+                    border: 1px solid var(--panda-border);
+                    color: #fff;
+                    font-size: 14px;
+                    border-radius: 100px;
+                    transition: var(--transition);
                 }
-                .nav-link { color:#e5e5e5; text-decoration:none; font-size:14px; transition: color 0.3s; }
-                .nav-link:hover { color:#fff; }
-                .info-card { 
-                    background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:20px; 
-                    animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                    opacity: 0;
+                .nav-btn-secondary:hover {
+                    background: var(--panda-glass);
+                    border-color: #fff;
                 }
-                .purchase-item { 
-                    background:#1f1f1f; border:1px solid #2a2a2a; border-radius:8px; padding:16px 20px; 
-                    margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; 
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                    animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                    opacity: 0;
+                .profile-stage {
+                    max-width: 900px;
+                    margin: 60px auto;
+                    padding: 0 24px;
+                    animation: driftUp 1s var(--transition) forwards;
                 }
-                .purchase-item:hover { border-color:#00d2ff; transform: translateX(8px); box-shadow: 0 0 15px rgba(0,210,255,0.1); }
+                .user-hero {
+                    background: var(--panda-glass);
+                    backdrop-filter: blur(40px);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 32px;
+                    padding: 48px;
+                    display: flex;
+                    align-items: center;
+                    gap: 40px;
+                    margin-bottom: 40px;
+                    box-shadow: var(--shadow-lg);
+                }
+                .avatar-lg {
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 40px;
+                    background: var(--panda-gradient);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 56px;
+                    box-shadow: 0 20px 40px rgba(229, 9, 20, 0.2);
+                }
+                .stat-card {
+                    background: var(--panda-glass);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 20px;
+                    padding: 24px;
+                    text-align: center;
+                    transition: var(--transition);
+                }
+                .stat-card:hover {
+                    border-color: var(--panda-blue);
+                    transform: translateY(-4px);
+                }
+                .purchase-row {
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 16px;
+                    padding: 20px 24px;
+                    margin-bottom: 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    transition: var(--transition);
+                }
+                .purchase-row:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: var(--panda-blue);
+                    transform: translateX(8px);
+                }
+                .badge-premium {
+                    padding: 6px 16px;
+                    background: rgba(0, 210, 255, 0.1);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 100px;
+                    color: var(--panda-blue);
+                    font-size: 11px;
+                    font-weight: 900;
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                }
             `}</style>
 
-            {/* Navbar */}
-            <nav style={{ background:"rgba(20,20,20,0.95)", backdropFilter:"blur(10px)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #222" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:32 }}>
-                    <Link to="/home" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
-                        <span style={{ fontSize:28 }}>🐼</span>
-                        <span style={{ fontSize:22, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</span>
+            <nav className="glass-nav">
+                <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                    <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+                        <span className="logo-float" style={{ fontSize: 32 }}>🐼</span>
+                        <span style={{ fontSize: 24, fontWeight: 900, background: "var(--panda-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: -0.5 }}>PANDASTORE</span>
                     </Link>
-                    <div style={{ display:"flex", gap:20 }}>
-                        <Link to="/home" className="nav-link">Home</Link>
-                        <Link to="/submit" className="nav-link">Submit App</Link>
-                        <Link to="/admin" className="nav-link">Admin</Link>
+                    <div style={{ display: "flex", gap: 24 }}>
+                        <Link to="/home" className="nav-btn-secondary" style={{ border: "none" }}>Browse</Link>
+                        <Link to="/submit" className="nav-btn-secondary" style={{ border: "none" }}>Publish</Link>
+                        {user.is_admin && <Link to="/admin" className="nav-btn-secondary" style={{ border: "none" }}>Admin</Link>}
                     </div>
                 </div>
-                <button onClick={handleLogout} style={{ padding:"8px 20px", background:"transparent", border:"1px solid #e5e5e5", borderRadius:4, color:"#e5e5e5", fontSize:14, cursor:"pointer" }}>Sign Out</button>
+                <button className="nav-btn-secondary" onClick={handleLogout}>Sign Out</button>
             </nav>
 
-            <div style={{ maxWidth:800, margin:"0 auto", padding:"48px 24px" }}>
-
-                {/* Profile Header */}
-                <div style={{ 
-                    display:"flex", alignItems:"center", gap:24, marginBottom:40, padding:32, 
-                    background:"#1f1f1f", borderRadius:8, border:"1px solid #00d2ff33",
-                    animation: "revealItem 1s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-                    boxShadow: "0 0 30px rgba(0,210,255,0.05)"
-                }}>
-                    <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg, #e50914, #00d2ff)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>🐼</div>
-                    <div>
-                        <h1 style={{ fontSize:28, fontWeight:700, marginBottom:4 }}>{user.username}</h1>
-                        <p style={{ color:"#737373", fontSize:14 }}>{user.email}</p>
-                        <span style={{ display:"inline-block", marginTop:8, padding:"4px 12px", background: user.is_admin ? "#e5091422" : "#00d2ff22", border:`1px solid ${user.is_admin ? "#e50914" : "#00d2ff"}`, borderRadius:4, fontSize:12, fontWeight:700, color: user.is_admin ? "#e50914" : "#00d2ff" }}>
-                            {user.is_admin ? "⚡ Admin" : "⭐ Member"}
-                        </span>
+            <main className="profile-stage">
+                <div className="user-hero">
+                    <div className="avatar-lg">🐼</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
+                            <h1 style={{ fontSize: 40, fontWeight: 900, letterSpacing: -1.5 }}>{user.username}</h1>
+                            {user.is_admin && <span className="badge-premium" style={{ color: "var(--panda-red)", borderColor: "var(--panda-red)", background: "rgba(229,9,20,0.1)" }}>Overlord</span>}
+                        </div>
+                        <p style={{ color: "#666", fontSize: 18, marginBottom: 20 }}>{user.email}</p>
+                        <div className="badge-premium">Cosmic Associate</div>
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:40 }}>
-                    {[
-                        { label:"Member Since", value: new Date(user.created_at).toLocaleDateString() },
-                        { label:"Total Purchases", value: purchases.length },
-                        { label:"Account Status", value: user.is_active ? "Active" : "Inactive" },
-                    ].map((item, i) => (
-                        <div key={i} className="info-card" style={{ textAlign:"center", animationDelay: `${0.1 + i * 0.1}s` }}>
-                            <p style={{ color:"#737373", fontSize:12, marginBottom:8, textTransform:"uppercase", letterSpacing:1 }}>{item.label}</p>
-                            <p style={{ fontSize:20, fontWeight:700 }}>{item.value}</p>
-                        </div>
-                    ))}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 60 }}>
+                    <div className="stat-card">
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#666", textTransform: "uppercase", marginBottom: 8 }}>Active Since</div>
+                        <div style={{ fontSize: 20, fontWeight: 900 }}>{new Date(user.created_at).getFullYear()}</div>
+                    </div>
+                    <div className="stat-card">
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#666", textTransform: "uppercase", marginBottom: 8 }}>Total Fleet</div>
+                        <div style={{ fontSize: 20, fontWeight: 900 }}>{purchases.length} Apps</div>
+                    </div>
+                    <div className="stat-card">
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#666", textTransform: "uppercase", marginBottom: 8 }}>Status</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: "var(--panda-blue)" }}>Verified</div>
+                    </div>
                 </div>
 
-                {/* Purchases */}
-                <div>
-                    <h2 style={{ fontSize:20, fontWeight:700, marginBottom:20, color:"#e5e5e5" }}>My Purchases</h2>
+                <section>
+                    <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 24, letterSpacing: -0.5 }}>Command History</h2>
                     {purchases.length === 0 ? (
-                        <div style={{ textAlign:"center", padding:"60px 0", background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a" }}>
-                            <div style={{ fontSize:48, marginBottom:12 }}>🐼</div>
-                            <p style={{ color:"#737373", marginBottom:20 }}>No purchases yet</p>
-                            <Link to="/home">
-                                <button style={{ padding:"12px 28px", background:"linear-gradient(135deg, #e50914, #00d2ff)", border:"none", borderRadius:4, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", transition:"all 0.3s" }}>Browse Apps</button>
-                            </Link>
+                        <div style={{ textAlign: "center", padding: 80, background: "rgba(255,255,255,0.02)", borderRadius: 32, border: "1px dashed var(--panda-border)" }}>
+                            <div style={{ fontSize: 48, marginBottom: 16 }}>🪐</div>
+                            <p style={{ color: "#666" }}>Your command history is currently empty.</p>
+                            <Link to="/home"><button className="nav-btn-secondary" style={{ marginTop: 20 }}>Initialize Discovery</button></Link>
                         </div>
                     ) : (
                         purchases.map((p, i) => (
-                            <div key={p.id} className="purchase-item" style={{ animationDelay: `${0.4 + i * 0.05}s` }}>
-                                <div>
-                                    <p style={{ fontWeight:700, marginBottom:4 }}>App ID: {p.app_id}</p>
-                                    <p style={{ color:"#737373", fontSize:13 }}>{new Date(p.purchased_at).toLocaleDateString()}</p>
+                            <div key={p.id} className="purchase-row" style={{ animation: `revealItem 0.8s var(--transition) ${i * 0.05}s forwards`, opacity: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--panda-glass)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📱</div>
+                                    <div>
+                                        <div style={{ fontWeight: 800 }}>{p.app?.name || `App Interface #${p.app_id}`}</div>
+                                        <div style={{ fontSize: 12, color: "#666" }}>Acquired on {new Date(p.purchased_at).toLocaleDateString()}</div>
+                                    </div>
                                 </div>
-                                <span style={{ color:"#00d2ff", fontSize:13, fontWeight:700 }}>✓ Purchased</span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                                    <div style={{ color: "var(--panda-blue)", fontWeight: 800, fontSize: 13 }}>SUCCESSFUL</div>
+                                    {p.app?.file_path ? (
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const response = await downloadApp(p.app_id);
+                                                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                                                    const link = document.createElement("a");
+                                                    link.href = url;
+                                                    link.setAttribute("download", p.app.file_path.split('/').pop() || "download");
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    link.parentNode.removeChild(link);
+                                                    window.URL.revokeObjectURL(url);
+                                                } catch {
+                                                    alert("Download failed.");
+                                                }
+                                            }}
+                                            className="nav-btn-secondary" 
+                                            style={{ fontSize: 12, padding: "4px 12px" }}
+                                        >
+                                            Download
+                                        </button>
+                                    ) : (
+                                        <span style={{ fontSize: 11, color: "#444", fontWeight: 700 }}>No Binary</span>
+                                    )}
+                                </div>
                             </div>
                         ))
                     )}
-                </div>
-            </div>
+                </section>
+            </main>
 
-            {/* Footer */}
-            <footer style={{ borderTop:"1px solid #222", padding:"40px 48px", color:"#737373", fontSize:13, textAlign:"center" }}>
-                <span style={{ fontSize:16 }}>🐼</span> <span style={{ color:"#e50914", fontWeight:700 }}>PANDASTORE</span> © 2026
+            <footer style={{ textAlign: "center", padding: "60px 0", color: "#333", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 2 }}>
+                PandaStore Protocol &copy; 2026
             </footer>
         </div>
     );
-}
+}

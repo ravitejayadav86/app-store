@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Submit from "./pages/Submit";
 import AdminDashboard from "./pages/AdminDashboard";
 import Intro from "./pages/Intro";
+import CosmicBackground from "./components/CosmicBackground";
 
 const PrivateRoute = ({ children }) => {
   return localStorage.getItem("token") ? children : <Navigate to="/login" />;
@@ -15,6 +16,7 @@ const PrivateRoute = ({ children }) => {
 export default function App() {
   return (
     <BrowserRouter>
+      <CosmicBackground />
       <Routes>
         <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />

@@ -14,4 +14,5 @@ def my_purchases(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    return db.query(models.Purchase).filter(models.Purchase.user_id == current_user.id).all()
+    from sqlalchemy.orm import joinedload
+    return db.query(models.Purchase).options(joinedload(models.Purchase.app)).filter(models.Purchase.user_id == current_user.id).all()

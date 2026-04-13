@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getApp, purchaseApp, downloadApp } from "../api";
 
+const EMOJIS = ["🎮", "🎵", "📱", "🚀", "⚡", "🌟", "🎨", "🔥"];
+
 export default function AppDetail() {
     const { id } = useParams();
     const [app, setApp] = useState(null);
@@ -13,6 +15,12 @@ export default function AppDetail() {
 
     useEffect(() => {
         getApp(id).then(({ data }) => setApp(data)).catch(() => setMsg("App not found"));
+        // Check if already purchased
+        getPurchases().then(({ data }) => {
+            if (data.some(p => p.app_id === parseInt(id))) {
+                setPurchased(true);
+            }
+        }).catch(() => {});
     }, [id]);
 
     const handlePurchase = async () => {
@@ -22,7 +30,12 @@ export default function AppDetail() {
             setMsg("App purchased successfully!");
             setPurchased(true);
         } catch (err) {
-            setMsg(err.response?.data?.detail || "Purchase failed");
+            if (err.response?.status === 400 && err.response?.data?.detail === "Already purchased") {
+                setPurchased(true);
+                setMsg("You already own this application.");
+            } else {
+                setMsg(err.response?.data?.detail || "Purchase failed");
+            }
         } finally {
             setLoading(false);
         }
@@ -49,96 +62,222 @@ export default function AppDetail() {
     };
 
     if (!app) return (
-        <div style={{ minHeight:"100vh", background:"#141414", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <div style={{ color:"#e50914", fontSize:24 }}>Loading...</div>
+        <div style={{ minHeight: "100vh", background: "var(--panda-black)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ color: "var(--panda-red)", fontSize: 24, fontWeight: 800 }}>Loading...</div>
         </div>
     );
 
+    const appEmoji = EMOJIS[app.id % 8];
+
     return (
-        <div style={{ minHeight:"100vh", background:"#141414", color:"#fff", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+        <div style={{ minHeight: "100vh", paddingBottom: 100, animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-                @keyframes revealPage {
-                    from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
-                    to { opacity: 1; filter: blur(0); transform: scale(1); }
+                .glass-nav {
+                    background: rgba(10, 10, 15, 0.8);
+                    backdrop-filter: blur(20px);
+                    border-bottom: 1px solid var(--panda-border);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    padding: 0 48px;
+                    height: 72px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
                 }
-                @keyframes slideLeft {
-                    from { opacity: 0; transform: translateX(-40px); }
-                    to { opacity: 1; transform: translateX(0); }
+                .back-btn {
+                    padding: 8px 20px;
+                    background: transparent;
+                    border: 1px solid var(--panda-border);
+                    color: #fff;
+                    font-size: 14px;
+                    border-radius: 100px;
+                    transition: var(--transition);
                 }
-                @keyframes slideRight {
-                    from { opacity: 0; transform: translateX(40px); }
-                    to { opacity: 1; transform: translateX(0); }
+                .back-btn:hover {
+                    background: var(--panda-glass);
+                    border-color: #fff;
                 }
-                .buy-btn { 
-                    width:100%; padding:16px; background:#e50914; border:none; border-radius:4px; 
-                    color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-bottom:12px;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                    box-shadow: 0 0 15px rgba(229,9,20,0.3);
+                .hero-stage {
+                    position: relative;
+                    width: 100%;
+                    max-width: 1000px;
+                    margin: 60px auto;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 60px;
+                    align-items: center;
+                    padding: 0 40px;
                 }
-                .buy-btn:hover { background:#f40612; transform: translateY(-2px); box-shadow: 0 0 25px rgba(229,9,20,0.5); }
-                .buy-btn:active { transform: scale(0.96); }
-                .buy-btn:disabled { background:#831010; cursor:default; transform: none; box-shadow: none; }
-                .dl-btn { 
-                    width:100%; padding:16px; background:#00d2ff; border:none; border-radius:4px; 
-                    color:#000; font-size:16px; font-weight:900; cursor:pointer;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                    box-shadow: 0 0 15px rgba(0,210,255,0.3);
+                .emoji-stage {
+                    position: relative;
+                    aspect-ratio: 1;
+                    background: var(--panda-glass);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 120px;
+                    box-shadow: var(--shadow-lg);
+                    z-index: 2;
+                    animation: float 6s ease-in-out infinite;
                 }
-                .dl-btn:hover { background:#33dcff; transform: translateY(-2px); box-shadow: 0 0 25px rgba(0,210,255,0.5); }
-                .dl-btn:active { transform: scale(0.96); }
-                .dl-btn:disabled { background:#005c70; cursor:default; transform: none; box-shadow: none; }
+                .emoji-stage:hover {
+                    animation: float 6s ease-in-out infinite, glitch 0.5s infinite;
+                    border-color: #fff;
+                }
+                .emoji-reflection {
+                    position: absolute;
+                    inset: -40px;
+                    background: var(--panda-red);
+                    filter: blur(120px);
+                    opacity: 0.15;
+                    border-radius: 50%;
+                    z-index: 1;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 6px 16px;
+                    background: var(--panda-glass);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 100px;
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: var(--panda-blue);
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                    margin-bottom: 24px;
+                }
+                .action-btn-primary {
+                    width: 100%;
+                    padding: 18px;
+                    background: var(--panda-gradient);
+                    color: #fff;
+                    font-weight: 800;
+                    font-size: 16px;
+                    border-radius: 16px;
+                    border: none;
+                    transition: var(--transition);
+                    cursor: pointer;
+                }
+                .action-btn-primary:hover:not(:disabled) {
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 30px rgba(229, 9, 20, 0.4);
+                    animation: glitch 0.3s infinite;
+                }
+                .action-btn-secondary {
+                    width: 100%;
+                    padding: 18px;
+                    background: #fff;
+                    color: #000;
+                    font-weight: 800;
+                    font-size: 16px;
+                    border-radius: 16px;
+                    border: none;
+                    margin-top: 16px;
+                    transition: var(--transition);
+                    cursor: pointer;
+                }
+                .action-btn-secondary:hover:not(:disabled) {
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.3);
+                }
+                .info-pill {
+                    background: var(--panda-glass);
+                    border: 1px solid var(--panda-border);
+                    padding: 12px 20px;
+                    border-radius: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .info-label {
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    font-weight: 700;
+                    color: #666;
+                }
+                .info-value {
+                    font-size: 14px;
+                    font-weight: 800;
+                }
             `}</style>
-            <nav style={{ background:"rgba(20,20,20,0.95)", position:"sticky", top:0, zIndex:100, padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:68, borderBottom:"1px solid #00d2ff44" }}>
-                <Link to="/home" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
-                    <span style={{ fontSize:28 }}>🐼</span>
-                    <span style={{ fontSize:22, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</span>
+
+            <nav className="glass-nav">
+                <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+                    <span className="logo-float" style={{ fontSize: 32 }}>🐼</span>
+                    <span style={{ fontSize: 24, fontWeight: 900, background: "var(--panda-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: -0.5 }}>PANDASTORE</span>
                 </Link>
-                <button onClick={() => navigate(-1)} style={{ padding:"8px 20px", background:"transparent", border:"1px solid #00d2ff", borderRadius:4, color:"#00d2ff", fontSize:14, cursor:"pointer", transition:"all 0.3s" }} onMouseOver={e => {e.target.style.background="#00d2ff"; e.target.style.color="#000"}} onMouseOut={e => {e.target.style.background="transparent"; e.target.style.color="#00d2ff"}}>Back</button>
+                <button className="back-btn" onClick={() => navigate(-1)}>Back to Browse</button>
             </nav>
-            <div style={{ maxWidth:900, margin:"0 auto", padding:"48px 24px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:40 }}>
-                <div style={{ animation: "slideLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-                    <div style={{ background:"#1f1f1f", borderRadius:8, border:"1px solid #00d2ff66", height:300, display:"flex", alignItems:"center", justifyContent:"center", fontSize:100, marginBottom:20, boxShadow:"0 0 30px rgba(0,210,255,0.1)" }}>
-                        🎮
-                    </div>
-                    <div style={{ background:"#1f1f1f", borderRadius:8, border:"1px solid #2a2a2a", padding:20 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
-                            <span style={{ color:"#737373", fontSize:13 }}>Developer</span>
-                            <span style={{ fontSize:13, fontWeight:600 }}>{app.developer}</span>
+
+            <main className="hero-stage">
+                <div style={{ position: "relative", animation: "driftUp 1s var(--transition) forwards" }}>
+                    <div className="emoji-reflection" style={{ animation: "singularityPulse 4s infinite" }} />
+                    <div className="emoji-stage">{appEmoji}</div>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 40 }}>
+                        <div className="info-pill">
+                            <span className="info-label">Developer</span>
+                            <span className="info-value">{app.developer}</span>
                         </div>
-                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
-                            <span style={{ color:"#737373", fontSize:13 }}>Version</span>
-                            <span style={{ fontSize:13, fontWeight:600 }}>v{app.version}</span>
-                        </div>
-                        <div style={{ display:"flex", justifyContent:"space-between" }}>
-                            <span style={{ color:"#737373", fontSize:13 }}>Category</span>
-                            <span style={{ fontSize:13, fontWeight:600, color:"#e50914" }}>{app.category}</span>
+                        <div className="info-pill">
+                            <span className="info-label">Version</span>
+                            <span className="info-value">v{app.version}</span>
                         </div>
                     </div>
                 </div>
-                <div style={{ animation: "slideRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-                    <div style={{ fontSize:12, fontWeight:700, color:"#00d2ff", letterSpacing:3, marginBottom:12, textTransform:"uppercase" }}>{app.category}</div>
-                    <h1 style={{ fontSize:36, fontWeight:900, marginBottom:16 }}>{app.name}</h1>
-                    <p style={{ color:"#a3a3a3", fontSize:16, lineHeight:1.7, marginBottom:32 }}>{app.description || "No description available."}</p>
-                    <div style={{ marginBottom:32 }}>
-                        <span style={{ fontSize:42, fontWeight:900, color: app.price === 0 ? "#00d2ff" : "#fff", textShadow: app.price === 0 ? "0 0 20px rgba(0,210,255,0.4)" : "none" }}>
-                            {app.price === 0 ? "Free" : `$${app.price}`}
-                        </span>
+
+                <div style={{ animation: "slideRight 1s var(--transition) forwards" }}>
+                    <div className="status-badge">{app.category}</div>
+                    <h1 style={{ fontSize: 56, fontWeight: 900, letterSpacing: -2, marginBottom: 20, lineHeight: 1 }}>{app.name}</h1>
+                    <p style={{ color: "#888", fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
+                        {app.description || "The definitive experience for modern users. This application pushes the boundaries of what's possible in the Cosmic Era."}
+                    </p>
+
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 24, marginBottom: 40 }}>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, textTransform: "uppercase", fontWeight: 800, color: "var(--panda-blue)", marginBottom: 8, letterSpacing: 1 }}>Investment</div>
+                            <div style={{ fontSize: 48, fontWeight: 900, color: app.price === 0 ? "var(--panda-blue)" : "#fff" }}>
+                                {app.price === 0 ? "Complimentary" : `$${app.price}`}
+                            </div>
+                        </div>
                     </div>
+
                     {msg && (
-                        <div style={{ background: purchased ? "#00d2ff22" : "#e5091422", border:`1px solid ${purchased ? "#00d2ff" : "#e50914"}`, borderRadius:4, padding:"12px 16px", marginBottom:16, color: purchased ? "#00d2ff" : "#e50914", fontSize:14 }}>
+                        <div style={{ background: purchased ? "rgba(0, 210, 255, 0.1)" : "rgba(229, 9, 20, 0.1)", border: `1px solid ${purchased ? "var(--panda-blue)" : "var(--panda-red)"}`, borderRadius: 12, padding: 16, marginBottom: 24, color: purchased ? "var(--panda-blue)" : "var(--panda-red)", fontWeight: 700, fontSize: 14 }}>
                             {msg}
                         </div>
                     )}
-                    <button className="buy-btn" onClick={handlePurchase} disabled={loading || purchased}>
-                        {loading ? "Processing..." : purchased ? "Purchased" : app.price === 0 ? "Get for Free" : "Purchase Now"}
+
+                    <button className="action-btn-primary" onClick={handlePurchase} disabled={loading || purchased}>
+                        {loading ? "Authenticating..." : purchased ? "Owned" : app.price === 0 ? "Add to My Collection" : "Acquire License"}
                     </button>
-                    {purchased && app.file_path && (
-                        <button className="dl-btn" onClick={handleDownload} disabled={downloading}>
-                            {downloading ? "Downloading..." : "Download App"}
-                        </button>
+
+                    {(purchased || app.price === 0) && (
+                        app.file_path ? (
+                            <button className="action-btn-secondary" onClick={handleDownload} disabled={downloading}>
+                                {downloading ? "Transmitting..." : "Download Resources"}
+                            </button>
+                        ) : (
+                            <div style={{ 
+                                marginTop: 16, 
+                                padding: 16, 
+                                background: "rgba(255, 255, 255, 0.05)", 
+                                border: "1px dashed var(--panda-border)", 
+                                borderRadius: 16,
+                                textAlign: "center",
+                                color: "#666",
+                                fontSize: 13
+                            }}>
+                                📡 No binary resources are currently associated with this transmission.
+                            </div>
+                        )
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
+

@@ -23,66 +23,120 @@ export default function Login() {
     };
 
     return (
-        <div style={{ minHeight:"100vh", background:"#141414", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+        <div style={{ 
+            minHeight: "100vh", 
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            padding: 24, 
+            animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" 
+        }}>
             <style>{`
-                * { box-sizing: border-box; }
-                @keyframes revealPage {
-                    from { opacity: 0; filter: blur(10px); }
-                    to { opacity: 1; filter: blur(0); }
+                .auth-card {
+                    background: var(--panda-glass);
+                    backdrop-filter: blur(40px);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 32px;
+                    padding: 60px;
+                    width: 100%;
+                    max-width: 480px;
+                    box-shadow: var(--shadow-lg);
+                    animation: driftUp 1s var(--transition) forwards;
                 }
-                @keyframes driftUp {
-                    from { opacity: 0; transform: translateY(40px); }
-                    to { opacity: 1; transform: translateY(0); }
+                .auth-input {
+                    width: 100%;
+                    padding: 16px 20px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 16px;
+                    color: #fff;
+                    font-size: 16px;
+                    margin-bottom: 16px;
+                    outline: none;
+                    transition: var(--transition);
                 }
-                @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
+                .auth-input:focus {
+                    border-color: var(--panda-blue);
+                    background: rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
                 }
-                .panda-input { 
-                    width:100%; padding:16px; margin-bottom:16px; background:#333; 
-                    border:2px solid transparent; border-radius:4px; color:#fff; 
-                    font-size:16px; outline:none;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                .auth-btn-primary {
+                    width: 100%;
+                    padding: 18px;
+                    background: var(--panda-gradient);
+                    color: #fff;
+                    font-weight: 800;
+                    font-size: 16px;
+                    border-radius: 16px;
+                    border: none;
+                    cursor: pointer;
+                    transition: var(--transition);
+                    margin-top: 8px;
                 }
-                .panda-input:focus { background:#454545; border-color: #00d2ff88; transform: scale(1.02); }
-                .panda-input::placeholder { color:#8c8c8c; }
-                .panda-btn { 
-                    width:100%; padding:16px; background:linear-gradient(135deg, #e50914, #00d2ff); border:none; border-radius:4px; 
-                    color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px; 
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+                .auth-btn-primary:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 25px rgba(229, 9, 20, 0.3);
                 }
-                .panda-btn:hover { background:linear-gradient(135deg, #f40612, #33dcff); transform: translateY(-2px); box-shadow: 0 0 20px rgba(0,210,255,0.4); }
-                .panda-btn:active { transform: scale(0.96); }
-                .panda-btn:disabled { background:#333; cursor:default; transform: none; box-shadow: none; }
+                .auth-btn-primary:active { transform: scale(0.98); }
+                .auth-btn-primary:disabled { opacity: 0.5; cursor: default; }
             `}</style>
 
-            {/* Logo */}
-            <div style={{ marginBottom:40, textAlign:"center", animation: "float 4s ease-in-out infinite" }}>
-                <div style={{ fontSize:60, marginBottom:8 }}>🐼</div>
-                <div style={{ fontSize:32, fontWeight:900, background:"linear-gradient(135deg, #e50914, #00d2ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:2 }}>PANDASTORE</div>
+            <div style={{ marginBottom: 48, textAlign: "center", animation: "float 4s ease-in-out infinite" }}>
+                <div style={{ fontSize: 64, marginBottom: 12 }}>🐼</div>
+                <div style={{ 
+                    fontSize: 36, 
+                    fontWeight: 900, 
+                    background: "var(--panda-gradient)", 
+                    WebkitBackgroundClip: "text", 
+                    WebkitTextFillColor: "transparent", 
+                    letterSpacing: -1 
+                }}>PANDASTORE</div>
             </div>
 
-            {/* Card */}
-            <div style={{ background:"#000", borderRadius:8, padding:60, width:"100%", maxWidth:450, animation: "driftUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-                <h1 style={{ color:"#fff", fontSize:32, fontWeight:700, marginBottom:28 }}>Sign In</h1>
+            <div className="auth-card">
+                <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8, letterSpacing: -1 }}>Sign In</h1>
+                <p style={{ color: "#666", marginBottom: 32, fontSize: 15 }}>Welcome back to the Cosmic Era.</p>
 
                 {error && (
-                    <div style={{ background:"#e87c0333", border:"1px solid #e87c03", borderRadius:4, padding:"12px 16px", marginBottom:16, color:"#e87c03", fontSize:14 }}>
+                    <div style={{ 
+                        background: "rgba(229, 9, 20, 0.1)", 
+                        border: "1px solid var(--panda-red)", 
+                        borderRadius: 12, 
+                        padding: "12px 16px", 
+                        marginBottom: 20, 
+                        color: "var(--panda-red)", 
+                        fontSize: 14,
+                        fontWeight: 600
+                    }}>
                         {error}
                     </div>
                 )}
 
-                <input className="panda-input" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
-                <input className="panda-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
+                <input 
+                    className="auth-input" 
+                    placeholder="Username" 
+                    value={username} 
+                    onChange={e => setUsername(e.target.value)} 
+                    onKeyDown={e => e.key === "Enter" && handleLogin()} 
+                />
+                <input 
+                    className="auth-input" 
+                    type="password" 
+                    placeholder="Password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    onKeyDown={e => e.key === "Enter" && handleLogin()} 
+                />
 
-                <button className="panda-btn" onClick={handleLogin} disabled={loading}>
-                    {loading ? "Signing in..." : "Sign In"}
+                <button className="auth-btn-primary" onClick={handleLogin} disabled={loading}>
+                    {loading ? "Authenticating..." : "Enter Store"}
                 </button>
 
-                <p style={{ color:"#737373", marginTop:20, fontSize:16 }}>
-                    New to PandaStore? <Link to="/register" style={{ color:"#00d2ff", fontWeight:700, textDecoration:"none" }}>Sign up now</Link>
+                <p style={{ color: "#666", marginTop: 32, fontSize: 15, textAlign: "center" }}>
+                    New explorer? <Link to="/register" style={{ color: "var(--panda-blue)", fontWeight: 700 }}>Initialize account</Link>
                 </p>
             </div>
         </div>
     );
-}
+}

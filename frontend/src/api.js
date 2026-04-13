@@ -24,6 +24,9 @@ export const purchaseApp = (id) => api.post(`/apps/${id}/purchase`);
 export const getMe = () => api.get("/users/me");
 export const getPurchases = () => api.get("/users/me/purchases");
 export const submitApp = (data) => api.post("/apps/submit", data);
+export const uploadAppFile = (id, formData) => api.post(`/apps/${id}/upload`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+});
 export const downloadApp = (id) => api.get(`/apps/${id}/download`, { responseType: 'blob' });
 
 export default api;

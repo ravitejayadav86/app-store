@@ -77,16 +77,33 @@ def upload_file(
 def download_file(
     app_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
+    token: Optional[str] = Depends(auth.oauth2_scheme_optional)
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
         raise HTTPException(404, "File not found")
+
+    # If it's free, everyone can download
+    if app.price == 0:
+        from fastapi.responses import FileResponse
+        return FileResponse(app.file_path, filename=os.path.basename(app.file_path))
+
+    # For paid apps, authentication is required
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required for paid content")
+    
+    # Resolve user
+    current_user = auth.get_user_from_token(token, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
     purchase = db.query(models.Purchase).filter_by(
         user_id=current_user.id, app_id=app_id
     ).first()
+    
     if not purchase and not current_user.is_admin:
         raise HTTPException(403, "Please purchase this app first")
+    
     from fastapi.responses import FileResponse
     return FileResponse(app.file_path, filename=os.path.basename(app.file_path))
 @router.post("/submit", response_model=schemas.AppOut, status_code=201)

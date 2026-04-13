@@ -46,253 +46,279 @@ export default function Home() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", padding: "24px", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+        <div style={{ minHeight: "100vh", padding: "0 0 60px 0", animation: "revealPage 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
             <style>{`
-        @keyframes revealPage {
-          from { opacity: 0; transform: scale(0.98); filter: blur(10px); }
-          to { opacity: 1; transform: scale(1); filter: blur(0); }
-        }
-        @keyframes revealItem {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .app-card {
-          animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
-          opacity: 0;
-        }
-        .app-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(0,210,255,0.25);
-          border-color: #00d2ff;
-        }
-        .nav-btn { 
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-          cursor: pointer;
-        }
-        .nav-btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .nav-btn:active { transform: scale(0.96); }
-        .cat-pill { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; }
-        .cat-pill:hover { transform: translateY(-2px); }
-        .cat-pill:active { transform: scale(0.94); }
-        .logo-float { animation: float 3s ease-in-out infinite; display: inline-block; }
-        .search-input { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .search-input:focus { border-color: #e50914 !important; box-shadow: 0 0 15px rgba(229,9,20,0.1); transform: scale(1.01); }
-        .spinner { animation: spin 1s linear infinite; display: inline-block; }
-        select {
-          background: rgba(255,255,255,0.07);
-          border: 2px solid #333;
-          color: #fff;
-          padding: 10px 14px;
-          border-radius: 12px;
-          font-family: 'Nunito', sans-serif;
-          font-size: 14px;
-          outline: none;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        select:hover { border-color: #e5091444; }
-        select option { background: #141414; }
-      `}</style>
+                .glass-nav {
+                    background: rgba(10, 10, 15, 0.8);
+                    backdrop-filter: blur(20px);
+                    border-bottom: 1px solid var(--panda-border);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    padding: 0 48px;
+                    height: 72px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .nav-btn-secondary {
+                    padding: 8px 20px;
+                    background: transparent;
+                    border: 1px solid var(--panda-border);
+                    color: #fff;
+                    font-size: 14px;
+                    border-radius: 100px;
+                    transition: var(--transition);
+                }
+                .nav-btn-secondary:hover {
+                    background: var(--panda-glass);
+                    border-color: #fff;
+                }
+                .nav-btn-primary {
+                    padding: 8px 20px;
+                    background: var(--panda-gradient);
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 800;
+                    border-radius: 100px;
+                    transition: var(--transition);
+                }
+                .nav-btn-primary:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(229, 9, 20, 0.3);
+                }
+                .hero-section {
+                    padding: 80px 24px 60px;
+                    text-align: center;
+                    background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
+                }
+                .dashboard-bar {
+                    max-width: 1100px;
+                    margin: 0 auto 40px;
+                    background: var(--panda-glass);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 20px;
+                    padding: 16px 24px;
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                    backdrop-filter: blur(10px);
+                }
+                .search-field {
+                    flex: 1;
+                    background: transparent;
+                    border: none;
+                    color: #fff;
+                    font-size: 16px;
+                    outline: none;
+                }
+                .filter-select {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--panda-border);
+                    color: #fff;
+                    padding: 8px 16px;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    outline: none;
+                    cursor: pointer;
+                    transition: var(--transition);
+                }
+                .filter-select:hover {
+                    border-color: var(--panda-blue);
+                }
+                .category-scroller {
+                    max-width: 1100px;
+                    margin: 0 auto 32px;
+                    display: flex;
+                    gap: 10px;
+                    overflow-x: auto;
+                    padding: 4px;
+                    scrollbar-width: none;
+                }
+                .category-scroller::-webkit-scrollbar { display: none; }
+                .cat-chip {
+                    padding: 8px 24px;
+                    border-radius: 100px;
+                    white-space: nowrap;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border: 1px solid var(--panda-border);
+                    background: var(--panda-glass);
+                    color: #777;
+                    transition: var(--transition);
+                }
+                .cat-chip.active {
+                    background: #fff;
+                    color: #000;
+                    border-color: #fff;
+                }
+                .cat-chip:hover:not(.active) {
+                    border-color: #aaa;
+                    color: #fff;
+                }
+                .app-grid {
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 24px;
+                    padding: 0 24px;
+                }
+                .panda-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid var(--panda-border);
+                    border-radius: 24px;
+                    padding: 32px;
+                    transition: var(--transition);
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .panda-card::before {
+                    content: '';
+                    position: absolute;
+                    inset: -50%;
+                    background: conic-gradient(from 0deg, transparent, var(--panda-blue), transparent, var(--panda-red), transparent);
+                    animation: rotate 10s linear infinite;
+                    opacity: 0;
+                    transition: var(--transition);
+                }
+                .panda-card:hover {
+                    transform: translateY(-12px) scale(1.02);
+                    border-color: #fff;
+                    box-shadow: 0 0 30px rgba(0, 210, 255, 0.2), 0 0 60px rgba(229, 9, 20, 0.1);
+                    z-index: 10;
+                }
+                .panda-card:hover::before { opacity: 0.1; }
+                .price-tag {
+                    font-size: 24px;
+                    font-weight: 900;
+                    letter-spacing: -1px;
+                }
+                .price-free {
+                    background: linear-gradient(135deg, #00d2ff, #007bff);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .view-btn {
+                    padding: 10px 24px;
+                    background: #fff;
+                    color: #000;
+                    border-radius: 12px;
+                    font-weight: 800;
+                    font-size: 14px;
+                    transition: var(--transition);
+                    border: none;
+                    cursor: pointer;
+                }
+                .view-btn:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+                    animation: glitch 0.3s infinite;
+                }
+            `}</style>
 
-            <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "rgba(20,20,20,0.95)",
-                backdropFilter: "blur(20px)",
-                border: "1px solid rgba(229,9,20,0.2)",
-                borderRadius: 16,
-                padding: "14px 24px",
-                marginBottom: 32,
-                maxWidth: 1100,
-                margin: "0 auto 32px",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span className="logo-float" style={{ fontSize: 28 }}>🐼</span>
-                    <span style={{
-                        fontSize: 22, fontWeight: 900,
-                        background: "linear-gradient(135deg, #e50914, #00d2ff)",
-                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                        letterSpacing: 2
+            <nav className="glass-nav">
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span className="logo-float" style={{ fontSize: 32 }}>🐼</span>
+                    <span style={{ 
+                        fontSize: 24, 
+                        fontWeight: 900, 
+                        background: "var(--panda-gradient)", 
+                        WebkitBackgroundClip: "text", 
+                        WebkitTextFillColor: "transparent",
+                        letterSpacing: -0.5
                     }}>PANDASTORE</span>
                 </div>
-                <div style={{ display: "flex", gap: 10 }}>
-                    <Link to="/submit">
-                        <button className="nav-btn" style={{
-                            padding: "8px 18px",
-                            background: "linear-gradient(135deg, #e50914, #b9090b)",
-                            color: "#fff", borderRadius: 12, border: "none", fontWeight: 700
-                        }}>🚀 Submit</button>
-                    </Link>
-                    <Link to="/profile">
-                        <button className="nav-btn" style={{
-                            padding: "8px 18px",
-                            background: "transparent",
-                            color: "#00d2ff", border: "1px solid #00d2ff", borderRadius: 12, fontWeight: 700
-                        }}>👤 Profile</button>
-                    </Link>
-                    <button className="nav-btn" onClick={handleLogout} style={{
-                        padding: "8px 18px",
-                        background: "transparent",
-                        color: "#fff", borderRadius: 12, border: "1px solid #444", fontWeight: 700
-                    }}>Logout 🚪</button>
+                <div style={{ display: "flex", gap: 12 }}>
+                    <Link to="/submit"><button className="nav-btn-primary">Submit App</button></Link>
+                    <Link to="/profile"><button className="nav-btn-secondary">Profile</button></Link>
+                    <button className="nav-btn-secondary" onClick={handleLogout}>Logout</button>
                 </div>
-            </div>
+            </nav>
 
-            {/* Hero */}
-            <div style={{ textAlign: "center", maxWidth: 1100, margin: "0 auto 36px" }}>
-                <h1 style={{
-                    fontSize: 48, fontWeight: 900,
-                    background: "linear-gradient(135deg, #e50914, #fff, #00d2ff)",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                    marginBottom: 12,
-                }}>Discover Amazing Apps 🐼</h1>
-                <p style={{ color: "#737373", fontSize: 18 }}>
-                    Find and download the best apps in the universe 🌌
+            <header className="hero-section" style={{ animation: "driftUp 1s var(--transition) forwards" }}>
+                <h1 style={{ 
+                    fontSize: " clamp(32px, 5vw, 64px)", 
+                    fontWeight: 900, 
+                    lineHeight: 1.1,
+                    marginBottom: 20,
+                    letterSpacing: -2,
+                    animation: "revealPage 1.5s var(--transition) forwards"
+                }}>
+                    The future of <span style={{ color: "var(--panda-blue)", textShadow: "0 0 20px var(--panda-blue)" }}>apps</span> is here.
+                </h1>
+                <p style={{ color: "#888", fontSize: 18, maxWidth: 600, margin: "0 auto", opacity: 0, animation: "fadeIn 1s var(--transition) 0.5s forwards" }}>
+                    Explore a curated collection of next-generation applications optimized for the Cosmic Era.
                 </p>
-            </div>
+            </header>
 
-            {/* Search + Sort */}
-            <div style={{
-                maxWidth: 1100, margin: "0 auto 24px",
-                display: "flex", gap: 12, flexWrap: "wrap",
-            }}>
-                <input
-                    className="search-input"
-                    placeholder="🔍 Search apps..."
+            <div className="dashboard-bar">
+                <span style={{ fontSize: 20 }}>🔍</span>
+                <input 
+                    className="search-field" 
+                    placeholder="Search the store..." 
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    style={{
-                        flex: 1, minWidth: 200,
-                        padding: "12px 16px",
-                        borderRadius: 12,
-                        border: "2px solid #333",
-                        background: "rgba(255,255,255,0.07)",
-                        color: "#fff", fontSize: 15,
-                        fontFamily: "'Nunito', sans-serif",
-                        outline: "none", marginBottom: 0,
-                        transition: "border 0.3s",
-                    }}
                 />
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                    <option value="newest">Newest first</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="name">Name A-Z</option>
+                <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                    <option value="newest">Newest</option>
+                    <option value="price-low">Lowest Price</option>
+                    <option value="price-high">Highest Price</option>
+                    <option value="name">A - Z</option>
                 </select>
             </div>
 
-            {/* Category Pills */}
-            <div style={{
-                maxWidth: 1100, margin: "0 auto 28px",
-                display: "flex", gap: 10, flexWrap: "wrap",
-            }}>
+            <div className="category-scroller">
                 {CATEGORIES.map(cat => (
-                    <button
-                        key={cat}
-                        className="cat-pill"
+                    <div 
+                        key={cat} 
+                        className={`cat-chip ${category === cat ? "active" : ""}`}
                         onClick={() => setCategory(cat)}
-                        style={{
-                            padding: "8px 18px",
-                            borderRadius: 20,
-                            border: "none",
-                            fontSize: 13, fontWeight: 700,
-                            background: category === cat
-                                ? "linear-gradient(135deg, #e50914, #00d2ff)"
-                                : "rgba(255,255,255,0.08)",
-                            color: category === cat ? "#fff" : "#737373",
-                            boxShadow: category === cat ? "0 0 15px rgba(0,210,255,0.4)" : "none",
-                        }}
-                    >{cat}</button>
+                    >
+                        {cat}
+                    </div>
                 ))}
             </div>
 
-            {/* Results count */}
-            <div style={{ maxWidth: 1100, margin: "0 auto 16px" }}>
-                <p style={{ color: "#9090bb", fontSize: 14 }}>
-                    {loading ? "" : `${filtered.length} app${filtered.length !== 1 ? "s" : ""} found`}
-                </p>
-            </div>
-
-            {/* Apps Grid */}
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                {error && <p style={{ color: "#ff6b6b", textAlign: "center" }}>{error}</p>}
-
-                {loading && (
-                    <div style={{ textAlign: "center", padding: 60 }}>
-                        <span className="spinner" style={{ fontSize: 48 }}>🌀</span>
+            <main className="app-grid">
+                {loading && [1,2,3,4,5,6].map(n => (
+                    <div key={n} className="panda-card" style={{ height: 320, opacity: 0.3 }}>
+                        <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 12 }} />
                     </div>
-                )}
+                ))}
 
-                {!loading && filtered.length === 0 && (
-                    <div style={{ textAlign: "center", color: "#9090bb", marginTop: 60 }}>
-                        <div style={{ fontSize: 64, marginBottom: 16 }}>🌠</div>
-                        <p style={{ fontSize: 18 }}>No apps found</p>
-                        <p style={{ fontSize: 14, marginTop: 8 }}>Try a different search or category</p>
-                    </div>
-                )}
-
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                    gap: 24,
-                }}>
-                    {filtered.map((app, i) => (
-                        <div key={app.id} className="app-card" style={{
-                            background: "rgba(255,255,255,0.05)",
-                            backdropFilter: "blur(20px)",
-                            border: "1px solid rgba(224,64,251,0.2)",
-                            borderRadius: 20,
-                            padding: 24,
-                            animationDelay: `${i * 0.05}s`,
-                        }}>
-                            <div style={{ fontSize: 40, marginBottom: 12, textAlign: "center" }}>
-                                {EMOJIS[app.id % 8]}
+                {!loading && filtered.map((app, i) => (
+                    <div key={app.id} className="panda-card" style={{ animation: `revealItem 0.8s var(--transition) ${i * 0.05}s forwards`, opacity: 0 }}>
+                        <div style={{ fontSize: 52, marginBottom: 24 }}>{EMOJIS[app.id % 8]}</div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--panda-blue)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>{app.category}</div>
+                        <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, letterSpacing: -0.5 }}>{app.name}</h3>
+                        <p style={{ color: "#888", fontSize: 15, lineHeight: 1.6, marginBottom: 24, flex: 1 }}>
+                            {app.description?.length > 100 ? app.description.slice(0, 100) + "..." : app.description}
+                        </p>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <div>
+                                <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", fontWeight: 700, marginBottom: 4 }}>Price</div>
+                                <div className={`price-tag ${app.price === 0 ? "price-free" : ""}`}>
+                                    {app.price === 0 ? "Free" : `$${app.price}`}
+                                </div>
                             </div>
-                            <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>{app.name}</h3>
-                             <span style={{
-                                display: "inline-block",
-                                padding: "3px 10px", borderRadius: 20,
-                                fontSize: 12, fontWeight: 700,
-                                background: "rgba(0,210,255,0.15)",
-                                border: "1px solid rgba(0,210,255,0.5)",
-                                color: "#00d2ff", marginBottom: 10,
-                            }}>{app.category}</span>
-                            <p style={{ color: "#a3a3a3", fontSize: 14, marginBottom: 14, lineHeight: 1.6 }}>
-                                {app.description?.length > 80
-                                    ? app.description.slice(0, 80) + "..."
-                                    : app.description}
-                            </p>
-                            <p style={{ color: "#737373", fontSize: 12, marginBottom: 12 }}>
-                                👨‍💻 {app.developer}
-                            </p>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <span style={{
-                                    fontSize: 20, fontWeight: 900,
-                                    background: "linear-gradient(135deg, #fff, #00d2ff)",
-                                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                                }}>{app.price === 0 ? "Free" : `$${app.price}`}</span>
-                                <Link to={`/apps/${app.id}`}>
-                                    <button style={{
-                                        padding: "8px 20px",
-                                        background: "linear-gradient(135deg, #00d2ff, #007bff)",
-                                        color: "#000", fontSize: 14, borderRadius: 10, fontWeight: 700,
-                                        border: "none", cursor: "pointer"
-                                    }}>View 👁️</button>
-                                </Link>
-                            </div>
+                            <Link to={`/apps/${app.id}`}>
+                                <button className="view-btn">Details</button>
+                            </Link>
                         </div>
-                    ))}
+                    </div>
+                ))}
+            </main>
+
+            {!loading && filtered.length === 0 && (
+                <div style={{ textAlign: "center", padding: "100px 0" }}>
+                    <div style={{ fontSize: 80, marginBottom: 24 }}>🌌</div>
+                    <h2 style={{ fontSize: 32, fontWeight: 800 }}>Darkness reigns here.</h2>
+                    <p style={{ color: "#666", marginTop: 12 }}>No apps matched your search criteria.</p>
                 </div>
-            </div>
+            )}
         </div>
     );
-}
+}

@@ -48,5 +48,6 @@ class PurchaseOut(BaseModel):
     user_id: int
     app_id: int
     purchased_at: datetime
+    app: Optional[AppOut] = None
     class Config:
         from_attributes = True
