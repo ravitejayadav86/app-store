@@ -31,9 +31,17 @@ export default function AdminDashboard() {
     const handleApprove = async (id) => {
         try {
             await api.post(`/admin/approve/${id}`);
-            setPending(pending.filter(app => app.id !== id));
-            setMsg("App approved!");
+            setPending(prev => prev.filter(app => app.id !== id));
+            setMsg("App approved and live!");
         } catch { setMsg("Approval failed"); }
+    };
+
+    const handleApproveAll = async () => {
+        try {
+            const res = await api.post("/admin/approve-all");
+            setPending([]);
+            setMsg(res.data.message);
+        } catch { setMsg("Bulk approval failed"); }
     };
 
     const handleReject = async (id) => {
@@ -170,9 +178,21 @@ export default function AdminDashboard() {
             </nav>
 
             <main className="admin-stage">
-                <div style={{ marginBottom: 48 }}>
-                    <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: -2, marginBottom: 8 }}>Inbound Manifest</h1>
-                    <p style={{ color: "#666", fontSize: 18 }}>Moderation queue for new application transmissions.</p>
+                <div style={{ marginBottom: 48, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                    <div>
+                        <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: -2, marginBottom: 8 }}>Inbound Manifest</h1>
+                        <p style={{ color: "#666", fontSize: 18 }}>
+                            Moderation queue — <strong style={{ color: pending.length > 0 ? "var(--panda-red)" : "#666" }}>{pending.length} pending</strong> transmission{pending.length !== 1 ? "s" : ""}.
+                        </p>
+                    </div>
+                    {pending.length > 0 && (
+                        <button
+                            onClick={handleApproveAll}
+                            style={{ padding: "14px 28px", background: "var(--panda-blue)", color: "#000", fontWeight: 900, fontSize: 14, borderRadius: 16, border: "none", cursor: "pointer", transition: "var(--transition)" }}
+                        >
+                            ✅ Approve All ({pending.length})
+                        </button>
+                    )}
                 </div>
 
                 {msg && (

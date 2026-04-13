@@ -108,7 +108,8 @@ def submit_app(
         category=app.category,
         developer=current_user.username,
         version=app.version,
-        is_active=True
+        is_active=True,
+        is_approved=True   # auto-approve: goes live immediately
     )
     db.add(db_app)
     db.commit()
