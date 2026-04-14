@@ -1,0 +1,8 @@
+backend/
+.venv/
+venv/
+scratch/
+docker-compose.yml
+nginx.conf
+requirements.txt
+dockerfile
