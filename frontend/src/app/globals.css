@@ -56,15 +56,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism Utility */
+/* Glassmorphism Utility - 70% opacity + 20px blur */
 .glass {
   background: rgba(247, 246, 251, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* Tonal Stacking Utility */
+/* Tonal Stacking Utility - Enforcing the 'No-Line' rule */
 .tonal-stack {
   background: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
+  border: none; /* Removed borders per design system docs */
+}
+
+/* Secondary Container for active states */
+.active-container {
+  background: #cfcdff;
+  color: #3631b5;
 }

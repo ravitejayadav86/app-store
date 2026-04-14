@@ -31,38 +31,55 @@ const categories = [
 
 export default function CategoriesPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-      <header className="mb-16">
-        <h1 className="text-5xl font-bold tracking-tight text-on-surface mb-4">
-          Browse Categories
-        </h1>
-        <p className="text-xl text-on-surface-variant max-w-2xl">
-          Find exactly what you need with our meticulously organized application ecosystem.
-        </p>
-      </header>
+    <div className="flex flex-col gap-20 pb-20">
+      <section className="px-4 md:px-8">
+        <div className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl shadow-primary/20">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            transition={{ duration: 1.5, ease: "easeOut" }} 
+            className="absolute top-0 right-10 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40" 
+          />
+          <div className="relative z-10 max-w-2xl">
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
+            >
+              <Zap size={14} />
+              <span>Global Index</span>
+            </motion.div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-on-primary">Segment Your World.</h1>
+            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Find exactly what you need with our meticulously organized application ecosystem.</p>
+          </div>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {categories.map((cat, index) => (
-          <motion.div
-            key={cat.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-          >
-            <GlassCard className="h-full flex flex-col items-start gap-6 cursor-pointer group">
-              <div className={`p-4 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-300`}>
-                {cat.icon}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  {cat.name}
-                </h2>
-                <p className="text-sm text-on-surface-variant">{cat.count}</p>
-              </div>
-            </GlassCard>
-          </motion.div>
-        ))}
-      </div>
+      <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {categories.map((cat, index) => (
+            <motion.div
+              key={cat.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + index * 0.05 }}
+            >
+              <GlassCard className="h-full flex flex-col items-start gap-8 cursor-pointer group hover:bg-surface-low transition-all">
+                <div className={`p-5 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                  {cat.icon}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </h2>
+                  <p className="text-sm text-on-surface-variant font-medium">{cat.count}</p>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

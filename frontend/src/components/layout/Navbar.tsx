@@ -17,11 +17,11 @@ export const Navbar = () => {
 
         {/* Categories - Desktop */}
         <div className="hidden md:flex items-center gap-8">
-          {["Discover", "Apps", "Games", "Music", "Books"].map((item) => (
+          {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
             <Link
               key={item}
               href={`/${item.toLowerCase()}`}
-              className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
+              className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors tracking-tight"
             >
               {item}
             </Link>
@@ -34,11 +34,15 @@ export const Navbar = () => {
             <Search size={20} />
           </button>
           <div className="hidden sm:flex items-center gap-2">
-            <Button variant="tertiary" size="sm">
-              <User size={18} className="mr-2" />
-              Sign In
-            </Button>
-            <Button size="sm">Get Started</Button>
+            <Link href="/login">
+              <Button variant="tertiary" size="sm">
+                <User size={18} className="mr-2" />
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/publisher">
+              <Button size="sm">Publisher Portal</Button>
+            </Link>
           </div>
           <button className="md:hidden p-2 text-on-surface-variant">
             <Menu size={20} />

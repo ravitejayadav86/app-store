@@ -17,58 +17,63 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
-      {/* Hero Section */}
+    <div className="flex flex-col gap-24 pb-24">
+      {/* Immersive Hero Section */}
       <section className="px-4 md:px-8">
         <div
-          className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl"
+          className="relative min-h-[700px] w-full max-w-7xl mx-auto rounded-[3rem] overflow-hidden bg-surface-low p-12 md:p-24 text-on-surface flex flex-col justify-end gap-8 shadow-inner group"
         >
-          {/* Decorative background elements */}
+          {/* Luminous depth layers */}
+          <div className="absolute inset-0 bg-linear-to-tr from-primary/10 via-transparent to-secondary/5 z-0" />
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40"
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -mr-40 -mt-40 group-hover:bg-primary/30 transition-colors duration-1000"
           />
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-            className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 rounded-full blur-[80px] -ml-20 -mb-20"
-          />
-
-          <div className="relative z-10 max-w-2xl">
+          
+          <div className="relative z-10 max-w-3xl space-y-8">
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 bg-on-surface/5 w-fit px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-xl border border-on-surface/5"
             >
-              <Star size={14} className="fill-current" />
-              <span>Editors&apos; Choice</span>
+              <Sparkles size={14} className="text-primary" />
+              <span className="tracking-widest uppercase">The Editorial Choice • 2026</span>
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">Create Without Boundaries.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-8 leading-relaxed">
-              Explore a curated selection of tools designed to elevate your professional workflow and creative potential.
+            
+            <h1 className="text-6xl md:text-9xl font-bold tracking-tighter leading-[0.9] text-balance">
+              Curate Your <span className="text-primary">Digital Life.</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-on-surface-variant max-w-xl font-medium leading-relaxed opacity-80">
+              Beyond a marketplace. Explore a legacy of tools refined for absolute performance and creative depth.
             </p>
-            <div className="flex gap-4">
-              <Button size="lg" className="bg-white text-primary">Get App of the Day</Button>
-              <Button variant="secondary" size="lg" className="bg-white/10 text-white border-white/20">Learn More</Button>
+            
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button size="lg" className="px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/30 group">
+                Explore Game of the Year <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button variant="tertiary" size="lg" className="px-10 py-8 text-xl font-bold">
+                View Collections
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categories Chips */}
-      <section className="px-4 md:px-8 overflow-x-auto no-scrollbar">
-        <div className="flex gap-4 max-w-7xl mx-auto">
+      {/* Rhythmic Category Chips */}
+      <section className="px-4 md:px-8">
+        <div className="flex flex-wrap gap-3 max-w-7xl mx-auto">
           {categories.map((cat, i) => (
             <motion.button
               key={cat}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 + i * 0.05 }}
-              className="px-6 py-2 rounded-full glass border border-outline-variant text-sm font-medium hover:text-primary transition-all whitespace-nowrap"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
+              className={`px-8 py-3 rounded-full text-sm font-bold tracking-tight transition-all duration-300 ${
+                i === 0 ? "bg-primary text-on-primary shadow-lg shadow-primary/20" : "bg-surface-lowest text-on-surface-variant hover:bg-surface-low"
+              }`}
             >
               {cat}
             </motion.button>
@@ -76,65 +81,73 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Collections */}
+      {/* Featured Collections with Tonal Stacking */}
       <section className="px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-10">
+          <div className="flex justify-between items-end mb-16 px-2">
             <div>
-              <h2 className="text-3xl font-bold text-on-surface mb-2">Essential Toolkit</h2>
-              <p className="text-on-surface-variant">Selected by our curators for your best work.</p>
+              <div className="w-12 h-1 bg-primary mb-6 rounded-full" />
+              <h2 className="text-5xl font-bold text-on-surface tracking-tight">Essential Toolkit</h2>
+              <p className="text-on-surface-variant text-lg mt-2 font-medium opacity-60">Hand-selected for peak professional performance.</p>
             </div>
-            <Link href="/categories" className="text-primary font-medium flex items-center gap-2 hover:underline">
-              Browse All <ArrowRight size={16} />
+            <Link href="/categories" className="group flex items-center gap-3 text-primary font-bold uppercase tracking-widest text-xs hover:gap-4 transition-all">
+              See the Entire Library <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {apps.map((app, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.8 }}
               >
-                <GlassCard className="flex flex-col gap-6 h-full">
-                  <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-3xl shadow-inner">
-                    {app.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-1">{app.title}</h3>
-                    <p className="text-sm text-on-surface-variant">{app.category}</p>
-                  </div>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-1 text-xs font-semibold text-primary">
-                      <span className="bg-primary/10 px-2 py-0.5 rounded">FREE</span>
+                <Link href={`/game/${app.title.toLowerCase().replace(' ', '-')}`}>
+                  <div className="bg-surface-lowest rounded-[2.5rem] p-10 flex flex-col gap-8 h-full group hover:bg-surface-low transition-all duration-500 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/5 active:scale-95 border border-transparent hover:border-outline-variant/20">
+                    <div className="w-20 h-20 rounded-3xl bg-surface-low flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform duration-500 group-hover:bg-white">
+                      {app.icon}
                     </div>
-                    <Button size="sm">Get</Button>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary opacity-60">{app.category}</p>
+                      <h3 className="text-2xl font-bold text-on-surface">{app.title}</h3>
+                    </div>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">FREE</span>
+                      <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        <ArrowRight size={20} />
+                      </div>
+                    </div>
                   </div>
-                </GlassCard>
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Premium Banner */}
+      {/* Global Vision Banner */}
       <section className="px-4 md:px-8">
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="max-w-7xl mx-auto bg-surface-lowest border border-outline-variant rounded-3xl p-12 relative overflow-hidden flex flex-col items-center text-center gap-6 shadow-sm"
+          className="max-w-7xl mx-auto rounded-[4rem] bg-linear-to-br from-surface-lowest to-surface-low p-16 md:p-32 relative overflow-hidden flex flex-col items-center text-center gap-10"
         >
-          <div className="absolute top-0 inset-x-0 h-1 mb-px bg-linear-to-r from-transparent via-primary/50 to-transparent" />
-          <div className="p-4 rounded-2xl bg-primary/5 text-primary mb-4">
-            <Zap size={32} />
+          <div className="absolute top-0 right-0 p-12 opacity-5">
+             <Layout size={300} />
           </div>
-          <h2 className="text-4xl font-bold">Experience the Premium Store.</h2>
-          <p className="max-w-xl text-on-surface-variant text-lg">
-            Unlock exclusive early access, ad-free browsing, and premium support across all your devices.
-          </p>
-          <Button size="lg" className="mt-4">Join Curator Premium</Button>
+          <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+            <Zap size={40} />
+          </div>
+          <div className="space-y-4 max-w-2xl">
+            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter">Experience Premium Curation.</h2>
+            <p className="text-xl text-on-surface-variant font-medium opacity-70">
+              Join a collective of creators who demand more from their tools. Zero ads, priority updates, and the full Fluid legacy.
+            </p>
+          </div>
+          <Button size="lg" className="px-16 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/30">Activate Curator Premium</Button>
         </motion.div>
       </section>
     </div>
