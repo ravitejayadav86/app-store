@@ -7,8 +7,8 @@ export default function Navbar() {
       <div className="hidden md:flex items-center space-x-8 font-inter tracking-tight">
         <Link href="/" className="text-sky-300 border-b-2 border-sky-300 pb-1 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Store</Link>
         <Link href="/library" className="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Library</Link>
-        <Link href="#" className="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Community</Link>
-        <Link href="#" className="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Support</Link>
+        <Link href="/community" className="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Community</Link>
+        <Link href="/support" className="text-slate-400 hover:text-sky-200 hover:bg-sky-300/5 transition-all duration-300 active:scale-95">Support</Link>
       </div>
       <div className="flex items-center space-x-6 text-sky-300">
         <div className="relative group hidden lg:block">
@@ -18,9 +18,9 @@ export default function Navbar() {
         <button className="active:scale-95 transition-transform hover:text-sky-200">
           <span className="material-symbols-outlined">shopping_cart</span>
         </button>
-        <button className="active:scale-95 transition-transform hover:text-sky-200">
+        <Link href="/login" className="active:scale-95 transition-transform hover:text-sky-200">
           <span className="material-symbols-outlined">person</span>
-        </button>
+        </Link>
       </div>
     </nav>
   );

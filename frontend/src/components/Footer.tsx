@@ -12,7 +12,8 @@ export default function Footer() {
           <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="#">Privacy Policy</Link>
           <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="#">Terms of Service</Link>
           <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="#">Cookies</Link>
-          <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="#">Contact</Link>
+          <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="/support">Contact</Link>
+          <Link className="text-slate-500 hover:text-sky-300 transition-colors" href="/publisher">Publisher Portal</Link>
         </div>
         <div className="flex space-x-6">
           <a className="text-slate-400 hover:text-sky-300 transition-all" href="#"><span className="material-symbols-outlined">public</span></a>
