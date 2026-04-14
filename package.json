@@ -9,8 +9,8 @@
     "lint": "npm run lint --prefix frontend"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "next": "16.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   }
 }
