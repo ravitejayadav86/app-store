@@ -33,13 +33,9 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
       <header className="mb-16">
-        <motion.h1 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-5xl font-bold tracking-tight text-on-surface mb-4"
-        >
+        <h1 className="text-5xl font-bold tracking-tight text-on-surface mb-4">
           Browse Categories
-        </motion.h1>
+        </h1>
         <p className="text-xl text-on-surface-variant max-w-2xl">
           Find exactly what you need with our meticulously organized application ecosystem.
         </p>
@@ -51,7 +47,7 @@ export default function CategoriesPage() {
             key={cat.name}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
           >
             <GlassCard className="h-full flex flex-col items-start gap-6 cursor-pointer group">
               <div className={`p-4 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-300`}>

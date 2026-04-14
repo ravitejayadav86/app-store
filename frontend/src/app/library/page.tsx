@@ -22,13 +22,9 @@ export default function LibraryPage() {
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
         <div>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-5xl font-bold tracking-tight text-on-surface mb-2"
-          >
+          <h1 className="text-5xl font-bold tracking-tight text-on-surface mb-2">
             My Library
-          </motion.h1>
+          </h1>
           <p className="text-on-surface-variant">Manage your collection across all your devices.</p>
         </div>
 
@@ -65,7 +61,7 @@ export default function LibraryPage() {
             key={app.title}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
           >
             <GlassCard className="flex items-center gap-6 group">
               <div className={`w-20 h-20 rounded-2xl ${app.color} flex items-center justify-center text-4xl shadow-inner group-hover:scale-105 transition-transform duration-300`}>
