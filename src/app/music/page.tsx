@@ -76,4 +76,4 @@ export default function MusicPage() {
     </div>
   );
 }
-import { Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";

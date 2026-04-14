@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Search, User, ShoppingBag, Menu } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -11,8 +12,16 @@ export const Navbar = () => {
       <div className="glass w-full max-w-7xl rounded-pill flex items-center justify-between px-6 py-3 border border-outline-variant">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary to-primary-dim shadow-inner" />
-          <span className="font-inter font-bold text-lg tracking-tight text-on-surface">Curator</span>
+          <div className="relative w-10 h-10 overflow-hidden">
+            <Image
+              src="/panda-logo.png"
+              alt="Panda Store Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="font-inter font-bold text-xl tracking-tight text-on-surface">PandaStore</span>
         </Link>
 
         {/* Categories - Desktop */}

@@ -72,7 +72,7 @@ export default function BooksPage() {
                       <BookOpen size={40} />
                    </div>
                    <div className="w-full h-1 bg-white/20 mb-2 rounded-full" />
-                   <p className="text-[10px] font-bold text-white uppercase tracking-tighter opacity-70">Curator Edition</p>
+                   <p className="text-[10px] font-bold text-white uppercase tracking-tighter opacity-70">PandaStore Edition</p>
                 </div>
                 
                 <div className="flex flex-col justify-between py-1">

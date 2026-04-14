@@ -43,7 +43,7 @@ export default function Home() {
             </motion.div>
             
             <h1 className="text-6xl md:text-9xl font-bold tracking-tighter leading-[0.9] text-balance">
-              Curate Your <span className="text-primary">Digital Life.</span>
+              Panda<span className="text-primary">Store.</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-on-surface-variant max-w-xl font-medium leading-relaxed opacity-80">
@@ -147,7 +147,7 @@ export default function Home() {
               Join a collective of creators who demand more from their tools. Zero ads, priority updates, and the full Fluid legacy.
             </p>
           </div>
-          <Button size="lg" className="px-16 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/30">Activate Curator Premium</Button>
+          <Button size="lg" className="px-16 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/30">Activate PandaStore Premium</Button>
         </motion.div>
       </section>
     </div>

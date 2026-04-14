@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Curator | Premium App Store",
-  description: "Experience the next generation of application marketplaces with Curator.",
+  title: "PandaStore | Premium App Store",
+  description: "Experience the next generation of application marketplaces with PandaStore.",
 };
 
 export default function RootLayout({

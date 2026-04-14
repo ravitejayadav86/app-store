@@ -62,7 +62,7 @@ export default function RegisterPage() {
                <Sparkles size={24} />
             </div>
             <h1 className="text-4xl font-bold text-on-surface">Join the collection.</h1>
-            <p className="text-on-surface-variant font-medium">Create your Curator account today.</p>
+            <p className="text-on-surface-variant font-medium">Create your PandaStore account today.</p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>

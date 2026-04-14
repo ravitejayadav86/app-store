@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export const Footer = () => {
   return (
@@ -8,8 +9,15 @@ export const Footer = () => {
         {/* Brand */}
         <div className="col-span-1 md:col-span-1">
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-6 h-6 rounded bg-primary" />
-            <span className="font-bold text-xl tracking-tight">Curator</span>
+            <div className="relative w-8 h-8">
+              <Image
+                src="/panda-logo.png"
+                alt="Panda Store Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="font-bold text-xl tracking-tight">PandaStore</span>
           </div>
           <p className="text-sm text-on-surface-variant leading-relaxed">
             The premium destination for the world's most beautiful and functional digital experiences.
@@ -59,7 +67,7 @@ export const Footer = () => {
 
       <div className="max-w-7xl mx-auto mt-20 pt-10 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-6">
         <p className="text-xs text-on-surface-variant">
-          © 2026 Curator App Store. Built with Fluid Design System.
+          © 2026 PandaStore App Store. Built with Fluid Design System.
         </p>
         <div className="flex gap-8">
           <Link href="#" className="text-xs text-on-surface-variant hover:text-primary transition-colors">Privacy Policy</Link>

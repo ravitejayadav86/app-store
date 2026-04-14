@@ -62,7 +62,7 @@ export default function LoginPage() {
           
           <div className="flex flex-col items-center text-center gap-2 mb-10">
             <h1 className="text-4xl font-bold text-on-surface">Welcome back.</h1>
-            <p className="text-on-surface-variant font-medium">Continue your Curator experience.</p>
+            <p className="text-on-surface-variant font-medium">Continue your PandaStore experience.</p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>

@@ -15,7 +15,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
     rating: 4.9,
     reviews: "12,403",
     tagline: "The next generation of creative development is here.",
-    description: "Experience absolute fluidity in your development workflow. Quantum Code combines high-performance synthesis with an intuitive nodal interface, allowing you to build complex systems with the speed of thought. Whether you're an architect, designer, or engineer, Curator's choice for 2026 is designed to elevate your craft.",
+    description: "Experience absolute fluidity in your development workflow. Quantum Code combines high-performance synthesis with an intuitive nodal interface, allowing you to build complex systems with the speed of thought. Whether you're an architect, designer, or engineer, PandaStore's choice for 2026 is designed to elevate your craft.",
     category: "Development",
     price: "$29.99",
     stats: [
@@ -63,7 +63,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
             <div className="flex-grow space-y-4">
               <div className="flex items-center gap-2 bg-primary/10 w-fit px-3 py-1 rounded-full text-xs font-bold text-primary border border-primary/20">
                 <Sparkles size={14} />
-                <span>Curator's Choice</span>
+                <span>PandaStore Choice</span>
               </div>
               <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-on-surface">{game.title}</h1>
               <div className="flex items-center gap-6">
