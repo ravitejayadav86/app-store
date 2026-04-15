@@ -6,10 +6,12 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, ArrowRight, Code } from "lucide-react";
 import Link from "next/link";
-
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -114,13 +116,19 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <button className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm">
-                <Code size={20} /> Github
-             </button>
-             <button className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm">
-                <div className="w-5 h-5 bg-on-surface-variant rounded-full" /> Google
-             </button>
-          </div>
+  <button
+    onClick={() => signIn("github", { callbackUrl: "/" })}
+    className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
+  >
+    <Code size={20} /> Github
+  </button>
+  <button
+    onClick={() => signIn("google", { callbackUrl: "/" })}
+    className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
+  >
+    <div className="w-5 h-5 bg-on-surface-variant rounded-full" /> Google
+  </button>
+</div>
 
           <p className="mt-10 text-center text-sm text-on-surface-variant font-medium">
             Don't have an account? <Link href="/register" className="text-primary font-bold hover:underline">Join the collection</Link>
