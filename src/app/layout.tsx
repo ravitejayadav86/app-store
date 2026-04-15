@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Experience the next generation of application marketplaces with PandaStore.",
 };
 
+export const preferredRegion = "bom1";
+
 export default function RootLayout({
   children,
 }: Readonly<{
