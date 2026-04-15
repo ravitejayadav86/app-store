@@ -42,6 +42,10 @@ class AppOut(AppCreate):
     created_at: datetime
     class Config:
         from_attributes = True
+
+class GrantAccessInput(BaseModel):
+    username: str
+
 # ── Purchases ─────────────────────────────────
 class PurchaseOut(BaseModel):
     id: int

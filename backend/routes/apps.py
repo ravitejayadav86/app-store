@@ -20,6 +20,13 @@ def list_apps(
         q = q.filter(models.App.category == category)
     return q.offset(skip).limit(limit).all()
 
+@router.get("/me", response_model=List[schemas.AppOut])
+def get_my_apps(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return db.query(models.App).filter(models.App.developer == current_user.username).all()
+
 @router.get("/{app_id}", response_model=schemas.AppOut)
 def get_app(app_id: int, db: Session = Depends(get_db)):
     app = db.query(models.App).filter(models.App.id == app_id).first()
@@ -115,3 +122,31 @@ def submit_app(
     db.commit()
     db.refresh(db_app)
     return db_app
+
+@router.post("/{app_id}/grant", status_code=200)
+def grant_access(
+    app_id: int,
+    payload: schemas.GrantAccessInput,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    app = db.query(models.App).filter(models.App.id == app_id).first()
+    if not app:
+        raise HTTPException(404, "App not found")
+    
+    # Must be the developer of the app (or admin)
+    if app.developer != current_user.username and not current_user.is_admin:
+        raise HTTPException(403, "Only the developer can grant access")
+        
+    user = db.query(models.User).filter(models.User.username == payload.username).first()
+    if not user:
+        raise HTTPException(404, "Target user not found")
+        
+    existing = db.query(models.Purchase).filter_by(user_id=user.id, app_id=app.id).first()
+    if existing:
+        return {"status": "User already has access to this app"}
+        
+    purchase = models.Purchase(user_id=user.id, app_id=app.id)
+    db.add(purchase)
+    db.commit()
+    return {"status": "Access granted successfully"}
