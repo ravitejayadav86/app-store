@@ -7,8 +7,11 @@ import os
 import dns.resolver
 
 # Fix email-validator DNS resolution issues
-dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
-dns.resolver.default_resolver.nameservers = ['8.8.8.8']
+try:
+    dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+    dns.resolver.default_resolver.nameservers = ['8.8.8.8']
+except Exception as e:
+    print(f"Warning: Could not configure custom DNS resolver: {e}")
 
 Base.metadata.create_all(bind=engine)
 

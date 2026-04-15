@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 # ── Auth ──────────────────────────────────────
 class UserCreate(BaseModel):
@@ -26,16 +26,19 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 # ── Apps ──────────────────────────────────────
-class AppCreate(BaseModel):
+class AppBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: float = 0.0
     category: str
-    developer: str
     version: str = "1.0.0"
 
-class AppOut(AppCreate):
+class AppCreate(AppBase):
+    pass # No developer field here, it's inferred from Auth token
+
+class AppOut(AppBase):
     id: int
+    developer: str
     is_active: bool
     is_approved: bool
     file_path: Optional[str] = None
