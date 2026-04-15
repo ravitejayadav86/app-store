@@ -4,6 +4,11 @@ from fastapi.staticfiles import StaticFiles
 from database import engine, Base
 from routes import auth, apps, users, admin
 import os
+import dns.resolver
+
+# Fix email-validator DNS resolution issues
+dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+dns.resolver.default_resolver.nameservers = ['8.8.8.8']
 
 Base.metadata.create_all(bind=engine)
 
