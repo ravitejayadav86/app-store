@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
@@ -11,10 +11,14 @@ router = APIRouter(prefix="/apps", tags=["apps"])
 
 @router.get("/", response_model=List[schemas.AppOut])
 def list_apps(
+    response: Response,
     category: Optional[str] = Query(None),
     skip: int = 0, limit: int = 20,
     db: Session = Depends(get_db)
 ):
+    # Enable Vercel Edge Caching (cache for 60 seconds, serve stale while revalidating for 24 hours)
+    response.headers["Cache-Control"] = "public, s-maxage=60, stale-while-revalidate=86400"
+    
     q = db.query(models.App).filter(models.App.is_active == True, models.App.is_approved == True)
     if category:
         q = q.filter(models.App.category == category)
