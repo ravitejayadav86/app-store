@@ -1,0 +1,172 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera } from "lucide-react";
+import api from "@/lib/api";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+
+interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  full_name?: string;
+  is_active: boolean;
+  is_publisher: boolean;
+  created_at: string;
+}
+
+const statCards = [
+  { label: "Apps Installed", value: "12", icon: Download },
+  { label: "Reviews Given", value: "4", icon: Star },
+  { label: "Apps Published", value: "2", icon: Package },
+];
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({ full_name: "", email: "" });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token && !session) { router.push("/login"); return; }
+    fetchProfile();
+  }, [session]);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/users/me");
+      setProfile(res.data);
+      setFormData({ full_name: res.data.full_name || "", email: res.data.email || "" });
+    } catch {
+      if (session?.user) {
+        setProfile({ id: 0, username: session.user.name || "User", email: session.user.email || "", full_name: session.user.name || "", is_active: true, is_publisher: false, created_at: new Date().toISOString() });
+        setFormData({ full_name: session.user.name || "", email: session.user.email || "" });
+      }
+    } finally { setLoading(false); }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await api.put("/users/me", formData);
+      setProfile(res.data);
+      setEditing(false);
+      toast.success("Profile updated!");
+    } catch { toast.error("Failed to update profile."); }
+    finally { setSaving(false); }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    signOut({ callbackUrl: "/" });
+    toast.success("Logged out successfully.");
+  };
+
+  const avatarLetter = profile?.full_name?.[0]?.toUpperCase() || profile?.username?.[0]?.toUpperCase() || "U";
+  const joinDate = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : "Recently";
+
+  if (loading) return (
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  return (
+    <div className="min-h-[calc(100vh-80px)] px-4 py-12 relative overflow-hidden bg-surface">
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[150px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto relative z-10 space-y-6">
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: "easeOut" }}>
+          <GlassCard className="p-8 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-primary to-transparent opacity-50" />
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-on-primary text-4xl font-bold shadow-lg">
+                  {session?.user?.image ? <img src={session.user.image} alt="avatar" className="w-full h-full rounded-3xl object-cover" /> : avatarLetter}
+                </div>
+                <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={14} className="text-on-primary" />
+                </button>
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                {editing ? (
+                  <input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} className="text-2xl font-bold bg-transparent border-b-2 border-primary focus:outline-none text-on-surface w-full max-w-xs" placeholder="Your full name" />
+                ) : (
+                  <h1 className="text-3xl font-bold text-on-surface">{profile?.full_name || profile?.username}</h1>
+                )}
+                <p className="text-on-surface-variant font-medium mt-1">@{profile?.username}</p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3">
+                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant"><Calendar size={14} /> Joined {joinDate}</span>
+                  {profile?.is_publisher && <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full"><Shield size={12} /> Publisher</span>}
+                  {profile?.is_active && <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-green-600 bg-green-100 px-3 py-1 rounded-full">? Active</span>}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {editing ? (
+                  <>
+                    <Button size="sm" onClick={handleSave} disabled={saving} className="gap-2"><Save size={14} /> {saving ? "Saving..." : "Save"}</Button>
+                    <button onClick={() => setEditing(false)} className="p-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all"><X size={16} className="text-on-surface-variant" /></button>
+                  </>
+                ) : (
+                  <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all text-sm font-bold text-on-surface"><Edit3 size={14} /> Edit</button>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }} className="grid grid-cols-3 gap-4">
+          {statCards.map((stat, i) => (
+            <GlassCard key={i} className="p-6 text-center">
+              <stat.icon size={22} className="text-primary mx-auto mb-2" />
+              <p className="text-2xl font-bold text-on-surface">{stat.value}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
+            </GlassCard>
+          ))}
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}>
+          <GlassCard className="p-8">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">Account Details</h2>
+            <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Mail size={16} className="text-primary" /></div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Email</p>
+                  {editing ? (
+                    <input value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-sm font-medium bg-transparent border-b border-primary focus:outline-none text-on-surface w-full mt-0.5" placeholder="your@email.com" />
+                  ) : (
+                    <p className="text-sm font-medium text-on-surface mt-0.5">{profile?.email || "Not set"}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0"><User size={16} className="text-primary" /></div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Username</p>
+                  <p className="text-sm font-medium text-on-surface mt-0.5">@{profile?.username}</p>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }} className="flex justify-end">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-6 py-3 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold text-sm">
+            <LogOut size={16} /> Sign Out
+          </button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
