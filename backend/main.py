@@ -15,7 +15,12 @@ except Exception as e:
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="App Store API", version="1.0.0")
+app = FastAPI(
+    title="My Custom App Store",
+    description="API for managing apps, users, and reviews.",
+    version="2.0.0",
+    docs_url="/docs"
+)
 
 app.add_middleware(
     CORSMiddleware,
