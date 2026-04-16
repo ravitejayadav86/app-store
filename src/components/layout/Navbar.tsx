@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
@@ -71,7 +72,7 @@ export const Navbar = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2 text-on-surface-variant hover:text-primary transition-colors"
@@ -89,13 +90,50 @@ export const Navbar = () => {
                   <Button size="sm">Publisher Portal</Button>
                 </Link>
               </div>
-              <button className="md:hidden p-2 text-on-surface-variant">
-                <Menu size={20} />
+              
+              {/* Profile Logo */}
+              <Link href="/profile" className="ml-1 sm:ml-2 w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group">
+                <User size={18} className="group-hover:text-primary transition-colors" />
+              </Link>
+
+              <button 
+                className="md:hidden p-2 text-on-surface-variant"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
           </>
         )}
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="absolute top-[calc(100%+0.5rem)] left-4 right-4 p-5 glass rounded-2xl border border-outline-variant flex flex-col gap-4 md:hidden shadow-xl animate-in fade-in slide-in-from-top-4 duration-200">
+          {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
+            <Link
+              key={item}
+              href={`/${item.toLowerCase()}`}
+              className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {item}
+            </Link>
+          ))}
+          <div className="flex flex-col gap-3 mt-2 sm:hidden">
+             <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
+               <Button variant="tertiary" className="w-full justify-center py-5">
+                 <User size={18} className="mr-2" />
+                 Sign In
+               </Button>
+             </Link>
+             <Link href="/publisher" onClick={() => setMobileMenuOpen(false)} className="w-full">
+               <Button className="w-full justify-center py-5">Publisher Portal</Button>
+             </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
