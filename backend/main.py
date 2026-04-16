@@ -33,6 +33,10 @@ app.include_router(apps.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 
+@app.get("/")
+def read_root():
+    return {"message": "App Store API is running", "docs": "/docs"}
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
