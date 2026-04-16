@@ -110,7 +110,7 @@ export default function Home() {
                        <h4 className="font-medium text-[17px] md:text-lg truncate text-[#E8EAED] group-hover:text-blue-200 transition-colors">{app.title}</h4>
                        <p className="text-sm md:text-[15px] text-[#9AA0A6] truncate mt-0.5">{app.name} • {app.tag}</p>
                        <div className="flex items-center gap-3 mt-1.5 text-xs md:text-[13px] text-[#9AA0A6]">
-                          <span className="flex items-center">{app.rating} <Star size={11} md:size={12} className="ml-1 fill-[#9AA0A6] text-[#9AA0A6]" /></span>
+                          <span className="flex items-center">{app.rating} <Star size={12} className="ml-1 fill-[#9AA0A6] text-[#9AA0A6]" /></span>
                           <span>{app.size}</span>
                        </div>
                     </div>
