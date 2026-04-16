@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "sonner";
+import Providers from "@/components/Providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,17 +24,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden">
-        <Navbar />
-        <main className="flex-grow pt-24">
-          {children}
-        </main>
-        <Footer />
-        <Toaster position="bottom-right" theme="dark" richColors />
+        <Providers>
+          <Navbar />
+          <main className="flex-grow pt-24">
+            {children}
+          </main>
+          <Footer />
+          <Toaster position="bottom-right" theme="dark" richColors />
+        </Providers>
       </body>
     </html>
   );
