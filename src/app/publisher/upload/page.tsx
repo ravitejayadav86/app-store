@@ -1,5 +1,6 @@
 "use client";
-
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -27,6 +28,32 @@ const ACCEPTED_FILE_TYPES = ".zip,.dmg,.exe,.apk,.ipa,.tar.gz";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token && !session) {
+    toast.error("Please sign in to upload apps.");
+    router.push("/login");
+  }
+
+  // If logged in via Google/GitHub, create a backend session
+  if (!token && session?.user?.email) {
+    const autoLogin = async () => {
+      try {
+        const res = await api.post("/auth/oauth-login", {
+          email: session.user?.email,
+          name: session.user?.name,
+        });
+        localStorage.setItem("token", res.data.access_token);
+      } catch {
+        toast.error("Authentication failed. Please sign in again.");
+        router.push("/login");
+      }
+    };
+    autoLogin();
+  }
+}, [session]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);

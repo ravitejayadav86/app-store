@@ -26,4 +26,29 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token = auth.create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
+@router.post("/oauth-login", response_model=schemas.Token)
+def oauth_login(payload: dict, db: Session = Depends(get_db)):
+    email = payload.get("email")
+    name = payload.get("name", "")
+    if not email:
+        raise HTTPException(400, "Email required")
+    
+    # Find or create user
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        import uuid
+        username = email.split("@")[0] + str(uuid.uuid4())[:4]
+        user = models.User(
+            email=email,
+            username=username,
+            full_name=name,
+            hashed_password=auth.hash_password(str(uuid.uuid4())),
+            is_active=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    
+    token = auth.create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
     
