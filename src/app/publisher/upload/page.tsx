@@ -1,13 +1,13 @@
 "use client";
+
+import React, { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
-import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import {
-  Upload, Settings, FileText, CheckCircle2, ArrowRight,
-  ArrowLeft, CloudUpload, Globe, Tag, Image, X, Gamepad2,
+  Upload, FileText, CheckCircle2, ArrowRight,
+  ArrowLeft, CloudUpload, Globe, Tag, Image as ImageIcon, X, Gamepad2,
   Layout, Music, BookOpen, Wrench, Code2
 } from "lucide-react";
 import api from "@/lib/api";
@@ -21,39 +21,45 @@ const CATEGORIES = [
   { label: "Music", icon: <Music size={16} /> },
   { label: "Books", icon: <BookOpen size={16} /> },
   { label: "Utilities", icon: <Wrench size={16} /> },
-  { label: "Graphics", icon: <Image size={16} /> },
+  { label: "Graphics", icon: <ImageIcon size={16} /> },
 ];
 
 const ACCEPTED_FILE_TYPES = ".zip,.dmg,.exe,.apk,.ipa,.tar.gz";
 
 export default function UploadPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token && !session) {
-    toast.error("Please sign in to upload apps.");
-    router.push("/login");
-  }
+  useEffect(() => {
+    // Wait until session is fully loaded before acting
+    if (status === "loading") return;
 
-  // If logged in via Google/GitHub, create a backend session
-  if (!token && session?.user?.email) {
-    const autoLogin = async () => {
-      try {
-        const res = await api.post("/auth/oauth-login", {
-          email: session.user?.email,
-          name: session.user?.name,
-        });
-        localStorage.setItem("token", res.data.access_token);
-      } catch {
-        toast.error("Authentication failed. Please sign in again.");
-        router.push("/login");
-      }
-    };
-    autoLogin();
-  }
-}, [session]);
+    const token = localStorage.getItem("token");
+
+    if (!token && status === "unauthenticated") {
+      toast.error("Please sign in to upload apps.");
+      router.push("/login");
+      return;
+    }
+
+    // If logged in via Google/GitHub, create a backend session
+    if (!token && session?.user?.email) {
+      const autoLogin = async () => {
+        try {
+          const res = await api.post("/auth/oauth-login", {
+            email: session.user?.email,
+            name: session.user?.name,
+          });
+          localStorage.setItem("token", res.data.access_token);
+        } catch {
+          toast.error("Authentication failed. Please sign in again.");
+          router.push("/login");
+        }
+      };
+      autoLogin();
+    }
+  }, [session, status, router]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
@@ -190,7 +196,7 @@ useEffect(() => {
                     {iconPreview ? (
                       <img src={iconPreview} alt="icon" className="w-full h-full object-cover" />
                     ) : (
-                      <Image size={28} className="text-on-surface-variant" />
+                      <ImageIcon size={28} className="text-on-surface-variant" />
                     )}
                   </div>
                   <input ref={iconInputRef} type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
@@ -228,7 +234,7 @@ useEffect(() => {
                         onChange={(e) => setMetadata({ ...metadata, category: e.target.value })}
                         className="w-full pl-12 pr-4 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium appearance-none"
                       >
-                        {CATEGORIES.map((c) => <option key={c.label}>{c.label}</option>)}
+                        {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
                       </select>
                     </div>
                   </div>
