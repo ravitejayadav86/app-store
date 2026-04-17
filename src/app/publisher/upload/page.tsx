@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, Suspense } from "react";
+import React, { useState, useRef, useEffect, Suspense, ChangeEvent, FormEvent, DragEvent } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -25,6 +25,14 @@ const CATEGORIES = [
 ];
 
 const ACCEPTED_FILE_TYPES = ".zip,.dmg,.exe,.apk,.ipa,.tar.gz";
+
+interface ApiError {
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
+}
 
 export default function UploadPage() {
   return (
@@ -113,14 +121,14 @@ function UploadFormContent() {
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
 
-  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIconChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setIconFile(f);
     setIconPreview(URL.createObjectURL(f));
   };
 
-  const handleScreenshotsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleScreenshotsChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).slice(0, 5);
     setScreenshots(files);
     setScreenshotPreviews(files.map((f) => URL.createObjectURL(f)));
@@ -131,14 +139,14 @@ function UploadFormContent() {
     setScreenshotPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const f = e.dataTransfer.files?.[0];
     if (f) setFile(f);
   };
 
-  const handleMetadataSubmit = async (e: React.FormEvent) => {
+  const handleMetadataSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -146,14 +154,15 @@ function UploadFormContent() {
       setAppId(res.data.id);
       toast.success("App info saved! Now upload your files.");
       setStep(2);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Submission failed.");
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      toast.error(error.response?.data?.detail || "Submission failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = async (e: React.FormEvent) => {
+  const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
     if (!file || !appId) return;
     setLoading(true);
@@ -168,8 +177,9 @@ function UploadFormContent() {
       });
       toast.success("🎉 Application is now live!");
       setStep(3);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "File upload failed.");
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      toast.error(error.response?.data?.detail || "File upload failed.");
     } finally {
       setLoading(false);
     }
