@@ -20,11 +20,11 @@ interface UserProfile {
   created_at: string;
 }
 
-const statCards = [
-  { label: "Apps Installed", value: "12", icon: Download },
-  { label: "Reviews Given", value: "4", icon: Star },
-  { label: "Apps Published", value: "2", icon: Package },
-];
+interface LiveStats {
+  installs: number;
+  reviews: number;
+  published: number;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ full_name: "", email: "" });
+  const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0 });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -43,15 +44,24 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/users/me");
-      setProfile(res.data);
-      setFormData({ full_name: res.data.full_name || "", email: res.data.email || "" });
-    } catch {
-      if (session?.user) {
+      const [profileRes, purchasesRes, analyticsRes] = await Promise.allSettled([
+        api.get("/users/me"),
+        api.get("/users/me/purchases"),
+        api.get("/apps/analytics"),
+      ]);
+      if (profileRes.status === "fulfilled") {
+        setProfile(profileRes.value.data);
+        setFormData({ full_name: profileRes.value.data.full_name || "", email: profileRes.value.data.email || "" });
+      } else if (session?.user) {
         setProfile({ id: 0, username: session.user.name || "User", email: session.user.email || "", full_name: session.user.name || "", is_active: true, is_publisher: false, created_at: new Date().toISOString() });
         setFormData({ full_name: session.user.name || "", email: session.user.email || "" });
       }
-    } finally { setLoading(false); }
+      const installs = purchasesRes.status === "fulfilled" ? purchasesRes.value.data.length : 0;
+      const published = analyticsRes.status === "fulfilled" ? analyticsRes.value.data.approved : 0;
+      setLiveStats({ installs, reviews: 0, published });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -125,7 +135,11 @@ export default function ProfilePage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-3 gap-4">
-          {statCards.map((stat, i) => (
+          {[
+            { label: "Apps Installed", value: liveStats.installs, icon: Download },
+            { label: "Apps Published", value: liveStats.published, icon: Package },
+            { label: "Reviews Given", value: liveStats.reviews, icon: Star },
+          ].map((stat, i) => (
             <GlassCard key={i} className="p-6 text-center">
               <stat.icon size={22} className="text-primary mx-auto mb-2" />
               <p className="text-2xl font-bold text-on-surface">{stat.value}</p>

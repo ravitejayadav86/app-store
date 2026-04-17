@@ -26,7 +26,7 @@ export default function GamesPage() {
       try {
         const res = await api.get("/apps/");
         // Filter for games category
-        const filtered = res.data.filter((app: any) => 
+        const filtered = res.data.filter((app: Game) => 
           app.category.toLowerCase() === "games" || 
           app.category.toLowerCase() === "game"
         );
