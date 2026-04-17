@@ -28,6 +28,7 @@ class App(Base):
     file_path    = Column(String, nullable=True)
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     purchases    = relationship("Purchase", back_populates="app")
+    reviews      = relationship("Review", back_populates="app")
 
 class Purchase(Base):
     __tablename__ = "purchases"
@@ -37,3 +38,14 @@ class Purchase(Base):
     purchased_at = Column(DateTime(timezone=True), server_default=func.now())
     user         = relationship("User", back_populates="purchases")
     app          = relationship("App",  back_populates="purchases")
+
+class Review(Base):
+    __tablename__ = "reviews"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"))
+    app_id     = Column(Integer, ForeignKey("apps.id"))
+    rating     = Column(Integer, nullable=False)  # 1-5
+    comment    = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user       = relationship("User")
+    app        = relationship("App", back_populates="reviews")

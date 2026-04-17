@@ -21,30 +21,47 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 
+interface AppItem {
+  id: number;
+  name: string;
+  price: number;
+  version: string;
+  category: string;
+}
+
+interface ApiError {
+  response?: { data?: { detail?: string } };
+}
+
 export default function PublisherPage() {
-  const [apps, setApps] = useState<any[]>([]);
+  const [apps, setApps] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [grantingAppId, setGrantingAppId] = useState<number | null>(null);
   const [targetUsername, setTargetUsername] = useState("");
+  const [analytics, setAnalytics] = useState({ total_apps: 0, approved: 0, pending: 0, total_downloads: 0 });
 
   const stats = [
-    { label: "Active Installs", value: "1.2M", change: "+12%", icon: <TrendingUp size={20} className="text-green-500" /> },
-    { label: "Revenue (MTD)", value: "$42.5k", change: "+5%", icon: <TrendingUp size={20} className="text-primary" /> },
-    { label: "Crash-Free Users", value: "99.9%", change: "0%", icon: <Settings size={20} className="text-blue-500" /> },
+    { label: "Total Downloads", value: analytics.total_downloads.toString(), change: "+live", icon: <TrendingUp size={20} className="text-green-500" /> },
+    { label: "Published Apps", value: analytics.approved.toString(), change: `${analytics.pending} pending`, icon: <CheckCircle2 size={20} className="text-primary" /> },
+    { label: "Total Submitted", value: analytics.total_apps.toString(), change: "all-time", icon: <BarChart3 size={20} className="text-blue-500" /> },
   ];
 
   useEffect(() => {
-    const fetchApps = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/apps/me");
-        setApps(res.data);
+        const [appsRes, analyticsRes] = await Promise.all([
+          api.get("/apps/me"),
+          api.get("/apps/analytics"),
+        ]);
+        setApps(appsRes.data);
+        setAnalytics(analyticsRes.data);
       } catch (err) {
-        toast.error("Failed to fetch applications.");
+        toast.error("Failed to fetch publisher data.");
       } finally {
         setLoading(false);
       }
     };
-    fetchApps();
+    fetchData();
   }, []);
 
   const handleGrantAccess = async (appId: number) => {
@@ -58,8 +75,9 @@ export default function PublisherPage() {
       }
       setTargetUsername("");
       setGrantingAppId(null);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Failed to grant access.");
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      toast.error(error.response?.data?.detail || "Failed to grant access.");
     }
   };
 

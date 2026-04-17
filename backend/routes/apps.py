@@ -19,6 +19,24 @@ def get_my_apps(
 ):
     return db.query(models.App).filter(models.App.developer == current_user.username).all()
 
+@router.get("/analytics")
+def get_analytics(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    my_apps = db.query(models.App).filter(models.App.developer == current_user.username).all()
+    app_ids = [a.id for a in my_apps]
+    total_apps = len(my_apps)
+    approved = sum(1 for a in my_apps if a.is_approved)
+    pending = total_apps - approved
+    downloads = db.query(models.Purchase).filter(models.Purchase.app_id.in_(app_ids)).count() if app_ids else 0
+    return {
+        "total_apps": total_apps,
+        "approved": approved,
+        "pending": pending,
+        "total_downloads": downloads,
+    }
+
 @router.post("/submit", response_model=schemas.AppOut, status_code=201)
 def submit_app(
     app: schemas.AppCreate,

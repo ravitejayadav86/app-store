@@ -58,3 +58,18 @@ class PurchaseOut(BaseModel):
     app: Optional[AppOut] = None
     class Config:
         from_attributes = True
+
+# ── Reviews ───────────────────────────────────
+class ReviewCreate(BaseModel):
+    rating: int  # 1-5
+    comment: Optional[str] = None
+
+class ReviewOut(BaseModel):
+    id: int
+    user_id: int
+    app_id: int
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True

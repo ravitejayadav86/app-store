@@ -1,14 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Search, Star, Music, BookOpen, Gamepad2, Code2 } from "lucide-react";
 import api from "@/lib/api";
-import { toast } from "sonner";
 
-interface AppData {
+interface App {
   id: number;
   name: string;
   description: string;
@@ -16,119 +13,132 @@ interface AppData {
   developer: string;
   price: number;
   version: string;
-  created_at: string;
 }
 
-export default function AppDetails() {
-  const params = useParams();
-  const router = useRouter();
-  const [app, setApp] = useState<AppData | null>(null);
+function getCategoryIcon(category: string) {
+  switch (category?.toLowerCase()) {
+    case "games": return <Gamepad2 size={32} className="text-white" />;
+    case "music": return <Music size={32} className="text-white" />;
+    case "books": return <BookOpen size={32} className="text-white" />;
+    default: return <Code2 size={32} className="text-white" />;
+  }
+}
+
+function getCategoryColor(category: string) {
+  switch (category?.toLowerCase()) {
+    case "productivity": return "bg-[#255CFA]";
+    case "graphics": return "bg-[#F36B2B]";
+    case "development": return "bg-[#FFC400]";
+    case "utilities": return "bg-[#202124]";
+    case "music": return "bg-[#E91E63]";
+    case "books": return "bg-[#673AB7]";
+    case "games": return "bg-[#00C853]";
+    default: return "bg-primary";
+  }
+}
+
+const ALL_CATEGORIES = ["All", "Apps", "Games", "Music", "Books", "Productivity", "Development"];
+
+export default function AppsPage() {
+  const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
 
   useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        const res = await api.get(`/apps/${params.id}`);
-        setApp(res.data);
-      } catch (error: any) {
-        toast.error("App not found");
-        router.push("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (params.id) fetchApp();
-  }, [params.id, router]);
+    api.get("/apps/")
+      .then((res) => setApps(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleDownload = async () => {
-    if (!app) return;
-    setDownloading(true);
-    try {
-      const res = await api.get(`/apps/${app.id}/download`, {
-        responseType: "blob",
-      });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", app.name);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast.success("Download started!");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Download failed.");
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="min-h-screen pt-32 text-center">Loading app details...</div>;
-  }
-
-  if (!app) return null;
+  const filtered = apps.filter((app) => {
+    const matchesSearch =
+      app.name.toLowerCase().includes(search.toLowerCase()) ||
+      app.developer.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      activeCategory === "All" ||
+      activeCategory === "Apps" ||
+      app.category.toLowerCase() === activeCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-32 pb-20">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-8"
-      >
-        <ArrowLeft size={20} /> Back to Store
-      </button>
+    <div className="max-w-7xl mx-auto px-4 pt-32 pb-20">
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold tracking-tight mb-2">Browse Store</h1>
+        <p className="text-on-surface-variant">Discover apps, games, music and books.</p>
+      </div>
 
-      <GlassCard className="p-8 md:p-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search apps, games, music..."
+          className="w-full pl-12 pr-4 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+        />
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-8 items-start">
-          {/* App Icon */}
-          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-surface-low to-background flex items-center justify-center border border-outline-variant shadow-2xl shrink-0">
-            {app.category === "Games"
-              ? <Gamepad2 size={64} className="text-primary" />
-              : <Code2 size={64} className="text-primary" />}
-          </div>
+      {/* Category Tabs */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-8">
+        {ALL_CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
+              activeCategory === cat
+                ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+                : "bg-surface-low text-on-surface-variant hover:text-on-surface border border-outline-variant/50"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-          {/* Core Info */}
-          <div className="flex-1 space-y-4">
-            <div>
-              <h1 className="text-4xl font-bold text-on-surface mb-2">{app.name}</h1>
-              <p className="text-lg text-primary font-medium">{app.developer}</p>
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm font-medium text-on-surface-variant">
-              <span className="flex items-center gap-1"><Star size={16} className="text-yellow-500" /> 4.8 Ratings</span>
-              <span className="flex items-center gap-1 px-3 py-1 bg-surface-low rounded-full">{app.category}</span>
-              <span className="flex items-center gap-1 px-3 py-1 bg-surface-low rounded-full">v{app.version}</span>
-            </div>
-          </div>
-
-          {/* Download Button */}
-          <div className="w-full md:w-auto shrink-0 flex flex-col gap-3">
-            <Button
-              size="lg"
-              className="w-full md:w-48 py-6 text-lg shadow-primary/25 shadow-xl"
-              onClick={handleDownload}
-              disabled={downloading}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-primary" size={40} />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-20 text-center text-on-surface-variant">
+          <p className="text-lg font-medium">No results found for &ldquo;{search}&rdquo;</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((app) => (
+            <Link
+              key={app.id}
+              href={`/apps/${app.id}`}
+              className="group"
             >
-              <Download size={20} className="mr-2" />
-              {downloading ? "Downloading..." : app.price === 0 ? "Free Download" : `Buy $${app.price}`}
-            </Button>
-            <p className="text-xs text-center text-on-surface-variant flex items-center justify-center gap-1">
-              <ShieldCheck size={14} className="text-green-500" /> Verified Safe
-            </p>
-          </div>
+              <div className="glass border border-outline-variant rounded-3xl p-6 hover:border-primary/30 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 flex flex-col gap-4">
+                <div className={`w-16 h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-sm`}>
+                  {getCategoryIcon(app.category)}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-on-surface group-hover:text-primary transition-colors truncate">{app.name}</h3>
+                  <p className="text-sm text-on-surface-variant truncate mt-0.5">{app.category} • {app.developer}</p>
+                  <p className="text-sm text-on-surface-variant mt-2 line-clamp-2">{app.description}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-xs text-on-surface-variant">
+                    <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                    <span>4.8</span>
+                  </div>
+                  <span className={`text-sm font-bold px-3 py-1 rounded-full ${app.price === 0 ? "bg-green-500/10 text-green-500" : "bg-primary/10 text-primary"}`}>
+                    {app.price === 0 ? "Free" : `$${app.price}`}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
+      )}
 
-        {/* Description */}
-        <div className="mt-12 pt-12 border-t border-outline-variant/50">
-          <h2 className="text-2xl font-bold mb-6">
-            About this {app.category === "Games" ? "game" : "app"}
-          </h2>
-          <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
-            {app.description}
-          </p>
-        </div>
-      </GlassCard>
+      <style dangerouslySetInnerHTML={{__html: `.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}} />
     </div>
   );
 }

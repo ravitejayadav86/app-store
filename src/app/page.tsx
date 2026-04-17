@@ -17,10 +17,14 @@ interface App {
   is_approved: boolean;
 }
 
+const CATEGORY_TABS = ["All", "Apps", "Games", "Music", "Books"];
+
 export default function Home() {
   const [activeBottomNav, setActiveBottomNav] = useState("Apps");
   const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -37,7 +41,19 @@ export default function Home() {
   }, []);
 
   const featuredApp = apps.length > 0 ? apps[0] : null;
-  const suggestedApps = apps.slice(1, 5);
+  const allOtherApps = apps.slice(1);
+
+  const filteredApps = allOtherApps.filter((app) => {
+    const matchesSearch =
+      !search ||
+      app.name.toLowerCase().includes(search.toLowerCase()) ||
+      app.developer.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      activeCategory === "All" ||
+      activeCategory === "Apps" ||
+      app.category.toLowerCase() === activeCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
+  }).slice(0, 6);
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -121,18 +137,46 @@ export default function Home() {
           </section>
         )}
 
+        {/* Search & Category Filter */}
+        <section className="space-y-4">
+          <div className="relative">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search apps, games, music..."
+              className="w-full pl-11 pr-4 py-3 rounded-2xl bg-surface-low border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {CATEGORY_TABS.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  activeCategory === cat
+                    ? "bg-primary text-on-primary"
+                    : "bg-surface-low text-on-surface-variant hover:text-on-surface border border-outline-variant/50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* Suggested List */}
         <section className="space-y-6 max-w-4xl">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg md:text-xl font-medium flex items-center gap-3 text-on-surface">
                  <span className="text-[11px] md:text-xs font-bold text-on-surface-variant border border-outline-variant px-1.5 py-0.5 rounded-sm uppercase tracking-wider text-primary">Live Store</span>
-                 Suggested for You
+                 {search ? `Results for "${search}"` : activeCategory === "All" ? "Suggested for You" : activeCategory}
               </h3>
            </div>
            
-           {suggestedApps.length > 0 ? (
+           {filteredApps.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {suggestedApps.map((app, i) => (
+                {filteredApps.map((app, i) => (
                    <Link key={app.id} href={`/apps/${app.id}`} className="flex items-center gap-5 cursor-pointer hover:bg-surface-low p-3 -mx-3 rounded-2xl transition-colors group">
                       <div className={`w-[84px] h-[84px] rounded-[22px] ${getCategoryColor(app.category)} flex items-center justify-center shadow-sm border border-outline-variant/30 flex-shrink-0 text-3xl group-hover:scale-105 transition-transform font-bold text-white`}>
                          {getCategoryIcon(app.category)}
@@ -150,7 +194,7 @@ export default function Home() {
              </div>
            ) : (
              <div className="py-10 text-center bg-surface-low rounded-2xl border border-outline-variant/50">
-                <p className="text-on-surface-variant">Check back later for curated suggestions.</p>
+                <p className="text-on-surface-variant">{search ? `No results for "${search}"` : "Check back later for curated suggestions."}</p>
              </div>
            )}
         </section>

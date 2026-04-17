@@ -80,3 +80,18 @@ def approve_all_pending(
         count += 1
     db.commit()
     return {"approved": count, "message": f"{count} apps approved and set live"}
+
+
+@router.post("/reject/{app_id}", status_code=200)
+def reject_app(
+    app_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    app = db.query(models.App).filter(models.App.id == app_id).first()
+    if not app:
+        raise HTTPException(404, "App not found")
+    # Remove from pending — delete the submission entirely
+    db.delete(app)
+    db.commit()
+    return {"message": "App rejected and removed"}

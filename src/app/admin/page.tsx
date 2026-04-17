@@ -97,6 +97,21 @@ function AdminContent() {
         }
     };
 
+    const handleReject = async (id: number) => {
+        if (!confirm("Reject and permanently delete this submission?")) return;
+        try {
+            setActionLoading(id);
+            await api.post(`/admin/reject/${id}`);
+            toast.success("Submission rejected and removed.");
+            setApps((prev) => prev.filter((app) => app.id !== id));
+        } catch (err: unknown) {
+            const error = err as ApiError;
+            toast.error(error.response?.data?.detail || "Failed to reject app.");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="max-w-6xl mx-auto px-4 py-20 flex items-center justify-center">
@@ -166,8 +181,11 @@ function AdminContent() {
                                 </div>
 
                                 <div className="flex w-full md:w-auto gap-3">
-                                    <button className="flex-1 md:flex-none px-6 py-3 rounded-2xl border border-outline-variant hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-sm flex items-center justify-center gap-2">
-                                        <XCircle size={18} /> Reject
+                                    <button
+                                        onClick={() => handleReject(app.id)}
+                                        disabled={actionLoading === app.id}
+                                        className="flex-1 md:flex-none px-6 py-3 rounded-2xl border border-outline-variant hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+                                        <XCircle size={18} /> {actionLoading === app.id ? "..." : "Reject"}
                                     </button>
 
                                     <Button
