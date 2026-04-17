@@ -20,6 +20,15 @@ interface PendingApp {
     created_at: string;
 }
 
+interface ApiError {
+    response?: {
+        status?: number;
+        data?: {
+            detail?: string;
+        };
+    };
+}
+
 export default function AdminDashboard() {
     const router = useRouter();
     const { status } = useSession();
@@ -46,8 +55,9 @@ export default function AdminDashboard() {
             setLoading(true);
             const res = await api.get("/admin/pending");
             setApps(res.data);
-        } catch (err: any) {
-            if (err.response?.status === 403) {
+        } catch (err: unknown) {
+            const error = err as ApiError;
+            if (error.response?.status === 403) {
                 toast.error("Access Denied: You are not an admin.");
                 router.push("/");
             } else {
@@ -64,8 +74,9 @@ export default function AdminDashboard() {
             await api.post(`/admin/approve/${id}`);
             toast.success("Successfully approved and published!");
             setApps((prev) => prev.filter((app) => app.id !== id));
-        } catch (err: any) {
-            toast.error(err.response?.data?.detail || "Failed to approve app.");
+        } catch (err: unknown) {
+            const error = err as ApiError;
+            toast.error(error.response?.data?.detail || "Failed to approve app.");
         } finally {
             setActionLoading(null);
         }
@@ -99,7 +110,7 @@ export default function AdminDashboard() {
             {apps.length === 0 ? (
                 <GlassCard className="p-16 flex flex-col items-center text-center gap-6 border-dashed">
                     <CheckCircle2 size={48} className="text-green-500/50" />
-                    <h2 className="text-2xl font-bold text-on-surface">You're all caught up!</h2>
+                    <h2 className="text-2xl font-bold text-on-surface">You&apos;re all caught up!</h2>
                     <p className="text-on-surface-variant max-w-md">
                         There are no apps pending review at the moment. Time for a coffee break.
                     </p>
