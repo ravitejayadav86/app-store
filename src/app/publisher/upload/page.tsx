@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -27,6 +27,21 @@ const CATEGORIES = [
 const ACCEPTED_FILE_TYPES = ".zip,.dmg,.exe,.apk,.ipa,.tar.gz";
 
 export default function UploadPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-20 flex items-center justify-center min-h-[60vh]">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <p className="text-on-surface-variant font-medium">Loading upload tools...</p>
+        </div>
+      </div>
+    }>
+      <UploadFormContent />
+    </Suspense>
+  );
+}
+
+function UploadFormContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
