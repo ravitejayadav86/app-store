@@ -9,7 +9,6 @@ import { CheckCircle2, Clock, ShieldAlert, XCircle, User, Tag } from "lucide-rea
 import { toast } from "sonner";
 import api from "@/lib/api";
 
-// Define the shape of our app data based on your backend Pydantic schema
 interface PendingApp {
     id: number;
     name: string;
@@ -23,14 +22,13 @@ interface PendingApp {
 
 export default function AdminDashboard() {
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const { status } = useSession();
 
     const [apps, setApps] = useState<PendingApp[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<number | null>(null);
 
     useEffect(() => {
-        // Only run if authentication is fully resolved
         if (status === "loading") return;
 
         const token = localStorage.getItem("token");
@@ -51,7 +49,7 @@ export default function AdminDashboard() {
         } catch (err: any) {
             if (err.response?.status === 403) {
                 toast.error("Access Denied: You are not an admin.");
-                router.push("/"); // Kick non-admins back to the home page
+                router.push("/");
             } else {
                 toast.error("Failed to load pending apps.");
             }
@@ -65,7 +63,6 @@ export default function AdminDashboard() {
             setActionLoading(id);
             await api.patch(`/apps/admin/${id}/approve`);
             toast.success("App successfully approved and published!");
-            // Remove the approved app from the UI queue
             setApps((prev) => prev.filter((app) => app.id !== id));
         } catch (err: any) {
             toast.error(err.response?.data?.detail || "Failed to approve app.");
@@ -87,7 +84,6 @@ export default function AdminDashboard() {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-20">
-            {/* Header */}
             <div className="flex items-center gap-4 mb-12">
                 <div className="p-4 rounded-2xl bg-red-500/10">
                     <ShieldAlert size={32} className="text-red-500" />
@@ -133,7 +129,6 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="flex w-full md:w-auto gap-3">
-                                {/* Future implementation: Reject button */}
                                 <button className="flex-1 md:flex-none px-6 py-3 rounded-2xl border border-outline-variant hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-sm flex items-center justify-center gap-2">
                                     <XCircle size={18} /> Reject
                                 </button>

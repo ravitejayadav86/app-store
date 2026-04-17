@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 export const Navbar = () => {
-    const { data: session } = useSession(); // Get auth state
+    const { data: session } = useSession();
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +19,7 @@ export const Navbar = () => {
         if (searchQuery.trim()) {
             router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`);
             setSearchOpen(false);
-            searchQuery("");
+            setSearchQuery(""); // Fixed build error here
         }
     };
 

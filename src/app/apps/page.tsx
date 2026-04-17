@@ -1,60 +1,112 @@
 "use client";
 
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Layout, Database, Cloud, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2 } from "lucide-react";
+import api from "@/lib/api";
+import { toast } from "sonner";
 
-export default function AppsPage() {
-  const apps = [
-    { title: "Horizon Docs", category: "Productivity", icon: <Layout className="text-blue-500" />, price: "FREE" },
-    { title: "Quantum Code", category: "Development", icon: <Database className="text-purple-500" />, price: "FREE" },
-    { title: "Nebula Sync", category: "Utilities", icon: <Cloud className="text-cyan-500" />, price: "$2.99" },
-    { title: "Lumina Edit", category: "Graphics", icon: <Sparkles className="text-pink-500" />, price: "FREE" },
-    { title: "Horizon Docs Pro", category: "Productivity", icon: <Layout className="text-blue-500" />, price: "$4.99" },
-    { title: "Quantum Code Pro", category: "Development", icon: <Database className="text-purple-500" />, price: "FREE" },
-    { title: "Nebula Sync Pro", category: "Utilities", icon: <Cloud className="text-cyan-500" />, price: "FREE" },
-    { title: "Lumina Edit Pro", category: "Graphics", icon: <Sparkles className="text-pink-500" />, price: "$1.99" },
-  ];
+interface AppData {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  developer: string;
+  price: number;
+  version: string;
+  created_at: string;
+}
+
+export default function AppDetails() {
+  const params = useParams();
+  const router = useRouter();
+  const [app, setApp] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApp = async () => {
+      try {
+        const res = await api.get(`/apps/${params.id}`);
+        setApp(res.data);
+      } catch (error: any) {
+        toast.error("App not found");
+        router.push("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (params.id) fetchApp();
+  }, [params.id, router]);
+
+  if (loading) {
+    return <div className="min-h-screen pt-32 text-center">Loading app details...</div>;
+  }
+
+  if (!app) return null;
 
   return (
-    <div className="flex flex-col gap-20 pb-20 px-4 md:px-8">
-      <section>
-        <div className="relative h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.5 }} className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40" />
-          <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20">
-              <Layout size={14} />
-              <span>Apps</span>
+    <div className="max-w-5xl mx-auto px-4 pt-32 pb-20">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-8"
+      >
+        <ArrowLeft size={20} /> Back to Store
+      </button>
+
+      <GlassCard className="p-8 md:p-12 relative overflow-hidden">
+        {/* Background Blur */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
+
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          {/* App Icon */}
+          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-surface-low to-background flex items-center justify-center border border-outline-variant shadow-2xl shrink-0">
+            {app.category === "Games" ? <Gamepad2 size={64} className="text-primary" /> : <Code2 size={64} className="text-primary" />}
+          </div>
+
+          {/* Core Info */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <h1 className="text-4xl font-bold text-on-surface mb-2">{app.name}</h1>
+              <p className="text-lg text-primary font-medium">{app.developer}</p>
             </div>
-            <h1 className="text-5xl font-bold tracking-tight mb-4">Apps for Every Workflow.</h1>
-            <p className="text-lg text-on-primary/80">Powerful tools to boost your productivity and creativity.</p>
+
+            <div className="flex flex-wrap gap-4 text-sm font-medium text-on-surface-variant">
+              <span className="flex items-center gap-1"><Star size={16} className="text-yellow-500" /> 4.8 Ratings</span>
+              <span className="flex items-center gap-1 px-3 py-1 bg-surface-low rounded-full">{app.category}</span>
+              <span className="flex items-center gap-1 px-3 py-1 bg-surface-low rounded-full">v{app.version}</span>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="w-full md:w-auto shrink-0 flex flex-col gap-3">
+            <Button size="lg" className="w-full md:w-48 py-6 text-lg shadow-primary/25 shadow-xl">
+              {/* NEW: Universal Download Button without Price Logic */}
+              <Button
+                size="lg"
+                className="w-full md:w-48 py-6 text-lg shadow-primary/25 shadow-xl"
+                onClick={handleDownload}
+                disabled={downloading}
+              >
+                <Download size={20} className="mr-2" />
+                {downloading ? "Downloading..." : "Download"}
+              </Button>
+            </Button>
+            <p className="text-xs text-center text-on-surface-variant flex items-center justify-center gap-1">
+              <ShieldCheck size={14} className="text-green-500" /> Verified Safe
+            </p>
           </div>
         </div>
-      </section>
 
-      <section className="max-w-7xl mx-auto w-full">
-        <h2 className="text-3xl font-bold text-on-surface mb-8">All Apps</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {apps.map((app, index) => (
-            <motion.div key={index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + index * 0.08 }}>
-              <GlassCard className="flex flex-col gap-4 h-full">
-                <div className="w-14 h-14 rounded-2xl bg-surface-low flex items-center justify-center text-2xl shadow-inner">
-                  {app.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-1">{app.title}</h3>
-                  <p className="text-sm text-on-surface-variant">{app.category}</p>
-                </div>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded">{app.price}</span>
-                  <Button size="sm">Get</Button>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
+        {/* Description Section */}
+        <div className="mt-12 pt-12 border-t border-outline-variant/50">
+          <h2 className="text-2xl font-bold mb-6">About this {app.category === "Games" ? "game" : "app"}</h2>
+          <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
+            {app.description}
+          </p>
         </div>
-      </section>
+      </GlassCard>
     </div>
   );
 }
