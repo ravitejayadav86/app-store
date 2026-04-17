@@ -63,6 +63,16 @@ def approve_app(
     app.is_active = True
     db.commit()
     db.refresh(app)
+    # Notify the developer
+    developer = db.query(models.User).filter(models.User.username == app.developer).first()
+    if developer:
+        notif = models.Notification(
+            user_id=developer.id,
+            title="App Approved 🎉",
+            message=f"Your submission '{app.name}' has been approved and is now live on PandaStore!"
+        )
+        db.add(notif)
+        db.commit()
     return app
 
 
@@ -91,7 +101,17 @@ def reject_app(
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app:
         raise HTTPException(404, "App not found")
-    # Remove from pending — delete the submission entirely
+    app_name = app.name
+    developer_username = app.developer
+    # Notify the developer before deleting
+    developer = db.query(models.User).filter(models.User.username == developer_username).first()
+    if developer:
+        notif = models.Notification(
+            user_id=developer.id,
+            title="Submission Not Approved",
+            message=f"Your submission '{app_name}' was reviewed but did not meet our guidelines and was not approved at this time."
+        )
+        db.add(notif)
     db.delete(app)
     db.commit()
     return {"message": "App rejected and removed"}

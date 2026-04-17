@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base
-from routes import auth, apps, users, admin, reviews
+from routes import auth, apps, users, admin, reviews, notifications
 import os
 
 Base.metadata.create_all(bind=engine)
@@ -28,6 +28,7 @@ app.include_router(apps.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(reviews.router)
+app.include_router(notifications.router)
 
 @app.get("/health")
 def health():

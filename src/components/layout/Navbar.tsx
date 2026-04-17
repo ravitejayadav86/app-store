@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, User, Menu, X, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const Navbar = () => {
     const { data: session } = useSession();
@@ -108,6 +110,9 @@ export const Navbar = () => {
                                 </Link>
                             </div>
 
+                            {/* Notification Bell (logged-in only) */}
+                            {session && <NotificationBell />}
+
                             {/* Profile Logo */}
                             <Link href="/profile" className="ml-1 sm:ml-2 w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group">
                                 <User size={18} className="group-hover:text-primary transition-colors" />
@@ -126,43 +131,51 @@ export const Navbar = () => {
             </div>
 
             {/* Mobile Menu Dropdown */}
-            {mobileMenuOpen && (
-                <div className="absolute top-[calc(100%+0.5rem)] left-4 right-4 p-5 glass rounded-2xl border border-outline-variant flex flex-col gap-4 md:hidden shadow-xl animate-in fade-in slide-in-from-top-4 duration-200">
-                    {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
-                        <Link
-                            key={item}
-                            href={`/${item.toLowerCase()}`}
-                            className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            {item}
-                        </Link>
-                    ))}
-                    <div className="flex flex-col gap-3 mt-2 sm:hidden">
-                        {session && (
-                            <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                                <Button variant="tertiary" className="w-full justify-center py-5 text-red-500 hover:bg-red-500/10">
-                                    <ShieldAlert size={18} className="mr-2" />
-                                    Admin Panel
-                                </Button>
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -12, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute top-[calc(100%+0.5rem)] left-4 right-4 p-5 glass rounded-2xl border border-outline-variant flex flex-col gap-4 md:hidden shadow-xl"
+                    >
+                        {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
+                            <Link
+                                key={item}
+                                href={`/${item.toLowerCase()}`}
+                                className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {item}
                             </Link>
-                        )}
+                        ))}
+                        <div className="flex flex-col gap-3 mt-2 sm:hidden">
+                            {session && (
+                                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
+                                    <Button variant="tertiary" className="w-full justify-center py-5 text-red-500 hover:bg-red-500/10">
+                                        <ShieldAlert size={18} className="mr-2" />
+                                        Admin Panel
+                                    </Button>
+                                </Link>
+                            )}
 
-                        {!session && (
-                            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                                <Button variant="tertiary" className="w-full justify-center py-5">
-                                    <User size={18} className="mr-2" />
-                                    Sign In
-                                </Button>
+                            {!session && (
+                                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
+                                    <Button variant="tertiary" className="w-full justify-center py-5">
+                                        <User size={18} className="mr-2" />
+                                        Sign In
+                                    </Button>
+                                </Link>
+                            )}
+
+                            <Link href="/publisher" onClick={() => setMobileMenuOpen(false)} className="w-full">
+                                <Button className="w-full justify-center py-5">Publisher Portal</Button>
                             </Link>
-                        )}
-
-                        <Link href="/publisher" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                            <Button className="w-full justify-center py-5">Publisher Portal</Button>
-                        </Link>
-                    </div>
-                </div>
-            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </nav>
     );
-};
+};

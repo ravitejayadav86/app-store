@@ -82,9 +82,28 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-surface text-on-surface">
-        <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-xl font-medium animate-pulse">Loading PandaStore...</p>
+      <div className="bg-surface text-on-surface min-h-screen -mt-24 pt-[88px] px-5 py-6 pb-32 max-w-7xl mx-auto space-y-12 animate-pulse">
+        {/* Featured skeleton */}
+        <div className="w-full aspect-[4/3] md:aspect-[21/9] max-h-[500px] rounded-[1.5rem] md:rounded-[3rem] bg-surface-low" />
+        {/* Search skeleton */}
+        <div className="h-12 rounded-2xl bg-surface-low w-full" />
+        {/* Category tabs skeleton */}
+        <div className="flex gap-2">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-8 w-20 rounded-full bg-surface-low" />)}
+        </div>
+        {/* App list skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="flex items-center gap-5">
+              <div className="w-[84px] h-[84px] rounded-[22px] bg-surface-low flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-5 bg-surface-low rounded w-3/4" />
+                <div className="h-4 bg-surface-low rounded w-1/2" />
+                <div className="h-3 bg-surface-low rounded w-1/4" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
