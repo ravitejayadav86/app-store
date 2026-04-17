@@ -14,7 +14,9 @@ import {
   Plus,
   UserPlus,
   CheckCircle2,
-  Lock
+  Lock,
+  Music,
+  BookOpen
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -100,6 +102,35 @@ export default function PublisherPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Quick Publish Content */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold text-on-surface">Quick Publish Content</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link href="/publisher/upload?category=Music&price=0" className="group">
+            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+              <div className="w-16 h-16 rounded-2xl bg-pink-500/10 flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform">
+                <Music size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-on-surface uppercase">Free Music Track</h3>
+                <p className="text-sm text-on-surface-variant">Share your tracks with the PandaStore community for free.</p>
+              </div>
+            </GlassCard>
+          </Link>
+          <Link href="/publisher/upload?category=Books&price=0" className="group">
+            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
+                <BookOpen size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-on-surface uppercase">Free E-Book</h3>
+                <p className="text-sm text-on-surface-variant">Release your latest writing or documentation for free.</p>
+              </div>
+            </GlassCard>
+          </Link>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
         <div className="lg:col-span-2 space-y-8">

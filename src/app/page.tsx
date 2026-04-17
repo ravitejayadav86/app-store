@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bell, Grid, Book, User, Gamepad2, Play, Star, MoreVertical, Loader2 } from "lucide-react";
+import { Search, Bell, Grid, Book, User, Gamepad2, Play, Star, MoreVertical, Loader2, Music } from "lucide-react";
 import api from "@/lib/api";
 
 interface App {
@@ -46,6 +46,8 @@ export default function Home() {
       case "development": return "💻";
       case "utilities": return "🛠️";
       case "games": return "🎮";
+      case "music": return "🎵";
+      case "books": return "📚";
       default: return "📦";
     }
   };
@@ -56,6 +58,8 @@ export default function Home() {
       case "graphics": return "bg-[#F36B2B]";
       case "development": return "bg-[#FFC400]";
       case "utilities": return "bg-[#202124]";
+      case "music": return "bg-[#E91E63]";
+      case "books": return "bg-[#673AB7]";
       default: return "bg-primary";
     }
   };
@@ -159,7 +163,7 @@ export default function Home() {
             {[
               { name: "Games", icon: <Gamepad2 size={24} />, href: "/games" },
               { name: "Apps", icon: <Grid size={24} />, href: "/apps" },
-              { name: "Search", icon: <Search size={24} />, href: "/discover" },
+              { name: "Music", icon: <Music size={24} />, href: "/music" },
               { name: "Books", icon: <Book size={24} />, href: "/books" },
               { name: "You", icon: <User size={24} />, href: "/profile" },
             ].map(item => (

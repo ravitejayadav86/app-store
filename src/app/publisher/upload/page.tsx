@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const CATEGORIES = [
   { label: "Development", icon: <Code2 size={16} /> },
@@ -59,6 +59,19 @@ export default function UploadPage() {
       autoLogin();
     }
   }, [session, status, router]);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const category = searchParams.get("category");
+    const price = searchParams.get("price");
+    if (category || price) {
+      setMetadata(prev => ({
+        ...prev,
+        category: category || prev.category,
+        price: price ? parseFloat(price) : prev.price
+      }));
+    }
+  }, [searchParams]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);

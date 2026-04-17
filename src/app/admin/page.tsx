@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Clock, ShieldAlert, XCircle, User, Tag } from "lucide-react";
+import { CheckCircle2, Clock, ShieldAlert, XCircle, User, Tag, Music, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     const fetchPendingApps = async () => {
         try {
             setLoading(true);
-            const res = await api.get("/apps/admin/pending");
+            const res = await api.get("/admin/pending");
             setApps(res.data);
         } catch (err: any) {
             if (err.response?.status === 403) {
@@ -61,8 +61,8 @@ export default function AdminDashboard() {
     const handleApprove = async (id: number) => {
         try {
             setActionLoading(id);
-            await api.patch(`/apps/admin/${id}/approve`);
-            toast.success("App successfully approved and published!");
+            await api.post(`/admin/approve/${id}`);
+            toast.success("Successfully approved and published!");
             setApps((prev) => prev.filter((app) => app.id !== id));
         } catch (err: any) {
             toast.error(err.response?.data?.detail || "Failed to approve app.");
@@ -110,13 +110,22 @@ export default function AdminDashboard() {
                         <GlassCard key={app.id} className="p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center transition-all hover:border-primary/30">
                             <div className="space-y-4 flex-1">
                                 <div>
-                                    <div className="flex items-center gap-3">
-                                        <h3 className="text-2xl font-bold">{app.name}</h3>
-                                        <span className="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-surface-low text-on-surface-variant">
-                                            v{app.version}
-                                        </span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-surface-low flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                            {app.category.toLowerCase() === 'music' ? <Music size={24} /> : 
+                                             app.category.toLowerCase() === 'books' ? <BookOpen size={24} /> : 
+                                             <Tag size={24} />}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-3">
+                                                <h3 className="text-2xl font-bold">{app.name}</h3>
+                                                <span className="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-surface-lowest text-on-surface-variant border border-outline-variant/30">
+                                                    v{app.version}
+                                                </span>
+                                            </div>
+                                            <p className="text-on-surface-variant mt-1 line-clamp-1">{app.description}</p>
+                                        </div>
                                     </div>
-                                    <p className="text-on-surface-variant mt-2 line-clamp-2">{app.description}</p>
                                 </div>
 
                                 <div className="flex flex-wrap gap-4 text-sm font-medium text-on-surface-variant">
@@ -138,7 +147,10 @@ export default function AdminDashboard() {
                                     disabled={actionLoading === app.id}
                                     className="flex-1 md:flex-none px-8"
                                 >
-                                    {actionLoading === app.id ? "Approving..." : "Approve App"}
+                                    {actionLoading === app.id ? "Approving..." : 
+                                     app.category.toLowerCase() === 'music' ? "Approve Music" :
+                                     app.category.toLowerCase() === 'books' ? "Approve Book" :
+                                     "Approve Content"}
                                 </Button>
                             </div>
                         </GlassCard>
