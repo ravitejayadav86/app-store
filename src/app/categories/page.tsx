@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { 
@@ -13,23 +13,80 @@ import {
   Music, 
   BookOpen,
   Camera,
-  HeartPulse
+  HeartPulse,
+  Loader2,
+  Package
 } from "lucide-react";
+import api from "@/lib/api";
+import Link from "next/link";
 
-const categories = [
-  { name: "Games", icon: <Gamepad2 size={32} />, count: "12,403 Apps", color: "bg-orange-500/10 text-orange-500" },
-  { name: "Productivity", icon: <Briefcase size={32} />, count: "8,210 Apps", color: "bg-blue-500/10 text-blue-500" },
-  { name: "Graphics & Design", icon: <Palette size={32} />, count: "3,150 Apps", color: "bg-pink-500/10 text-pink-500" },
-  { name: "Utilities", icon: <Zap size={32} />, count: "5,600 Apps", color: "bg-yellow-500/10 text-yellow-500" },
-  { name: "Social Networking", icon: <MessageCircle size={32} />, count: "2,900 Apps", color: "bg-green-500/10 text-green-500" },
-  { name: "Developer Tools", icon: <Code2 size={32} />, count: "1,500 Apps", color: "bg-purple-500/10 text-purple-500" },
-  { name: "Music", icon: <Music size={32} />, count: "4,200 Apps", color: "bg-indigo-500/10 text-indigo-500" },
-  { name: "Books", icon: <BookOpen size={32} />, count: "7,800 Apps", color: "bg-red-500/10 text-red-500" },
-  { name: "Photo & Video", icon: <Camera size={32} />, count: "6,100 Apps", color: "bg-cyan-500/10 text-cyan-500" },
-  { name: "Health & Fitness", icon: <HeartPulse size={32} />, count: "3,300 Apps", color: "bg-emerald-500/10 text-emerald-500" },
-];
+interface CategoryInfo {
+  name: string;
+  icon: React.ReactNode;
+  count: number;
+  color: string;
+}
 
 export default function CategoriesPage() {
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const getCategoryTheme = (name: string) => {
+    switch (name.toLowerCase()) {
+      case "games": return { icon: <Gamepad2 size={32} />, color: "bg-orange-500/10 text-orange-500" };
+      case "productivity": return { icon: <Briefcase size={32} />, color: "bg-blue-500/10 text-blue-500" };
+      case "graphics": return { icon: <Palette size={32} />, color: "bg-pink-500/10 text-pink-500" };
+      case "utilities": return { icon: <Zap size={32} />, color: "bg-yellow-500/10 text-yellow-500" };
+      case "social": return { icon: <MessageCircle size={32} />, color: "bg-green-500/10 text-green-500" };
+      case "development": return { icon: <Code2 size={32} />, color: "bg-purple-500/10 text-purple-500" };
+      case "music": return { icon: <Music size={32} />, color: "bg-indigo-500/10 text-indigo-500" };
+      case "books": return { icon: <BookOpen size={32} />, color: "bg-red-500/10 text-red-500" };
+      default: return { icon: <Package size={32} />, color: "bg-emerald-500/10 text-emerald-500" };
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/apps/");
+        const apps = res.data;
+        
+        // Count apps per category
+        const counts: Record<string, number> = {};
+        apps.forEach((app: any) => {
+          counts[app.category] = (counts[app.category] || 0) + 1;
+        });
+
+        // Map to CategoryInfo objects
+        const derivedCategories = Object.keys(counts).map(name => {
+          const theme = getCategoryTheme(name);
+          return {
+            name,
+            icon: theme.icon,
+            count: counts[name],
+            color: theme.color,
+          };
+        });
+
+        setCategories(derivedCategories);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+     return (
+       <div className="min-h-screen flex flex-col items-center justify-center bg-surface">
+         <Loader2 className="animate-spin text-primary mb-4" size={48} />
+         <p className="text-on-surface-variant">Mapping Ecosystem...</p>
+       </div>
+     );
+  }
+
   return (
     <div className="flex flex-col gap-20 pb-20">
       <section className="px-4 md:px-8">
@@ -48,37 +105,44 @@ export default function CategoriesPage() {
               className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
             >
               <Zap size={14} />
-              <span>Global Index</span>
+              <span>Live Taxonomy</span>
             </motion.div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-on-primary">Segment Your World.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Find exactly what you need with our meticulously organized application ecosystem.</p>
+            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Find exactly what you need with our real-time application organization.</p>
           </div>
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {categories.map((cat, index) => (
-            <motion.div
-              key={cat.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + index * 0.05 }}
-            >
-              <GlassCard className="h-full flex flex-col items-start gap-8 cursor-pointer group hover:bg-surface-low transition-all">
-                <div className={`p-5 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
-                  {cat.icon}
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                    {cat.name}
-                  </h2>
-                  <p className="text-sm text-on-surface-variant font-medium">{cat.count}</p>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
-        </div>
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {categories.map((cat, index) => (
+              <motion.div
+                key={cat.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.05 }}
+              >
+                <GlassCard className="h-full flex flex-col items-start gap-8 cursor-pointer group hover:bg-surface-low transition-all">
+                  <div className={`p-5 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                    {cat.icon}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
+                      {cat.name}
+                    </h2>
+                    <p className="text-sm text-on-surface-variant font-medium">{cat.count} {cat.count === 1 ? 'App' : 'Apps'}</p>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center bg-surface-low rounded-3xl border border-dashed border-outline-variant">
+             <p className="text-on-surface-variant text-lg font-medium">No categories found in the database.</p>
+             <p className="text-on-surface-variant/60">Upload some apps to generate categories.</p>
+          </div>
+        )}
       </section>
     </div>
   );
