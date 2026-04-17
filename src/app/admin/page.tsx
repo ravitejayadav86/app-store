@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -30,6 +30,21 @@ interface ApiError {
 }
 
 export default function AdminDashboard() {
+    return (
+        <Suspense fallback={
+            <div className="max-w-6xl mx-auto px-4 py-20 flex items-center justify-center">
+                <div className="animate-pulse flex flex-col items-center gap-4">
+                    <Clock size={40} className="text-primary opacity-50" />
+                    <p className="text-on-surface-variant font-medium">Loading review queue...</p>
+                </div>
+            </div>
+        }>
+            <AdminContent />
+        </Suspense>
+    );
+}
+
+function AdminContent() {
     const router = useRouter();
     const { status } = useSession();
 
@@ -37,20 +52,7 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (status === "loading") return;
-
-        const token = localStorage.getItem("token");
-        if (!token && status === "unauthenticated") {
-            toast.error("Please sign in to access the admin panel.");
-            router.push("/login");
-            return;
-        }
-
-        fetchPendingApps();
-    }, [status, router]);
-
-    const fetchPendingApps = async () => {
+    const fetchPendingApps = useCallback(async () => {
         try {
             setLoading(true);
             const res = await api.get("/admin/pending");
@@ -66,7 +68,20 @@ export default function AdminDashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        if (status === "loading") return;
+
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (!token && status === "unauthenticated") {
+            toast.error("Please sign in to access the admin panel.");
+            router.push("/login");
+            return;
+        }
+
+        fetchPendingApps();
+    }, [status, router, fetchPendingApps]);
 
     const handleApprove = async (id: number) => {
         try {
@@ -117,55 +132,58 @@ export default function AdminDashboard() {
                 </GlassCard>
             ) : (
                 <div className="grid grid-cols-1 gap-6">
-                    {apps.map((app) => (
-                        <GlassCard key={app.id} className="p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center transition-all hover:border-primary/30">
-                            <div className="space-y-4 flex-1">
-                                <div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-surface-low flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                            {app.category.toLowerCase() === 'music' ? <Music size={24} /> : 
-                                             app.category.toLowerCase() === 'books' ? <BookOpen size={24} /> : 
-                                             <Tag size={24} />}
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="text-2xl font-bold">{app.name}</h3>
-                                                <span className="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-surface-lowest text-on-surface-variant border border-outline-variant/30">
-                                                    v{app.version}
-                                                </span>
+                    {apps.map((app) => {
+                        const category = app.category?.toLowerCase() || '';
+                        return (
+                            <GlassCard key={app.id} className="p-8 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center transition-all hover:border-primary/30">
+                                <div className="space-y-4 flex-1">
+                                    <div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-surface-low flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                                {category === 'music' ? <Music size={24} /> : 
+                                                category === 'books' ? <BookOpen size={24} /> : 
+                                                <Tag size={24} />}
                                             </div>
-                                            <p className="text-on-surface-variant mt-1 line-clamp-1">{app.description}</p>
+                                            <div>
+                                                <div className="flex items-center gap-3">
+                                                    <h3 className="text-2xl font-bold">{app.name}</h3>
+                                                    <span className="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-surface-lowest text-on-surface-variant border border-outline-variant/30">
+                                                        v{app.version}
+                                                    </span>
+                                                </div>
+                                                <p className="text-on-surface-variant mt-1 line-clamp-1">{app.description}</p>
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-4 text-sm font-medium text-on-surface-variant">
+                                        <span className="flex items-center gap-1.5"><User size={16} /> {app.developer}</span>
+                                        <span className="flex items-center gap-1.5"><Tag size={16} /> {app.category}</span>
+                                        <span className="flex items-center gap-1.5 text-primary">
+                                            {app.price === 0 ? "Free" : `$${app.price}`}
+                                        </span>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-4 text-sm font-medium text-on-surface-variant">
-                                    <span className="flex items-center gap-1.5"><User size={16} /> {app.developer}</span>
-                                    <span className="flex items-center gap-1.5"><Tag size={16} /> {app.category}</span>
-                                    <span className="flex items-center gap-1.5 text-primary">
-                                        {app.price === 0 ? "Free" : `$${app.price}`}
-                                    </span>
+                                <div className="flex w-full md:w-auto gap-3">
+                                    <button className="flex-1 md:flex-none px-6 py-3 rounded-2xl border border-outline-variant hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-sm flex items-center justify-center gap-2">
+                                        <XCircle size={18} /> Reject
+                                    </button>
+
+                                    <Button
+                                        onClick={() => handleApprove(app.id)}
+                                        disabled={actionLoading === app.id}
+                                        className="flex-1 md:flex-none px-8"
+                                    >
+                                        {actionLoading === app.id ? "Approving..." : 
+                                        category === 'music' ? "Approve Music" :
+                                        category === 'books' ? "Approve Book" :
+                                        "Approve Content"}
+                                    </Button>
                                 </div>
-                            </div>
-
-                            <div className="flex w-full md:w-auto gap-3">
-                                <button className="flex-1 md:flex-none px-6 py-3 rounded-2xl border border-outline-variant hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-sm flex items-center justify-center gap-2">
-                                    <XCircle size={18} /> Reject
-                                </button>
-
-                                <Button
-                                    onClick={() => handleApprove(app.id)}
-                                    disabled={actionLoading === app.id}
-                                    className="flex-1 md:flex-none px-8"
-                                >
-                                    {actionLoading === app.id ? "Approving..." : 
-                                     app.category.toLowerCase() === 'music' ? "Approve Music" :
-                                     app.category.toLowerCase() === 'books' ? "Approve Book" :
-                                     "Approve Content"}
-                                </Button>
-                            </div>
-                        </GlassCard>
-                    ))}
+                            </GlassCard>
+                        );
+                    })}
                 </div>
             )}
         </div>
