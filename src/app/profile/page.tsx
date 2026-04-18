@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, Github, ExternalLink, GitFork, Star as StarIcon } from "lucide-react";
+import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, ExternalLink, GitFork } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -228,7 +228,7 @@ export default function ProfilePage() {
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
             <GlassCard className="p-8">
               <div className="flex items-center gap-3 mb-6">
-                <Github size={20} className="text-primary" />
+               <GitFork size={20} className="text-primary" />
                 <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">GitHub Repositories</h2>
               </div>
               {reposLoading ? (
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                             {repo.language}
                           </span>
                         )}
-                        <span className="flex items-center gap-1"><StarIcon size={12} /> {repo.stargazers_count}</span>
+                        <span className="flex items-center gap-1"><Star size={12} /> {repo.stargazers_count}</span>
                         <span className="flex items-center gap-1"><GitFork size={12} /> {repo.forks_count}</span>
                       </div>
                     </a>
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                   rel="noopener noreferrer"
                   className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
                 >
-                  <Github size={14} /> View All Repositories
+                 <GitFork size={14} /> View All Repositories
                 </a>
               )}
             </GlassCard>
