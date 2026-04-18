@@ -50,14 +50,9 @@ export default function ProfilePage() {
   const [reposLoading, setReposLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token && !session) { router.push("/login"); return; }
-    fetchProfile();
-  }, [session]);
-
-  useEffect(() => {
-    if (session?.user?.name) {
-      fetchGithubRepos(session.user.name);
+    const githubLogin = (session as any)?.login;
+    if (githubLogin) {
+      fetchGithubRepos(githubLogin);
     }
   }, [session]);
 
@@ -228,7 +223,7 @@ export default function ProfilePage() {
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
             <GlassCard className="p-8">
               <div className="flex items-center gap-3 mb-6">
-               <GitFork size={20} className="text-primary" />
+                <GitFork size={20} className="text-primary" />
                 <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">GitHub Repositories</h2>
               </div>
               {reposLoading ? (
@@ -273,7 +268,7 @@ export default function ProfilePage() {
                   rel="noopener noreferrer"
                   className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
                 >
-                 <GitFork size={14} /> View All Repositories
+                  <GitFork size={14} /> View All Repositories
                 </a>
               )}
             </GlassCard>
