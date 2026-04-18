@@ -66,26 +66,44 @@ const fetchData = async () => {
 useEffect(() => {
   if (status === "loading") return;
 
-  const tryFetch = async () => {
-    let retries = 6;
-    while (retries > 0) {
-      const token = localStorage.getItem("token");
-      if (token) {
-        fetchData();
-        return;
-      }
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-      await new Promise(r => setTimeout(r, 500));
-      retries--;
-    }
+  const token = localStorage.getItem("token");
+  if (token) {
+    fetchData();
+    return;
+  }
+
+  if (!session) {
     setLoading(false);
-    toast.error("Authentication timeout. Please sign in again.");
+    return;
+  }
+
+  // Wait for TokenSync to set the token
+  const handleTokenReady = () => {
+    fetchData();
   };
 
-  tryFetch();
+  window.addEventListener("tokenReady", handleTokenReady);
+
+  // Also poll as backup
+  let retries = 20;
+  const interval = setInterval(() => {
+    const t = localStorage.getItem("token");
+    if (t) {
+      clearInterval(interval);
+      fetchData();
+    }
+    retries--;
+    if (retries <= 0) {
+      clearInterval(interval);
+      setLoading(false);
+      toast.error("Authentication timeout. Please sign in again.");
+    }
+  }, 500);
+
+  return () => {
+    window.removeEventListener("tokenReady", handleTokenReady);
+    clearInterval(interval);
+  };
 }, [status, session?.user?.email]);
 
   const handleGrantAccess = async (appId: number) => {

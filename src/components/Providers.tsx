@@ -10,28 +10,28 @@ function TokenSync() {
   useEffect(() => {
     if (status === "loading") return;
     if (synced.current) return;
+    if (!session?.user?.email) return;
 
     const syncToken = async () => {
-      if (session?.user?.email) {
-        const existingToken = localStorage.getItem("token");
-        if (!existingToken) {
-          try {
-            const res = await api.post("/auth/oauth-login", {
-              email: session.user.email,
-              name: session.user.name,
-            });
-            localStorage.setItem("token", res.data.access_token);
-            synced.current = true;
-            // Force reload to retry all API calls with new token
-            window.location.reload();
-          } catch (err) {
-            console.error("Failed to sync OAuth token", err);
-          }
-        } else {
-          synced.current = true;
-        }
+      const existingToken = localStorage.getItem("token");
+      if (existingToken) {
+        synced.current = true;
+        return;
+      }
+      try {
+        const res = await api.post("/auth/oauth-login", {
+          email: session.user!.email,
+          name: session.user!.name,
+        });
+        localStorage.setItem("token", res.data.access_token);
+        synced.current = true;
+        // Notify other components that token is ready
+        window.dispatchEvent(new Event("tokenReady"));
+      } catch (err) {
+        console.error("Failed to sync OAuth token", err);
       }
     };
+
     syncToken();
   }, [session?.user?.email, status]);
 
