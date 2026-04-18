@@ -49,12 +49,18 @@ export default function ProfilePage() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
 
-  useEffect(() => {
-    const githubLogin = (session as any)?.login;
-    if (githubLogin) {
-      fetchGithubRepos(githubLogin);
-    }
-  }, [session]);
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token && !session) { router.push("/login"); return; }
+  if (session || token) fetchProfile();
+}, [session?.user?.email]);
+
+useEffect(() => {
+  const githubLogin = (session as any)?.login;
+  if (githubLogin) {
+    fetchGithubRepos(githubLogin);
+  }
+}, [(session as any)?.login]);
 
   const fetchGithubRepos = async (username: string) => {
     setReposLoading(true);
