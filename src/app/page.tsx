@@ -16,6 +16,7 @@ interface App {
   price: number;
   version: string;
   is_approved: boolean;
+  file_path: string | null;
 }
 
 const CATEGORY_TABS = ["All", "Apps", "Games", "Music", "Books"];
@@ -46,6 +47,13 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
     if (downloadingId === app.id) return;
+
+    // Check if a file has actually been uploaded by the publisher
+    if (!app.file_path) {
+      toast.info(`"${app.name}" has no file uploaded by the publisher yet.`);
+      return;
+    }
+
     setDownloadingId(app.id);
     try {
       const res = await api.get(`/apps/${app.id}/download`, { responseType: "blob" });

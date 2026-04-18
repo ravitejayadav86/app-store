@@ -21,6 +21,7 @@ interface AppData {
   price: number;
   version: string;
   created_at: string;
+  file_path: string | null;
 }
 
 interface Review {
@@ -119,6 +120,13 @@ function AppDetailContent() {
 
   const handleDownload = async () => {
     if (!app) return;
+
+    // Check if a file has actually been uploaded
+    if (!app.file_path) {
+      toast.info(`"${app.name}" has no file uploaded by the publisher yet.`);
+      return;
+    }
+
     setDownloading(true);
     try {
       const res = await api.get(`/apps/${app.id}/download`, { responseType: "blob" });
@@ -208,12 +216,18 @@ function AppDetailContent() {
             <div className="w-full md:w-auto shrink-0 flex flex-col gap-3">
               <Button
                 size="lg"
-                className="w-full md:w-48 py-6 text-lg shadow-primary/25 shadow-xl"
+                className={`w-full md:w-48 py-6 text-lg shadow-xl ${!app.file_path ? "opacity-60 cursor-not-allowed" : "shadow-primary/25"}`}
                 onClick={handleDownload}
                 disabled={downloading}
               >
                 <Download size={20} className="mr-2" />
-                {downloading ? "Downloading..." : app.price === 0 ? "Free Download" : `Buy $${app.price}`}
+                {downloading
+                  ? "Downloading..."
+                  : !app.file_path
+                  ? "Not Available"
+                  : app.price === 0
+                  ? "Free Download"
+                  : `Buy $${app.price}`}
               </Button>
               <p className="text-xs text-center text-on-surface-variant flex items-center justify-center gap-1">
                 <ShieldCheck size={14} className="text-green-500" /> Verified Safe
