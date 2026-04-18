@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bell, Grid, Book, User, Gamepad2, Play, Star, MoreVertical, Loader2, Music } from "lucide-react";
+import { Search, Grid, Book, User, Gamepad2, Star, Loader2, Music, Download } from "lucide-react";
 import api from "@/lib/api";
+import { toast } from "sonner";
 
 interface App {
   id: number;
@@ -25,6 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -39,6 +41,29 @@ export default function Home() {
     };
     fetchApps();
   }, []);
+
+  const handleDownload = async (e: React.MouseEvent, app: App) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (downloadingId === app.id) return;
+    setDownloadingId(app.id);
+    try {
+      const res = await api.get(`/apps/${app.id}/download`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", app.name);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`"${app.name}" downloaded to your files!`);
+    } catch {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const featuredApp = apps.length > 0 ? apps[0] : null;
   const allOtherApps = apps.slice(1);
@@ -143,10 +168,18 @@ export default function Home() {
                     </div>
                  </div>
                  <div className="flex flex-col items-end gap-1.5">
-                    <button className="bg-[#8AB4F8] hover:bg-[#aecbfa] text-[#131314] md:px-10 px-6 py-2 md:py-2.5 rounded-full font-bold text-sm md:text-base transition-all active:scale-95 shadow-lg shadow-[#8AB4F8]/20">
-                      {featuredApp.price === 0 ? "Install" : `$${featuredApp.price}`}
-                    </button>
-                 </div>
+                     <button
+                       onClick={(e) => handleDownload(e, featuredApp)}
+                       disabled={downloadingId === featuredApp.id}
+                       className="flex items-center gap-2 bg-[#8AB4F8] hover:bg-[#aecbfa] disabled:opacity-60 text-[#131314] md:px-10 px-6 py-2 md:py-2.5 rounded-full font-bold text-sm md:text-base transition-all active:scale-95 shadow-lg shadow-[#8AB4F8]/20"
+                     >
+                       {downloadingId === featuredApp.id ? (
+                         <><Loader2 size={14} className="animate-spin" /> Downloading...</>
+                       ) : (
+                         <><Download size={14} /> {featuredApp.price === 0 ? "Install" : `$${featuredApp.price}`}</>
+                       )}
+                     </button>
+                  </div>
               </div>
             </section>
           </Link>
@@ -208,6 +241,18 @@ export default function Home() {
                             <span className="bg-surface-lowest px-2 py-0.5 rounded text-[10px] font-bold uppercase">{app.price === 0 ? "Free" : `$${app.price}`}</span>
                          </div>
                       </div>
+                      <button
+                        onClick={(e) => handleDownload(e, app)}
+                        disabled={downloadingId === app.id}
+                        title={`Download ${app.name}`}
+                        className="ml-2 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 transition-all active:scale-90"
+                      >
+                        {downloadingId === app.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Download size={16} />
+                        )}
+                      </button>
                    </Link>
                 ))}
              </div>
