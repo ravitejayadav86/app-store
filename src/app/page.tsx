@@ -178,11 +178,17 @@ export default function Home() {
                  <div className="flex flex-col items-end gap-1.5">
                      <button
                        onClick={(e) => handleDownload(e, featuredApp)}
-                       disabled={downloadingId === featuredApp.id}
-                       className="flex items-center gap-2 bg-[#8AB4F8] hover:bg-[#aecbfa] disabled:opacity-60 text-[#131314] md:px-10 px-6 py-2 md:py-2.5 rounded-full font-bold text-sm md:text-base transition-all active:scale-95 shadow-lg shadow-[#8AB4F8]/20"
+                       disabled={downloadingId === featuredApp.id || !featuredApp.file_path}
+                       className={`flex items-center gap-2 md:px-10 px-6 py-2 md:py-2.5 rounded-full font-bold text-sm md:text-base transition-all active:scale-95 shadow-lg ${
+                         !featuredApp.file_path 
+                           ? "bg-gray-500/50 text-white/50 cursor-not-allowed shadow-none" 
+                           : "bg-[#8AB4F8] hover:bg-[#aecbfa] text-[#131314] shadow-[#8AB4F8]/20"
+                       }`}
                      >
                        {downloadingId === featuredApp.id ? (
                          <><Loader2 size={14} className="animate-spin" /> Downloading...</>
+                       ) : !featuredApp.file_path ? (
+                         "Not Available"
                        ) : (
                          <><Download size={14} /> {featuredApp.price === 0 ? "Install" : `$${featuredApp.price}`}</>
                        )}
@@ -251,14 +257,18 @@ export default function Home() {
                       </div>
                       <button
                         onClick={(e) => handleDownload(e, app)}
-                        disabled={downloadingId === app.id}
-                        title={`Download ${app.name}`}
-                        className="ml-2 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 transition-all active:scale-90"
+                        disabled={downloadingId === app.id || !app.file_path}
+                        title={!app.file_path ? "No file uploaded by publisher" : `Download ${app.name}`}
+                        className={`ml-2 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full transition-all active:scale-90 ${
+                          !app.file_path
+                            ? "bg-surface-low text-on-surface-variant/30 cursor-not-allowed"
+                            : "bg-primary/10 hover:bg-primary/20 text-primary"
+                        }`}
                       >
                         {downloadingId === app.id ? (
                           <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <Download size={16} />
+                          <Download size={16} className={!app.file_path ? "opacity-30" : ""} />
                         )}
                       </button>
                    </Link>
