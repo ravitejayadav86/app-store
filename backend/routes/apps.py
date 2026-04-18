@@ -37,7 +37,7 @@ def get_analytics(
         "total_downloads": downloads,
     }
 
- @router.post("/submit", response_model=schemas.AppOut, status_code=201)
+@router.post("/submit", response_model=schemas.AppOut, status_code=201)
 def submit_app(
     app: schemas.AppCreate,
     db: Session = Depends(get_db),
