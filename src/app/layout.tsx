@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pandas-store.vercel.app"),
+  metadataBase: new URL("https://app-store-smoky.vercel.app"),
   title: {
     default: "PandaStore | Discover Apps, Games, Music & Books",
     template: "%s | PandaStore",
@@ -25,11 +25,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "PandaStore Team" }],
   creator: "PandaStore",
-  themeColor: "#6750A4",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://pandas-store.vercel.app",
+    url: "https://app-store-smoky.vercel.app",
     siteName: "PandaStore",
     title: "PandaStore | Discover Apps, Games, Music & Books",
     description:
@@ -61,6 +60,10 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6750A4",
 };
 
 export const preferredRegion = "bom1";
