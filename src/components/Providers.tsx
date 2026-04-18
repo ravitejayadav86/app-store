@@ -16,6 +16,7 @@ function TokenSync() {
       const existingToken = localStorage.getItem("token");
       if (existingToken) {
         synced.current = true;
+        window.dispatchEvent(new Event("tokenReady"));
         return;
       }
       try {
@@ -25,7 +26,6 @@ function TokenSync() {
         });
         localStorage.setItem("token", res.data.access_token);
         synced.current = true;
-        // Notify other components that token is ready
         window.dispatchEvent(new Event("tokenReady"));
       } catch (err) {
         console.error("Failed to sync OAuth token", err);

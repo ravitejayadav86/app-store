@@ -54,34 +54,35 @@ function UploadFormContent() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    // Wait until session is fully loaded before acting
     if (status === "loading") return;
 
-    const token = localStorage.getItem("token");
+    const init = async () => {
+      const token = localStorage.getItem("token");
+      if (token) return;
 
-    if (!token && status === "unauthenticated") {
-      toast.error("Please sign in to upload apps.");
-      router.push("/login");
-      return;
-    }
-
-    // If logged in via Google/GitHub, create a backend session
-    if (!token && session?.user?.email) {
-      const autoLogin = async () => {
+      if (session?.user?.email) {
         try {
           const res = await api.post("/auth/oauth-login", {
-            email: session.user?.email,
-            name: session.user?.name,
+            email: session.user.email,
+            name: session.user.name,
           });
           localStorage.setItem("token", res.data.access_token);
         } catch {
           toast.error("Authentication failed. Please sign in again.");
           router.push("/login");
         }
-      };
-      autoLogin();
-    }
-  }, [session, status, router]);
+        return;
+      }
+
+      if (status === "unauthenticated") {
+        toast.error("Please sign in to upload apps.");
+        router.push("/login");
+      }
+    };
+
+    init();
+  }, [status, session?.user?.email]);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -175,7 +176,7 @@ function UploadFormContent() {
       await api.post(`/apps/${appId}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success("🎉 Application is now live!");
+      toast.success("Application is now live!");
       setStep(3);
     } catch (err: unknown) {
       const error = err as ApiError;
@@ -192,7 +193,6 @@ function UploadFormContent() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-20">
-      {/* Header */}
       <div className="flex items-center gap-4 mb-12">
         <button
           onClick={() => step === 2 ? setStep(1) : router.back()}
@@ -210,7 +210,6 @@ function UploadFormContent() {
         </div>
       </div>
 
-      {/* Progress Bar */}
       <div className="flex gap-2 mb-10">
         {[1, 2, 3].map((s) => (
           <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= s ? "bg-primary" : "bg-surface-low"}`} />
@@ -219,13 +218,11 @@ function UploadFormContent() {
 
       <AnimatePresence mode="wait">
 
-        {/* Step 1 — App Info */}
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
             <GlassCard className="p-10 space-y-8">
               <form onSubmit={handleMetadataSubmit} className="space-y-6">
 
-                {/* Icon Upload */}
                 <div className="flex items-center gap-6">
                   <div
                     onClick={() => iconInputRef.current?.click()}
@@ -240,14 +237,13 @@ function UploadFormContent() {
                   <input ref={iconInputRef} type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
                   <div>
                     <p className="font-bold text-on-surface">App Icon</p>
-                    <p className="text-xs text-on-surface-variant mt-1">PNG or JPG, 512×512px recommended</p>
+                    <p className="text-xs text-on-surface-variant mt-1">PNG or JPG, 512x512px recommended</p>
                     <button type="button" onClick={() => iconInputRef.current?.click()} className="text-xs font-bold text-primary mt-2 hover:underline">
                       {iconPreview ? "Change Icon" : "Upload Icon"}
                     </button>
                   </div>
                 </div>
 
-                {/* Name & Category */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App Name</label>
@@ -278,7 +274,6 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Description</label>
                   <textarea
@@ -291,7 +286,6 @@ function UploadFormContent() {
                   />
                 </div>
 
-                {/* Price & Version */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Price ($) — enter 0 for free</label>
@@ -317,7 +311,6 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                {/* Website & Support */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Website (optional)</label>
@@ -348,13 +341,10 @@ function UploadFormContent() {
           </motion.div>
         )}
 
-        {/* Step 2 — File Upload */}
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <GlassCard className="p-10 space-y-8">
               <form onSubmit={handleFileUpload} className="space-y-8">
-
-                {/* Main File Upload */}
                 <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App File</label>
                   <div
@@ -387,7 +377,6 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                {/* Screenshots */}
                 <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Screenshots (up to 5)</label>
                   <div className="flex flex-wrap gap-3">
@@ -424,7 +413,6 @@ function UploadFormContent() {
           </motion.div>
         )}
 
-        {/* Step 3 — Success */}
         {step === 3 && (
           <motion.div key="step3" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
             <GlassCard className="p-16 flex flex-col items-center text-center gap-6">
@@ -432,13 +420,21 @@ function UploadFormContent() {
                 <CheckCircle2 size={48} className="text-green-500" />
               </div>
               <h2 className="text-4xl font-bold text-on-surface">App Submitted!</h2>
-              <p className="text-on-surface-variant max-w-md">Your application has been submitted for review. It will be live on PandaStore within 24 hours.</p>
+              <p className="text-on-surface-variant max-w-md">Your application has been submitted. It will be live on PandaStore shortly.</p>
               <div className="flex gap-4 mt-4">
                 <Button size="lg" onClick={() => router.push("/publisher")}>
                   Go to Publisher Hub <ArrowRight className="ml-2" />
                 </Button>
                 <button
-                  onClick={() => { setStep(1); setFile(null); setIconFile(null); setIconPreview(null); setScreenshots([]); setScreenshotPreviews([]); setMetadata({ name: "", description: "", price: 0, category: "Development", version: "1.0.0", website: "", supportEmail: "" }); }}
+                  onClick={() => {
+                    setStep(1);
+                    setFile(null);
+                    setIconFile(null);
+                    setIconPreview(null);
+                    setScreenshots([]);
+                    setScreenshotPreviews([]);
+                    setMetadata({ name: "", description: "", price: 0, category: "Development", version: "1.0.0", website: "", supportEmail: "" });
+                  }}
                   className="px-6 py-3 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
                 >
                   Submit Another
@@ -452,11 +448,3 @@ function UploadFormContent() {
     </div>
   );
 }
-
-
-
-
-
-
-
-

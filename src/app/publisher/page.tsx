@@ -1,22 +1,12 @@
 "use client";
-import { useSession } from "next-auth/react";
-import React, { useState, useEffect } from "react";
+import { useSession, signIn } from "next-auth/react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import Link from "next/link";
-import { 
-  BarChart3, 
-  Upload, 
-  Settings, 
-  TrendingUp, 
-  Code2, 
-  Globe,
-  Plus,
-  UserPlus,
-  CheckCircle2,
-  Lock,
-  Music,
-  BookOpen
+import {
+  BarChart3, Upload, Settings, TrendingUp, Code2, Globe,
+  Plus, UserPlus, CheckCircle2, Lock, Music, BookOpen
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -33,12 +23,27 @@ interface ApiError {
   response?: { data?: { detail?: string } };
 }
 
+async function ensureToken(email: string, name: string): Promise<string | null> {
+  let token = localStorage.getItem("token");
+  if (token) return token;
+  try {
+    const res = await api.post("/auth/oauth-login", { email, name });
+    token = res.data.access_token;
+    localStorage.setItem("token", token!);
+    return token;
+  } catch {
+    return null;
+  }
+}
+
 export default function PublisherPage() {
+  const { data: session, status } = useSession();
   const [apps, setApps] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [grantingAppId, setGrantingAppId] = useState<number | null>(null);
   const [targetUsername, setTargetUsername] = useState("");
   const [analytics, setAnalytics] = useState({ total_apps: 0, approved: 0, pending: 0, total_downloads: 0 });
+  const [authError, setAuthError] = useState(false);
 
   const stats = [
     { label: "Total Downloads", value: analytics.total_downloads.toString(), change: "+live", icon: <TrendingUp size={20} className="text-green-500" /> },
@@ -46,75 +51,63 @@ export default function PublisherPage() {
     { label: "Total Submitted", value: analytics.total_apps.toString(), change: "all-time", icon: <BarChart3 size={20} className="text-blue-500" /> },
   ];
 
-  const { data: session, status } = useSession();
-
-const fetchData = async () => {
-  try {
-    const [appsRes, analyticsRes] = await Promise.all([
-      api.get("/apps/me"),
-      api.get("/apps/analytics"),
-    ]);
-    setApps(appsRes.data);
-    setAnalytics(analyticsRes.data);
-  } catch (err) {
-    toast.error("Failed to fetch publisher data.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-useEffect(() => {
-  if (status === "loading") return;
-
-  const token = localStorage.getItem("token");
-  if (token) {
-    fetchData();
-    return;
-  }
-
-  if (!session) {
-    setLoading(false);
-    return;
-  }
-
-  // Wait for TokenSync to set the token
-  const handleTokenReady = () => {
-    fetchData();
-  };
-
-  window.addEventListener("tokenReady", handleTokenReady);
-
-  // Also poll as backup
-  let retries = 20;
-  const interval = setInterval(() => {
-    const t = localStorage.getItem("token");
-    if (t) {
-      clearInterval(interval);
-      fetchData();
-    }
-    retries--;
-    if (retries <= 0) {
-      clearInterval(interval);
+  const fetchData = useCallback(async () => {
+    try {
+      const [appsRes, analyticsRes] = await Promise.all([
+        api.get("/apps/me"),
+        api.get("/apps/analytics"),
+      ]);
+      setApps(appsRes.data);
+      setAnalytics(analyticsRes.data);
+    } catch (err) {
+      toast.error("Failed to fetch publisher data.");
+    } finally {
       setLoading(false);
-      toast.error("Authentication timeout. Please sign in again.");
     }
-  }, 500);
+  }, []);
 
-  return () => {
-    window.removeEventListener("tokenReady", handleTokenReady);
-    clearInterval(interval);
-  };
-}, [status, session?.user?.email]);
+  useEffect(() => {
+    if (status === "loading") return;
+
+    const init = async () => {
+      // Case 1: already has token
+      const existingToken = localStorage.getItem("token");
+      if (existingToken) {
+        fetchData();
+        return;
+      }
+
+      // Case 2: logged in via OAuth
+      if (session?.user?.email) {
+        const token = await ensureToken(
+          session.user.email,
+          session.user.name || ""
+        );
+        if (token) {
+          fetchData();
+          return;
+        }
+      }
+
+      // Case 3: not logged in at all
+      if (!session) {
+        setAuthError(true);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      toast.error("Could not authenticate. Please sign in again.");
+    };
+
+    init();
+  }, [status, session?.user?.email]);
 
   const handleGrantAccess = async (appId: number) => {
     if (!targetUsername.trim()) return toast.error("Please enter a username.");
     try {
       const res = await api.post(`/apps/${appId}/grant`, { username: targetUsername });
-      if (res.data.status.includes("already")) {
-        toast.info(res.data.status);
-      } else {
-        toast.success(res.data.status);
-      }
+      toast.success(res.data.message || "Access granted!");
       setTargetUsername("");
       setGrantingAppId(null);
     } catch (err: unknown) {
@@ -124,6 +117,21 @@ useEffect(() => {
   };
 
   const colors = ["bg-blue-500", "bg-cyan-500", "bg-pink-500", "bg-purple-500", "bg-amber-500"];
+
+  if (authError) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center flex-col gap-6">
+        <h2 className="text-3xl font-bold text-on-surface">Sign in to access Publisher Hub</h2>
+        <p className="text-on-surface-variant">You need to be signed in to publish apps.</p>
+        <button
+          onClick={() => signIn()}
+          className="px-8 py-4 bg-primary text-on-primary rounded-2xl font-bold"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-12 pb-20 mt-12 px-4 md:px-8 max-w-7xl mx-auto">
@@ -140,15 +148,9 @@ useEffect(() => {
         </Link>
       </header>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.1 }}
-          >
+          <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
             <GlassCard className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-on-surface-variant mb-4">
                 <span className="text-xs font-bold uppercase tracking-widest">{stat.label}</span>
@@ -163,7 +165,6 @@ useEffect(() => {
         ))}
       </div>
 
-      {/* Quick Publish Content */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold text-on-surface">Quick Publish Content</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,88 +196,81 @@ useEffect(() => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-center gap-3">
-             <Code2 className="text-primary" />
-             <h2 className="text-2xl font-bold text-on-surface">Your Applications</h2>
+            <Code2 className="text-primary" />
+            <h2 className="text-2xl font-bold text-on-surface">Your Applications</h2>
           </div>
-          
+
           {loading ? (
-             <div className="text-center py-10 text-on-surface-variant animate-pulse">Loading amazing applications...</div>
+            <div className="text-center py-10 text-on-surface-variant animate-pulse">Loading amazing applications...</div>
           ) : apps.length === 0 ? (
-             <GlassCard className="p-10 text-center flex flex-col items-center justify-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-surface-low flex items-center justify-center text-on-surface-variant">
-                   <Code2 size={24} />
-                </div>
-                <p className="font-bold text-lg text-on-surface">No applications published yet</p>
-                <p className="text-sm text-on-surface-variant max-w-sm">Publish your first app to unlock analytics, user management, and revenue insights.</p>
-             </GlassCard>
+            <GlassCard className="p-10 text-center flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-surface-low flex items-center justify-center text-on-surface-variant">
+                <Code2 size={24} />
+              </div>
+              <p className="font-bold text-lg text-on-surface">No applications published yet</p>
+              <p className="text-sm text-on-surface-variant max-w-sm">Publish your first app to unlock analytics, user management, and revenue insights.</p>
+            </GlassCard>
           ) : (
             <div className="space-y-4">
               {apps.map((app, i) => (
-                <motion.div
-                  key={app.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.1 }}
-                >
+                <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }}>
                   <GlassCard className="flex flex-col transition-all overflow-hidden relative">
                     <div className="flex justify-between items-center z-10 relative">
-                        <div className="flex items-center gap-6">
-                            <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold`}>
-                            {app.name[0]}
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-on-surface">{app.name}</h3>
-                                <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest mt-0.5">${app.price.toFixed(2)} • {app.version}</p>
-                            </div>
+                      <div className="flex items-center gap-6">
+                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold`}>
+                          {app.name[0]}
                         </div>
-                        <div className="flex gap-4">
-                            <button 
-                               onClick={() => setGrantingAppId(grantingAppId === app.id ? null : app.id)}
-                               className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
-                            >
-                                <Lock size={14} /> Grant Access
-                            </button>
+                        <div>
+                          <h3 className="text-lg font-bold text-on-surface">{app.name}</h3>
+                          <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest mt-0.5">${app.price.toFixed(2)} • {app.version}</p>
                         </div>
+                      </div>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setGrantingAppId(grantingAppId === app.id ? null : app.id)}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
+                        >
+                          <Lock size={14} /> Grant Access
+                        </button>
+                      </div>
                     </div>
-
                     <AnimatePresence>
-                        {grantingAppId === app.id && (
-                            <motion.div 
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="pt-6 mt-4 border-t border-outline-variant/30 relative z-0 flex flex-col gap-4"
+                      {grantingAppId === app.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="pt-6 mt-4 border-t border-outline-variant/30 relative z-0 flex flex-col gap-4"
+                        >
+                          <p className="text-sm font-medium text-on-surface-variant flex items-center gap-2">
+                            <UserPlus size={16} className="text-primary" /> Provide a user complimentary access to {app.name}.
+                          </p>
+                          <div className="flex gap-3">
+                            <input
+                              value={targetUsername}
+                              onChange={(e) => setTargetUsername(e.target.value)}
+                              placeholder="Enter exact username..."
+                              className="flex-grow px-4 py-3 rounded-xl glass border border-outline-variant focus:outline-none focus:border-primary/50 text-sm font-medium"
+                            />
+                            <button
+                              onClick={() => handleGrantAccess(app.id)}
+                              disabled={!targetUsername}
+                              className="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
                             >
-                                <p className="text-sm font-medium text-on-surface-variant flex items-center gap-2">
-                                  <UserPlus size={16} className="text-primary"/> Provide a user complimentary access to {app.name}.
-                                </p>
-                                <div className="flex gap-3">
-                                  <input 
-                                     value={targetUsername}
-                                     onChange={(e) => setTargetUsername(e.target.value)}
-                                     placeholder="Enter exact username..."
-                                     className="flex-grow px-4 py-3 rounded-xl glass border border-outline-variant focus:outline-none focus:border-primary/50 text-sm font-medium"
-                                  />
-                                  <button 
-                                     onClick={() => handleGrantAccess(app.id)}
-                                     disabled={!targetUsername}
-                                     className="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center gap-2 hover:bg-primary-hover transition-colors disabled:opacity-50"
-                                  >
-                                      Grant <CheckCircle2 size={16} />
-                                  </button>
-                                </div>
-                            </motion.div>
-                        )}
+                              Grant <CheckCircle2 size={16} />
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
                     </AnimatePresence>
                   </GlassCard>
                 </motion.div>
               ))}
-              
               <Link href="/publisher/upload">
-                  <button className="w-full h-24 mt-4 border-2 border-dashed border-outline-variant rounded-3xl flex items-center justify-center gap-3 text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all group">
-                    <Plus className="group-hover:rotate-90 transition-transform" />
-                    <span className="font-bold">Add Another Product</span>
-                  </button>
+                <button className="w-full h-24 mt-4 border-2 border-dashed border-outline-variant rounded-3xl flex items-center justify-center gap-3 text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all group">
+                  <Plus className="group-hover:rotate-90 transition-transform" />
+                  <span className="font-bold">Add Another Product</span>
+                </button>
               </Link>
             </div>
           )}
@@ -304,18 +298,15 @@ useEffect(() => {
               <p className="font-bold text-sm text-on-surface">API Credentials</p>
             </GlassCard>
           </div>
-
           <div className="p-8 bg-linear-to-br from-primary to-primary-dim rounded-3xl text-on-primary relative overflow-hidden group cursor-pointer shadow-xl shadow-primary/10">
-             <div className="absolute top-0 right-0 p-4 rotate-12 opacity-10 group-hover:scale-125 transition-transform duration-700">
-                <TrendingUp size={100} />
-             </div>
-             <h3 className="text-xl font-bold mb-2">Reach Global Markets</h3>
-             <p className="text-sm text-on-primary/80 mb-6">
-               Learn how to optimize your storefront and increase conversion by 40% with our new discovery engine.
-             </p>
-             <button className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 group">
-               Read the Guide <TrendingUp size={14} className="group-hover:translate-x-1 transition-transform" />
-             </button>
+            <div className="absolute top-0 right-0 p-4 rotate-12 opacity-10 group-hover:scale-125 transition-transform duration-700">
+              <TrendingUp size={100} />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Reach Global Markets</h3>
+            <p className="text-sm text-on-primary/80 mb-6">Learn how to optimize your storefront and increase conversion by 40% with our new discovery engine.</p>
+            <button className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 group">
+              Read the Guide <TrendingUp size={14} className="group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </aside>
       </div>
