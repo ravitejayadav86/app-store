@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera } from "lucide-react";
+import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, Github, ExternalLink, GitFork, Star as StarIcon } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,17 @@ interface UserProfile {
   is_active: boolean;
   is_publisher: boolean;
   created_at: string;
+}
+
+interface Repo {
+  id: number;
+  name: string;
+  description: string | null;
+  html_url: string;
+  stargazers_count: number;
+  forks_count: number;
+  language: string | null;
+  updated_at: string;
 }
 
 interface LiveStats {
@@ -35,12 +46,33 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ full_name: "", email: "" });
   const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0 });
+  const [repos, setRepos] = useState<Repo[]>([]);
+  const [reposLoading, setReposLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token && !session) { router.push("/login"); return; }
     fetchProfile();
   }, [session]);
+
+  useEffect(() => {
+    if (session?.user?.name) {
+      fetchGithubRepos(session.user.name);
+    }
+  }, [session]);
+
+  const fetchGithubRepos = async (username: string) => {
+    setReposLoading(true);
+    try {
+      const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`);
+      const data = await res.json();
+      if (Array.isArray(data)) setRepos(data);
+    } catch {
+      console.error("Failed to fetch repos");
+    } finally {
+      setReposLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -84,6 +116,16 @@ export default function ProfilePage() {
   const avatarLetter = profile?.full_name?.[0]?.toUpperCase() || profile?.username?.[0]?.toUpperCase() || "U";
   const joinDate = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : "Recently";
 
+  const languageColors: Record<string, string> = {
+    TypeScript: "bg-blue-500",
+    JavaScript: "bg-yellow-400",
+    Python: "bg-green-500",
+    Rust: "bg-orange-500",
+    Go: "bg-cyan-500",
+    CSS: "bg-pink-500",
+    HTML: "bg-red-500",
+  };
+
   if (loading) return (
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -94,14 +136,19 @@ export default function ProfilePage() {
     <div className="min-h-[calc(100vh-80px)] px-4 py-12 relative overflow-hidden bg-surface">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[150px] animate-pulse pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+
       <div className="max-w-4xl mx-auto relative z-10 space-y-6">
+
+        {/* Profile Card */}
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <GlassCard className="p-8 relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-primary to-transparent opacity-50" />
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <div className="relative group">
-                <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-on-primary text-4xl font-bold shadow-lg">
-                  {session?.user?.image ? <img src={session.user.image} alt="avatar" className="w-full h-full rounded-3xl object-cover" /> : avatarLetter}
+                <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-on-primary text-4xl font-bold shadow-lg overflow-hidden">
+                  {session?.user?.image
+                    ? <img src={session.user.image} alt="avatar" className="w-full h-full object-cover" />
+                    : avatarLetter}
                 </div>
                 <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
                   <Camera size={14} className="text-on-primary" />
@@ -117,7 +164,7 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3">
                   <span className="flex items-center gap-1.5 text-sm text-on-surface-variant"><Calendar size={14} /> Joined {joinDate}</span>
                   {profile?.is_publisher && <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full"><Shield size={12} /> Publisher</span>}
-                  {profile?.is_active && <span className="text-xs font-bold uppercase tracking-widest text-green-600 bg-green-100 px-3 py-1 rounded-full">? Active</span>}
+                  {profile?.is_active && <span className="text-xs font-bold uppercase tracking-widest text-green-600 bg-green-100 px-3 py-1 rounded-full">Active</span>}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -134,6 +181,7 @@ export default function ProfilePage() {
           </GlassCard>
         </motion.div>
 
+        {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-3 gap-4">
           {[
             { label: "Apps Installed", value: liveStats.installs, icon: Download },
@@ -148,6 +196,7 @@ export default function ProfilePage() {
           ))}
         </motion.div>
 
+        {/* Account Details */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
           <GlassCard className="p-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">Account Details</h2>
@@ -174,11 +223,70 @@ export default function ProfilePage() {
           </GlassCard>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }} className="flex justify-end">
+        {/* GitHub Repos */}
+        {session?.user && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
+            <GlassCard className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Github size={20} className="text-primary" />
+                <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">GitHub Repositories</h2>
+              </div>
+              {reposLoading ? (
+                <div className="text-center py-6 text-on-surface-variant animate-pulse">Loading repositories...</div>
+              ) : repos.length === 0 ? (
+                <div className="text-center py-6 text-on-surface-variant">No public repositories found.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {repos.map((repo) => (
+                    
+                      key={repo.id}
+                      href={repo.html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all group"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="font-bold text-on-surface group-hover:text-primary transition-colors truncate">{repo.name}</p>
+                        <ExternalLink size={14} className="text-on-surface-variant shrink-0 mt-0.5" />
+                      </div>
+                      {repo.description && (
+                        <p className="text-xs text-on-surface-variant mb-3 line-clamp-2">{repo.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-on-surface-variant">
+                        {repo.language && (
+                          <span className="flex items-center gap-1.5">
+                            <span className={`w-2.5 h-2.5 rounded-full ${languageColors[repo.language] || "bg-gray-400"}`} />
+                            {repo.language}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1"><StarIcon size={12} /> {repo.stargazers_count}</span>
+                        <span className="flex items-center gap-1"><GitFork size={12} /> {repo.forks_count}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+              {repos.length > 0 && (
+                
+                  href={`https://github.com/${session.user.name}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
+                >
+                  <Github size={14} /> View All Repositories
+                </a>
+              )}
+            </GlassCard>
+          </motion.div>
+        )}
+
+        {/* Logout */}
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }} className="flex justify-end">
           <button onClick={handleLogout} className="flex items-center gap-2 px-6 py-3 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold text-sm">
             <LogOut size={16} /> Sign Out
           </button>
         </motion.div>
+
       </div>
     </div>
   );
