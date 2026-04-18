@@ -73,7 +73,7 @@ const fetchData = async () => {
   }
 };
     fetchData();
-  }, []);
+
 
   const handleGrantAccess = async (appId: number) => {
     if (!targetUsername.trim()) return toast.error("Please enter a username.");
