@@ -267,7 +267,7 @@ export default function ProfilePage() {
                 </div>
               )}
               {repos.length > 0 && (
-                
+                <a
                   href={`https://github.com/${session.user.name}`}
                   target="_blank"
                   rel="noopener noreferrer"
