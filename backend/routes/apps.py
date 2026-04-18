@@ -37,18 +37,26 @@ def get_analytics(
         "total_downloads": downloads,
     }
 
-@router.post("/submit", response_model=schemas.AppOut, status_code=201)
+ @router.post("/submit", response_model=schemas.AppOut, status_code=201)
 def submit_app(
     app: schemas.AppCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    db_app = models.App(**app.dict(), developer=current_user.username)
+    db_app = models.App(
+        name=app.name,
+        description=app.description,
+        price=app.price,
+        category=app.category,
+        version=app.version,
+        developer=current_user.username,
+        is_active=True,
+        is_approved=True
+    )
     db.add(db_app)
     db.commit()
     db.refresh(db_app)
     return db_app
-
 @router.post("/{app_id}/upload")
 def upload_file(
     app_id: int,
