@@ -1,5 +1,5 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -46,21 +46,32 @@ export default function PublisherPage() {
     { label: "Total Submitted", value: analytics.total_apps.toString(), change: "all-time", icon: <BarChart3 size={20} className="text-blue-500" /> },
   ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [appsRes, analyticsRes] = await Promise.all([
-          api.get("/apps/me"),
-          api.get("/apps/analytics"),
-        ]);
-        setApps(appsRes.data);
-        setAnalytics(analyticsRes.data);
-      } catch (err) {
-        toast.error("Failed to fetch publisher data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: session, status } = useSession();
+
+useEffect(() => {
+  if (status === "loading") return;
+  const token = localStorage.getItem("token");
+  if (!token && !session) {
+    setLoading(false);
+    return;
+  }
+  fetchData();
+}, [status, session?.user?.email]);
+
+const fetchData = async () => {
+  try {
+    const [appsRes, analyticsRes] = await Promise.all([
+      api.get("/apps/me"),
+      api.get("/apps/analytics"),
+    ]);
+    setApps(appsRes.data);
+    setAnalytics(analyticsRes.data);
+  } catch (err) {
+    toast.error("Failed to fetch publisher data.");
+  } finally {
+    setLoading(false);
+  }
+};
     fetchData();
   }, []);
 
