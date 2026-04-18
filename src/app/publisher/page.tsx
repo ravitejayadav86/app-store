@@ -48,16 +48,6 @@ export default function PublisherPage() {
 
   const { data: session, status } = useSession();
 
-useEffect(() => {
-  if (status === "loading") return;
-  const token = localStorage.getItem("token");
-  if (!token && !session) {
-    setLoading(false);
-    return;
-  }
-  fetchData();
-}, [status, session?.user?.email]);
-
 const fetchData = async () => {
   try {
     const [appsRes, analyticsRes] = await Promise.all([
@@ -72,8 +62,31 @@ const fetchData = async () => {
     setLoading(false);
   }
 };
-    fetchData();
 
+useEffect(() => {
+  if (status === "loading") return;
+
+  const tryFetch = async () => {
+    let retries = 6;
+    while (retries > 0) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        fetchData();
+        return;
+      }
+      if (!session) {
+        setLoading(false);
+        return;
+      }
+      await new Promise(r => setTimeout(r, 500));
+      retries--;
+    }
+    setLoading(false);
+    toast.error("Authentication timeout. Please sign in again.");
+  };
+
+  tryFetch();
+}, [status, session?.user?.email]);
 
   const handleGrantAccess = async (appId: number) => {
     if (!targetUsername.trim()) return toast.error("Please enter a username.");
