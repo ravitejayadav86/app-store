@@ -113,13 +113,15 @@ class PostOut(BaseModel):
     replies: List[ReplyOut] = []
     class Config:
         from_attributes = True
-        # -- Social --
+
+# -- Social --
 class UserProfile(BaseModel):
     id: int
     username: str
     bio: Optional[str] = None
     is_private: bool
     is_admin: bool
+    public_key: Optional[str] = None
     created_at: datetime
     followers_count: int = 0
     following_count: int = 0
@@ -145,3 +147,4 @@ class MessageOut(BaseModel):
 class UpdateProfile(BaseModel):
     bio: Optional[str] = None
     is_private: Optional[bool] = None
+    public_key: Optional[str] = None

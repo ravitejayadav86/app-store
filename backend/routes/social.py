@@ -93,6 +93,8 @@ def update_profile(
         current_user.bio = data.bio
     if data.is_private is not None:
         current_user.is_private = data.is_private
+    if data.public_key is not None:
+        current_user.public_key = data.public_key
     db.commit()
     return {"message": "Profile updated"}
 

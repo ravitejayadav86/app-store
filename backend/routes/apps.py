@@ -7,9 +7,9 @@ from database import get_db
 import os, cloudinary, cloudinary.uploader
 
 cloudinary.config(
-    cloud_name="deii8hxll",
-    api_key="976199473967583",
-    api_secret="hmjlrH1hSjKTOHQw4r5TElfdUNE"
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
 router = APIRouter(prefix="/apps", tags=["apps"])

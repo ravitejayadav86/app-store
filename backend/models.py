@@ -13,6 +13,7 @@ class User(Base):
     is_admin        = Column(Boolean, default=False)
     is_private      = Column(Boolean, default=False)
     bio             = Column(Text, nullable=True)
+    public_key      = Column(Text, nullable=True) # RSA Public Key as JWK string
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
     purchases       = relationship("Purchase", back_populates="user")
     notifications   = relationship("Notification", back_populates="user")
@@ -89,7 +90,7 @@ class PostReply(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user       = relationship("User")
     post       = relationship("Post", back_populates="replies")
-    class Follow(Base):
+class Follow(Base):
     __tablename__ = "follows"
     id          = Column(Integer, primary_key=True, index=True)
     follower_id = Column(Integer, ForeignKey("users.id"), nullable=False)

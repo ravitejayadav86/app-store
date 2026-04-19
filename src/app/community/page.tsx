@@ -168,7 +168,15 @@ export default function CommunityPage() {
               <span>Community</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2">The Hub.</h1>
-            <p className="text-lg text-on-primary/80">Share, connect, and discuss with PandaStore users.</p>
+            <p className="text-lg text-on-primary/80 mb-6">Share, connect, and discuss with PandaStore users.</p>
+            <Button 
+              variant="secondary" 
+              className="bg-white/10 text-white border-white/20"
+              onClick={() => document.getElementById('user-search')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <Search size={16} className="mr-2" />
+              Find People
+            </Button>
           </div>
         </div>
       </section>
@@ -176,7 +184,7 @@ export default function CommunityPage() {
       <div className="max-w-3xl mx-auto px-4 w-full space-y-6">
 
         {/* User Search */}
-        <div className="relative">
+        <div className="relative" id="user-search">
           <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
             value={userSearch}

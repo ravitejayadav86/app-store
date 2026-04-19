@@ -86,10 +86,15 @@ useEffect(() => {
       ]);
       if (profileRes.status === "fulfilled") {
         setProfile(profileRes.value.data);
-        setFormData({ full_name: profileRes.value.data.full_name || "", email: profileRes.value.data.email || "" });
+        setFormData({ 
+          full_name: profileRes.value.data.full_name || "", 
+          email: profileRes.value.data.email || "",
+          bio: profileRes.value.data.bio || "",
+          is_private: profileRes.value.data.is_private || false
+        });
       } else if (session?.user) {
         setProfile({ id: 0, username: session.user.name || "User", email: session.user.email || "", full_name: session.user.name || "", is_active: true, is_publisher: false, created_at: new Date().toISOString() });
-        setFormData({ full_name: session.user.name || "", email: session.user.email || "" });
+        setFormData({ full_name: session.user.name || "", email: session.user.email || "", bio: "", is_private: false });
       }
       const installs = purchasesRes.status === "fulfilled" ? purchasesRes.value.data.length : 0;
       const published = analyticsRes.status === "fulfilled" ? analyticsRes.value.data.approved : 0;
@@ -225,10 +230,50 @@ useEffect(() => {
           ))}
         </motion.div>
 
-        {/* Account Details */}
+        {/* Bio Section */}
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}>
+          <GlassCard className="p-8">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Biography</h2>
+            {editing ? (
+              <textarea 
+                value={formData.bio} 
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                className="w-full bg-surface-low rounded-2xl p-4 border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface text-sm transition-all"
+                placeholder="Tell the community about your innovations..."
+                rows={3}
+              />
+            ) : (
+              <p className="text-sm text-on-surface leading-relaxed italic">
+                {profile?.bio || "No bio set. A panda of few words."}
+              </p>
+            )}
+          </GlassCard>
+        </motion.div>
+
+        {/* Account Details & Privacy */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
           <GlassCard className="p-8">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">Account Details</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Account Details</h2>
+              <div className="flex items-center gap-3 bg-surface-low px-3 py-1.5 rounded-full border border-outline-variant/30">
+                <Shield size={14} className={formData.is_private ? "text-primary" : "text-on-surface-variant"} />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  {formData.is_private ? "Private Mode" : "Public Mode"}
+                </span>
+                {editing && (
+                  <label className="relative inline-flex items-center cursor-pointer ml-2">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.is_private} 
+                      onChange={(e) => setFormData({ ...formData, is_private: e.target.checked })}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                )}
+              </div>
+            </div>
+            
             <div className="space-y-5">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Mail size={16} className="text-primary" /></div>
