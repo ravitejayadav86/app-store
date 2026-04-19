@@ -3,10 +3,11 @@ import { useSession, signIn } from "next-auth/react";
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import {
   BarChart3, Upload, Settings, TrendingUp, Code2, Globe,
-  Plus, UserPlus, CheckCircle2, Lock, Music, BookOpen
+  Plus, UserPlus, CheckCircle2, Lock, Music, BookOpen, Gamepad2
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
