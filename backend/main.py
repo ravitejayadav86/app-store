@@ -1,9 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from database import engine, Base
 from routes import auth, apps, users, admin, reviews, notifications, community, social
 import os
+
+# Pre-deployment schema update to ensure new columns exist in production (Postgres)
+try:
+    with engine.connect() as conn:
+        for col, col_type in [("is_private", "BOOLEAN DEFAULT FALSE"), ("bio", "TEXT"), ("public_key", "TEXT")]:
+            try:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
+                conn.commit()
+            except Exception:
+                pass # Column likely already exists
+except Exception as e:
+    print(f"Database connection or migration warning: {e}")
 
 Base.metadata.create_all(bind=engine)
 
