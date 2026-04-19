@@ -2,6 +2,8 @@ import React from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { motion } from "framer-motion";
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -14,27 +16,30 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const variants = {
-      primary: "bg-linear-to-br from-[var(--primary)] to-[var(--primary-dim)] text-on-primary shadow-sm hover:opacity-90",
+      primary: "bg-linear-to-br from-[var(--primary)] to-[var(--primary-dim)] text-on-primary shadow-sm",
       secondary: "bg-surface-low text-primary hover:bg-surface-lowest",
       tertiary: "bg-transparent text-primary hover:underline",
     };
 
     const sizes = {
-      sm: "px-4 py-1.5 text-xs font-medium",
-      md: "px-6 py-2.5 text-sm font-semibold",
+      sm: "px-4 py-1.5 text-xs font-bold",
+      md: "px-6 py-2.5 text-sm font-bold",
       lg: "px-8 py-3.5 text-base font-bold",
     };
 
     return (
-      <button
+      <motion.button
         ref={ref}
+        whileHover={{ scale: 1.02, y: -1 }}
+        whileTap={{ scale: 0.98, y: 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         className={cn(
-          "inline-flex items-center justify-center rounded-pill transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
+          "inline-flex items-center justify-center rounded-pill transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
           variants[variant],
           sizes[size],
           className
         )}
-        {...props}
+        {...props as any}
       />
     );
   }

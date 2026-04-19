@@ -83,8 +83,29 @@ body {
 /* Glassmorphism Utility - 70% opacity + 20px blur */
 .glass {
   background: rgba(247, 246, 251, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Premium Scrollbar for Windows/Chrome */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 10px;
+  border: 3px solid var(--surface);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--on-surface-variant);
 }
 
 /* Tonal Stacking Utility - Enforcing the 'No-Line' rule */
@@ -97,4 +118,14 @@ body {
 .active-container {
   background: #cfcdff;
   color: #3631b5;
+}
+
+/* App Card Lift Animation */
+.app-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.app-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }

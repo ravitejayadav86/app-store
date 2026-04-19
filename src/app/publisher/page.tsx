@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 interface AppItem {
   id: number;
+
   name: string;
   price: number;
   version: string;

@@ -5,12 +5,13 @@ import Image from "next/image";
 import { Search, User, Menu, X, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Navbar = () => {
     const { data: session } = useSession();
+    const pathname = usePathname();
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -63,16 +64,29 @@ export const Navbar = () => {
                 ) : (
                     <>
                         {/* Categories - Desktop */}
-                        <div className="hidden md:flex items-center gap-8">
-                            {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
-                                <Link
-                                    key={item}
-                                    href={`/${item.toLowerCase()}`}
-                                    className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors tracking-tight"
-                                >
-                                    {item}
-                                </Link>
-                            ))}
+                        <div className="hidden md:flex items-center gap-6">
+                            {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => {
+                                const href = `/${item.toLowerCase()}`;
+                                const isActive = pathname === href;
+                                return (
+                                    <Link
+                                        key={item}
+                                        href={href}
+                                        className={`relative text-sm font-bold transition-all px-2 py-1 ${
+                                            isActive ? "text-primary" : "text-on-surface-variant hover:text-primary"
+                                        } tracking-tight`}
+                                    >
+                                        {item}
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="nav-active"
+                                                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
+                                                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                            />
+                                        )}
+                                    </Link>
+                                );
+                            })}
                         </div>
 
                         {/* Actions */}
@@ -106,7 +120,7 @@ export const Navbar = () => {
                                 )}
 
                                 <Link href="/publisher">
-                                    <Button size="sm">Publisher Portal</Button>
+                                    <Button size="sm">Publisher</Button>
                                 </Link>
                             </div>
 
@@ -140,7 +154,7 @@ export const Navbar = () => {
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className="absolute top-[calc(100%+0.5rem)] left-4 right-4 p-5 glass rounded-2xl border border-outline-variant flex flex-col gap-4 md:hidden shadow-xl"
                     >
-                        {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
+                        {["Categories", "Community", "Support"].map((item) => (
                             <Link
                                 key={item}
                                 href={`/${item.toLowerCase()}`}
