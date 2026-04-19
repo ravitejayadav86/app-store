@@ -1,9 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -36,6 +37,18 @@ export default function CommunityPage() {
   const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const router = useRouter();
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState<any[]>([]);
+
+  const searchUsers = async (q: string) => {
+    setUserSearch(q);
+    if (q.length < 2) { setUserResults([]); return; }
+    try {
+      const res = await api.get(`/social/search?q=${q}`);
+      setUserResults(res.data);
+    } catch {}
+  };
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -141,7 +154,6 @@ export default function CommunityPage() {
 
   return (
     <div className="flex flex-col gap-12 pb-20">
-      {/* Hero */}
       <section className="px-4 md:px-8">
         <div className="relative h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end shadow-2xl">
           <motion.div
@@ -162,6 +174,37 @@ export default function CommunityPage() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 w-full space-y-6">
+
+        {/* User Search */}
+        <div className="relative">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+          <input
+            value={userSearch}
+            onChange={e => searchUsers(e.target.value)}
+            placeholder="Search users..."
+            className="w-full pl-11 pr-4 py-3 rounded-2xl bg-surface-low border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+          />
+          {userResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 overflow-hidden">
+              {userResults.map((u: any) => (
+                <button
+                  key={u.id}
+                  onClick={() => { router.push(`/users/${u.username}`); setUserResults([]); setUserSearch(""); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-low transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                    {u.username[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-on-surface">{u.username}</p>
+                    {u.bio && <p className="text-xs text-on-surface-variant">{u.bio}</p>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* New Post */}
         <GlassCard className="p-5 space-y-3">
           <p className="text-sm font-bold text-on-surface">Share something with the community</p>
@@ -203,37 +246,32 @@ export default function CommunityPage() {
                 transition={{ delay: i * 0.05 }}
               >
                 <GlassCard className="p-5 space-y-4">
-                  {/* Post Header */}
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => router.push(`/users/${post.username}`)}
+                      className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                    >
                       <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
                         {post.username?.[0]?.toUpperCase() || "U"}
                       </div>
-                      <div>
+                      <div className="text-left">
                         <p className="font-bold text-sm text-on-surface">{post.username}</p>
                         <p className="text-xs text-on-surface-variant">{timeAgo(post.created_at)}</p>
                       </div>
-                    </div>
+                    </button>
                     {(currentUserId === post.user_id || isAdmin) && (
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        className="text-on-surface-variant hover:text-red-500 transition-colors p-1"
-                      >
+                      <button onClick={() => handleDeletePost(post.id)} className="text-on-surface-variant hover:text-red-500 transition-colors p-1">
                         <Trash2 size={15} />
                       </button>
                     )}
                   </div>
 
-                  {/* Post Content */}
                   <p className="text-sm text-on-surface leading-relaxed">{post.content}</p>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-4 pt-1">
                     <button
                       onClick={() => handleLike(post.id)}
-                      className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${
-                        post.liked_by_me ? "text-red-500" : "text-on-surface-variant hover:text-red-500"
-                      }`}
+                      className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${post.liked_by_me ? "text-red-500" : "text-on-surface-variant hover:text-red-500"}`}
                     >
                       <Heart size={15} className={post.liked_by_me ? "fill-red-500" : ""} />
                       {post.likes_count}
@@ -247,7 +285,6 @@ export default function CommunityPage() {
                     </button>
                   </div>
 
-                  {/* Replies */}
                   <AnimatePresence>
                     {showReplies[post.id] && (
                       <motion.div
@@ -267,10 +304,7 @@ export default function CommunityPage() {
                                 <div className="flex items-center gap-2">
                                   <p className="text-[10px] text-on-surface-variant">{timeAgo(reply.created_at)}</p>
                                   {(currentUserId === reply.user_id || isAdmin) && (
-                                    <button
-                                      onClick={() => handleDeleteReply(post.id, reply.id)}
-                                      className="text-on-surface-variant hover:text-red-500 transition-colors"
-                                    >
+                                    <button onClick={() => handleDeleteReply(post.id, reply.id)} className="text-on-surface-variant hover:text-red-500 transition-colors">
                                       <Trash2 size={11} />
                                     </button>
                                   )}
@@ -280,8 +314,6 @@ export default function CommunityPage() {
                             </div>
                           </div>
                         ))}
-
-                        {/* Reply Input */}
                         <div className="flex items-center gap-2 pl-2">
                           <input
                             value={replyText[post.id] || ""}
