@@ -318,7 +318,7 @@ useEffect(() => {
                   <Package size={20} className="text-primary" />
                   <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">My Published Apps</h2>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => router.push("/publisher/upload")} className="text-xs">
+                <Button size="sm" variant="secondary" onClick={() => router.push("/publisher")}>
                   Upload New
                 </Button>
               </div>
