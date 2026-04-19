@@ -1,149 +1,311 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Users, MessageSquare, TrendingUp, Zap, Sparkles, Trophy } from "lucide-react";
+import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/api";
+
+interface Reply {
+  id: number;
+  user_id: number;
+  post_id: number;
+  content: string;
+  created_at: string;
+  username: string;
+}
+
+interface Post {
+  id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  username: string;
+  likes_count: number;
+  liked_by_me: boolean;
+  replies: Reply[];
+}
 
 export default function CommunityPage() {
-  const hubs = [
-    { name: "Creative Studio", members: "12.4k", active: "1.2k", icon: <Sparkles className="text-pink-500" /> },
-    { name: "Dev Lounge", members: "8.1k", active: "450", icon: <Zap className="text-yellow-500" /> },
-    { name: "Gaming Hub", members: "25k", active: "5.4k", icon: <Trophy className="text-orange-500" /> },
-    { name: "Productivity Pulse", members: "5.2k", active: "200", icon: <TrendingUp className="text-blue-500" /> },
-  ];
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newPost, setNewPost] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [replyText, setReplyText] = useState<{ [key: number]: string }>({});
+  const [showReplies, setShowReplies] = useState<{ [key: number]: boolean }>({});
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const posts = [
-    { 
-      user: "HorizonDesigner", 
-      time: "2h ago", 
-      content: "Just dropped a new template for the Horizon Docs ecosystem. Let me know what you think!", 
-      likes: 142, 
-      comments: 24 
-    },
-    { 
-      user: "QuantumCoder", 
-      time: "5h ago", 
-      content: "Anyone else experiencing issues with the latest Nebula Sync update on ARM architecture?", 
-      likes: 89, 
-      comments: 52 
-    },
-    { 
-      user: "GameMaster99", 
-      time: "8h ago", 
-      content: "The Circuit Breaker tournament registration is officially open! Who's joining?", 
-      likes: 560, 
-      comments: 110 
-    },
-  ];
+  const fetchPosts = useCallback(async () => {
+    try {
+      const res = await api.get("/community/posts");
+      setPosts(res.data);
+    } catch {
+      toast.error("Failed to load posts");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPosts();
+    api.get("/users/me").then((res) => {
+      setCurrentUserId(res.data.id);
+      setIsAdmin(res.data.is_admin);
+    }).catch(() => {});
+  }, [fetchPosts]);
+
+  const handlePost = async () => {
+    if (!newPost.trim()) return;
+    setPosting(true);
+    try {
+      const res = await api.post("/community/posts", { content: newPost });
+      setPosts([res.data, ...posts]);
+      setNewPost("");
+      toast.success("Posted!");
+    } catch {
+      toast.error("Please sign in to post.");
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const handleLike = async (postId: number) => {
+    try {
+      const res = await api.post(`/community/posts/${postId}/like`);
+      setPosts(posts.map(p => p.id === postId ? {
+        ...p,
+        liked_by_me: res.data.liked,
+        likes_count: res.data.liked ? p.likes_count + 1 : p.likes_count - 1
+      } : p));
+    } catch {
+      toast.error("Please sign in to like.");
+    }
+  };
+
+  const handleDeletePost = async (postId: number) => {
+    if (!confirm("Delete this post?")) return;
+    try {
+      await api.delete(`/community/posts/${postId}`);
+      setPosts(posts.filter(p => p.id !== postId));
+      toast.success("Post deleted.");
+    } catch {
+      toast.error("Failed to delete post.");
+    }
+  };
+
+  const handleReply = async (postId: number) => {
+    const content = replyText[postId]?.trim();
+    if (!content) return;
+    try {
+      const res = await api.post(`/community/posts/${postId}/replies`, { content });
+      setPosts(posts.map(p => p.id === postId ? {
+        ...p,
+        replies: [...p.replies, res.data]
+      } : p));
+      setReplyText({ ...replyText, [postId]: "" });
+      toast.success("Reply added!");
+    } catch {
+      toast.error("Please sign in to reply.");
+    }
+  };
+
+  const handleDeleteReply = async (postId: number, replyId: number) => {
+    if (!confirm("Delete this reply?")) return;
+    try {
+      await api.delete(`/community/replies/${replyId}`);
+      setPosts(posts.map(p => p.id === postId ? {
+        ...p,
+        replies: p.replies.filter(r => r.id !== replyId)
+      } : p));
+      toast.success("Reply deleted.");
+    } catch {
+      toast.error("Failed to delete reply.");
+    }
+  };
+
+  const toggleReplies = (postId: number) => {
+    setShowReplies({ ...showReplies, [postId]: !showReplies[postId] });
+  };
+
+  const timeAgo = (date: string) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-12 pb-20">
+      {/* Hero */}
       <section className="px-4 md:px-8">
-        <div className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
-            transition={{ duration: 1.5, ease: "easeOut" }} 
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40" 
+        <div className="relative h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end shadow-2xl">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5 }}
+            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40"
           />
-          <div className="relative z-10 max-w-2xl">
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
-            >
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20">
               <Users size={14} />
-              <span>Connect</span>
-            </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">The Hub.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Connect with millions of users, share your workflows, and discover new tools.</p>
+              <span>Community</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2">The Hub.</h1>
+            <p className="text-lg text-on-primary/80">Share, connect, and discuss with PandaStore users.</p>
           </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-12">
-          <section>
-            <div className="flex items-center gap-3 mb-8">
-              <MessageSquare className="text-primary" />
-              <h2 className="text-3xl font-bold text-on-surface">Live Activity</h2>
-            </div>
-            <div className="space-y-6">
-              {posts.map((post, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.1 }}
-                >
-                  <GlassCard className="flex flex-col gap-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-surface-low border border-outline-variant" />
-                        <div>
-                          <p className="font-bold text-on-surface">{post.user}</p>
-                          <p className="text-xs text-on-surface-variant font-medium">{post.time}</p>
-                        </div>
+      <div className="max-w-3xl mx-auto px-4 w-full space-y-6">
+        {/* New Post */}
+        <GlassCard className="p-5 space-y-3">
+          <p className="text-sm font-bold text-on-surface">Share something with the community</p>
+          <textarea
+            value={newPost}
+            onChange={(e) => setNewPost(e.target.value)}
+            placeholder="What's on your mind?"
+            rows={3}
+            className="w-full px-4 py-3 rounded-2xl bg-surface-low border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm resize-none"
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={handlePost}
+              disabled={posting || !newPost.trim()}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-all"
+            >
+              <Send size={14} />
+              {posting ? "Posting..." : "Post"}
+            </button>
+          </div>
+        </GlassCard>
+
+        {/* Posts */}
+        {loading ? (
+          <div className="text-center py-10 text-on-surface-variant text-sm">Loading posts...</div>
+        ) : posts.length === 0 ? (
+          <GlassCard className="p-12 text-center">
+            <MessageSquare size={40} className="mx-auto mb-3 text-on-surface-variant opacity-30" />
+            <p className="text-on-surface-variant font-medium">No posts yet. Be the first to share!</p>
+          </GlassCard>
+        ) : (
+          <AnimatePresence>
+            {posts.map((post, i) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <GlassCard className="p-5 space-y-4">
+                  {/* Post Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                        {post.username?.[0]?.toUpperCase() || "U"}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-on-surface">{post.username}</p>
+                        <p className="text-xs text-on-surface-variant">{timeAgo(post.created_at)}</p>
                       </div>
                     </div>
-                    <p className="text-on-surface-variant leading-relaxed">
-                      {post.content}
-                    </p>
-                    <div className="flex gap-6 mt-2">
-                       <button className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors">
-                         <TrendingUp size={14} /> {post.likes}
-                       </button>
-                       <button className="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors">
-                         <MessageSquare size={14} /> {post.comments}
-                       </button>
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        </div>
+                    {(currentUserId === post.user_id || isAdmin) && (
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="text-on-surface-variant hover:text-red-500 transition-colors p-1"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
 
-        <aside className="space-y-12">
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-6">Trending Hubs</h2>
-            <div className="space-y-4">
-              {hubs.map((hub, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                >
-                  <GlassCard className="flex items-center gap-4 py-4 group cursor-pointer hover:bg-surface-low transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-surface-low flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
-                      {hub.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-on-surface">{hub.name}</h3>
-                      <p className="text-xs text-on-surface-variant">{hub.members} members • {hub.active} active</p>
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </div>
-          </section>
+                  {/* Post Content */}
+                  <p className="text-sm text-on-surface leading-relaxed">{post.content}</p>
 
-          <section className="p-8 bg-surface-lowest rounded-3xl border border-outline-variant relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Users size={80} />
-             </div>
-             <h3 className="text-xl font-bold mb-4">Start a Conversation</h3>
-             <p className="text-sm text-on-surface-variant mb-6">
-               Have a question or want to share something? Join over 1M+ active community members.
-             </p>
-             <button className="w-full py-3 bg-primary text-on-primary rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform">
-               Join the Discord
-             </button>
-          </section>
-        </aside>
+                  {/* Actions */}
+                  <div className="flex items-center gap-4 pt-1">
+                    <button
+                      onClick={() => handleLike(post.id)}
+                      className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${
+                        post.liked_by_me ? "text-red-500" : "text-on-surface-variant hover:text-red-500"
+                      }`}
+                    >
+                      <Heart size={15} className={post.liked_by_me ? "fill-red-500" : ""} />
+                      {post.likes_count}
+                    </button>
+                    <button
+                      onClick={() => toggleReplies(post.id)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
+                    >
+                      <MessageSquare size={15} />
+                      {post.replies.length} {showReplies[post.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    </button>
+                  </div>
+
+                  {/* Replies */}
+                  <AnimatePresence>
+                    {showReplies[post.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-3 pt-2 border-t border-outline-variant/30"
+                      >
+                        {post.replies.map((reply) => (
+                          <div key={reply.id} className="flex items-start gap-3 pl-2">
+                            <div className="w-7 h-7 rounded-full bg-surface-low flex items-center justify-center text-xs font-bold text-on-surface-variant flex-shrink-0">
+                              {reply.username?.[0]?.toUpperCase() || "U"}
+                            </div>
+                            <div className="flex-1 bg-surface-low rounded-2xl px-3 py-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-bold text-on-surface">{reply.username}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-[10px] text-on-surface-variant">{timeAgo(reply.created_at)}</p>
+                                  {(currentUserId === reply.user_id || isAdmin) && (
+                                    <button
+                                      onClick={() => handleDeleteReply(post.id, reply.id)}
+                                      className="text-on-surface-variant hover:text-red-500 transition-colors"
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-xs text-on-surface-variant">{reply.content}</p>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Reply Input */}
+                        <div className="flex items-center gap-2 pl-2">
+                          <input
+                            value={replyText[post.id] || ""}
+                            onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
+                            onKeyDown={(e) => e.key === "Enter" && handleReply(post.id)}
+                            placeholder="Write a reply..."
+                            className="flex-1 px-3 py-2 rounded-xl bg-surface-low border border-outline-variant text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <button
+                            onClick={() => handleReply(post.id)}
+                            disabled={!replyText[post.id]?.trim()}
+                            className="p-2 bg-primary text-on-primary rounded-xl disabled:opacity-40 hover:opacity-90 transition-all"
+                          >
+                            <Send size={13} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
