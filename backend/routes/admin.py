@@ -49,6 +49,16 @@ def pending_apps(
         models.App.is_approved == False
     ).all()
 
+@router.get("/published", response_model=List[schemas.AppOut])
+def published_apps(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    return db.query(models.App).filter(
+        models.App.is_approved == True,
+        models.App.is_active == True
+    ).all()
+
 
 @router.post("/approve/{app_id}", response_model=schemas.AppOut)
 def approve_app(

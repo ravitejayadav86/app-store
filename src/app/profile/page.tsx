@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, ExternalLink, GitFork } from "lucide-react";
+import { User, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, ExternalLink, GitFork, Trash2 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -48,6 +48,8 @@ export default function ProfilePage() {
   const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0 });
   const [repos, setRepos] = useState<Repo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
+  const [myApps, setMyApps] = useState<any[]>([]);
+  const [myAppsLoading, setMyAppsLoading] = useState(false);
 
 useEffect(() => {
   const token = localStorage.getItem("token");
@@ -94,6 +96,32 @@ useEffect(() => {
       setLiveStats({ installs, reviews: 0, published });
     } finally {
       setLoading(false);
+      fetchMyApps();
+    }
+  };
+
+  const fetchMyApps = async () => {
+    setMyAppsLoading(true);
+    try {
+      const res = await api.get("/apps/me");
+      setMyApps(res.data);
+    } catch {
+      console.error("Failed to fetch my apps");
+    } finally {
+      setMyAppsLoading(false);
+    }
+  };
+
+  const handleDeleteApp = async (appId: number, appName: string) => {
+    if (!confirm(`Are you sure you want to delete "${appName}"? This action cannot be undone.`)) return;
+    
+    try {
+      await api.delete(`/apps/${appId}`);
+      toast.success(`"${appName}" deleted successfully`);
+      fetchMyApps();
+      fetchProfile(); // Refresh stats
+    } catch {
+      toast.error("Failed to delete app");
     }
   };
 
@@ -276,6 +304,56 @@ useEffect(() => {
                 >
                   <GitFork size={14} /> View All Repositories
                 </a>
+              )}
+            </GlassCard>
+          </motion.div>
+        )}
+
+        {/* My Published Apps */}
+        {profile?.is_publisher && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.35 }}>
+            <GlassCard className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Package size={20} className="text-primary" />
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">My Published Apps</h2>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => router.push("/publisher/upload")} className="text-xs">
+                  Upload New
+                </Button>
+              </div>
+              
+              {myAppsLoading ? (
+                <div className="text-center py-6 text-on-surface-variant animate-pulse">Loading apps...</div>
+              ) : myApps.length === 0 ? (
+                <div className="text-center py-6 text-on-surface-variant">You haven't published any apps yet.</div>
+              ) : (
+                <div className="space-y-4">
+                  {myApps.map((app) => (
+                    <div key={app.id} className="flex items-center justify-between p-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all bg-surface/50">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          {app.name[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold text-on-surface">{app.name}</p>
+                          <div className="flex items-center gap-3 text-xs text-on-surface-variant mt-0.5">
+                            <span className="bg-primary/5 px-2 py-0.5 rounded text-primary font-medium">{app.category}</span>
+                            <span>v{app.version}</span>
+                            <span>{app.is_approved ? "✅ Approved" : "⏳ Pending"}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteApp(app.id, app.name)}
+                        className="p-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
+                        title="Delete App"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
             </GlassCard>
           </motion.div>

@@ -15,8 +15,13 @@ const handler = NextAuth({
   ],
   pages: {
     signIn: "/login",
+    error: "/auth/error",
   },
   callbacks: {
+    async signIn({ user }) {
+      if (!user.email) return false;
+      return true;
+    },
     async session({ session, token }) {
       (session as any).login = token.login;
       return session;

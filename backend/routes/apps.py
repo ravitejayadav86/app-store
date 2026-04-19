@@ -116,3 +116,35 @@ def get_app(app_id: int, db: Session = Depends(get_db)):
     if not app:
         raise HTTPException(404, "App not found")
     return app
+
+@router.delete("/{app_id}")
+def delete_app(
+    app_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    app = db.query(models.App).filter(models.App.id == app_id).first()
+    if not app:
+        raise HTTPException(404, "App not found")
+    
+    # Check if user is owner or admin
+    if app.developer != current_user.username and not current_user.is_admin:
+        raise HTTPException(403, "Not authorized to delete this app")
+    
+    # Delete file from filesystem if it exists
+    if app.file_path and os.path.exists(app.file_path):
+        try:
+            os.remove(app.file_path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+    
+    # Delete associated records (Reviews and Purchases)
+    db.query(models.Review).filter(models.Review.app_id == app_id).delete()
+    db.query(models.Purchase).filter(models.Purchase.app_id == app_id).delete()
+    
+    # Delete the app record
+    db.delete(app)
+    db.commit()
+    
+    return {"message": "App deleted successfully"}
+
