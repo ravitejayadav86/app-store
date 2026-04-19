@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -11,24 +11,76 @@ import {
   CheckCircle2,
   ArrowLeft,
   Globe,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import api from "@/lib/api";
+
+interface AppData {
+  id: number;
+  name: string;
+  developer: string;
+  price: number;
+  category: string;
+}
 
 export default function CheckoutPage() {
-  const item = {
-    title: "Quantum Code Pro",
-    publisher: "Neon Labs",
-    price: "$29.99",
-    category: "Development"
-  };
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const appId = searchParams.get("appId");
+  
+  const [item, setItem] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!appId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchApp = async () => {
+      try {
+        const res = await api.get(`/apps/${appId}`);
+        setItem(res.data);
+      } catch (error) {
+        console.error("Failed to fetch app for checkout:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApp();
+  }, [appId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface">
+        <Loader2 className="animate-spin text-primary mb-4" size={48} />
+        <p className="text-on-surface-variant">Securing session...</p>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4 text-center">
+        <h1 className="text-4xl font-bold mb-4">No App Selected</h1>
+        <p className="text-on-surface-variant mb-8 max-w-md">Please select an application from the store to proceed with the authorized transaction.</p>
+        <Link href="/">
+          <Button size="lg">Explore Store</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-12 pb-20">
       <section className="px-4 md:px-8">
         <div className="relative h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-surface-low to-surface p-12 text-on-surface flex flex-col justify-end gap-2 shadow-inner">
-           <Link href="/" className="absolute top-12 left-12 flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold text-xs uppercase tracking-widest z-10">
-              <ArrowLeft size={16} /> Back to Collection
+           <Link href={`/apps/${item.id}`} className="absolute top-12 left-12 flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold text-xs uppercase tracking-widest z-10">
+              <ArrowLeft size={16} /> Back to Application
            </Link>
            <motion.h1 
               initial={{ opacity: 0, y: 10 }}
@@ -78,9 +130,9 @@ export default function CheckoutPage() {
                    <Globe size={80} />
                 </div>
                 <p className="text-on-surface text-lg font-medium leading-relaxed max-w-md">
-                  123 Digital Avenue, Phase 4<br />
-                  Silicon Valley, CA 94025<br />
-                  United States Premium Region
+                   123 Digital Avenue, Phase 4<br />
+                   Silicon Valley, CA 94025<br />
+                   United States Premium Region
                 </p>
                 <button className="mt-6 text-xs font-bold uppercase tracking-widest text-primary hover:underline">Edit Address</button>
              </div>
@@ -99,11 +151,11 @@ export default function CheckoutPage() {
 
               <div className="flex gap-6 items-center">
                   <div className="w-24 h-24 rounded-3xl bg-primary text-on-primary flex items-center justify-center text-5xl font-bold shadow-2xl shadow-primary/30 transform -rotate-3">
-                     {item.title[0]}
+                     {item.name[0]}
                   </div>
                   <div>
-                     <h4 className="text-2xl font-bold text-on-surface">{item.title}</h4>
-                     <p className="text-on-surface-variant font-medium opacity-80">{item.publisher}</p>
+                     <h4 className="text-2xl font-bold text-on-surface">{item.name}</h4>
+                     <p className="text-on-surface-variant font-medium opacity-80">{item.developer}</p>
                      <div className="mt-2 flex items-center gap-2">
                         <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-3 py-1 rounded-full">Editorial Choice</span>
                      </div>
@@ -113,7 +165,7 @@ export default function CheckoutPage() {
               <div className="space-y-6 pt-10 border-t border-outline-variant/30">
                   <div className="flex justify-between text-on-surface-variant font-bold text-sm uppercase tracking-widest">
                      <span>Base License</span>
-                     <span className="text-on-surface">{item.price}</span>
+                     <span className="text-on-surface">{item.price === 0 ? "FREE" : `$${item.price}`}</span>
                   </div>
                   <div className="flex justify-between text-on-surface-variant font-bold text-sm uppercase tracking-widest">
                      <span>Platform Tax</span>
@@ -122,9 +174,11 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-end pt-6 border-t border-outline-variant/30">
                      <div className="space-y-1">
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Grant Total</p>
-                        <span className="text-4xl font-bold text-primary tracking-tighter">{item.price}</span>
+                        <span className="text-4xl font-bold text-primary tracking-tighter">{item.price === 0 ? "FREE" : `$${item.price}`}</span>
                      </div>
-                     <span className="text-[10px] font-bold text-on-surface-variant opacity-50 mb-1">USD (VAT Incl.)</span>
+                     <span className="text-[10px] font-bold text-on-surface-variant mb-1">
+                        {item.price === 0 ? "" : "USD (VAT Incl.)"}
+                     </span>
                   </div>
               </div>
 

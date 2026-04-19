@@ -49,3 +49,17 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         )
     return user
     
+from typing import Optional
+from fastapi import Header
+
+def get_optional_user(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.replace("Bearer ", "")
+    try:
+        return get_user_from_token(token, db)
+    except:
+        return None

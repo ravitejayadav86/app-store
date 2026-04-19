@@ -217,7 +217,13 @@ function AppDetailContent() {
               <Button
                 size="lg"
                 className={`w-full md:w-48 py-6 text-lg shadow-xl ${!app.file_path ? "opacity-60 cursor-not-allowed" : "shadow-primary/25"}`}
-                onClick={handleDownload}
+                onClick={() => {
+                  if (app.price > 0) {
+                    router.push(`/checkout?appId=${app.id}`);
+                  } else {
+                    handleDownload();
+                  }
+                }}
                 disabled={downloading}
               >
                 <Download size={20} className="mr-2" />
