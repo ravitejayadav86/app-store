@@ -10,7 +10,10 @@ router = APIRouter(prefix="/apps", tags=["apps"])
 
 @router.get("/", response_model=List[schemas.AppOut])
 def get_apps(db: Session = Depends(get_db)):
-    return db.query(models.App).filter(models.App.is_approved == True).all()
+    return db.query(models.App).filter(
+        models.App.is_approved == True,
+        models.App.is_active == True
+    ).all()
 
 @router.get("/me", response_model=List[schemas.AppOut])
 def get_my_apps(
@@ -112,9 +115,12 @@ def download_file(
 
 @router.get("/{app_id}", response_model=schemas.AppOut)
 def get_app(app_id: int, db: Session = Depends(get_db)):
-    app = db.query(models.App).filter(models.App.id == app_id).first()
+    app = db.query(models.App).filter(
+        models.App.id == app_id,
+        models.App.is_active == True
+    ).first()
     if not app:
-        raise HTTPException(404, "App not found")
+        raise HTTPException(404, "App not found or has been removed")
     return app
 
 @router.delete("/{app_id}")

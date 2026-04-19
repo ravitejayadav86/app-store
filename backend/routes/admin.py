@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 import models, schemas, auth
 from database import get_db
+import os
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -35,7 +36,21 @@ def delete_app(
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app:
         raise HTTPException(404, "App not found")
-    app.is_active = False
+    
+    # Hard delete logic
+    # 1. Delete associated files
+    if app.file_path and os.path.exists(app.file_path):
+        try:
+            os.remove(app.file_path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+            
+    # 2. Delete associated records
+    db.query(models.Review).filter(models.Review.app_id == app_id).delete()
+    db.query(models.Purchase).filter(models.Purchase.app_id == app_id).delete()
+    
+    # 3. Delete the app record
+    db.delete(app)
     db.commit()
 
 

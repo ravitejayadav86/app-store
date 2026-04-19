@@ -45,6 +45,7 @@ export default function PublisherPage() {
   const [targetUsername, setTargetUsername] = useState("");
   const [analytics, setAnalytics] = useState({ total_apps: 0, approved: 0, pending: 0, total_downloads: 0 });
   const [authError, setAuthError] = useState(false);
+  const [activeTab, setActiveTab] = useState<"Apps" | "Music" | "Books">("Apps");
 
   const stats = [
     { label: "Total Downloads", value: analytics.total_downloads.toString(), change: "+live", icon: <TrendingUp size={20} className="text-green-500" /> },
@@ -102,7 +103,7 @@ export default function PublisherPage() {
     };
 
     init();
-  }, [status, session?.user?.email]);
+  }, [status, session?.user?.email, fetchData]);
 
   const handleGrantAccess = async (appId: number) => {
     if (!targetUsername.trim()) return toast.error("Please enter a username.");
@@ -116,6 +117,14 @@ export default function PublisherPage() {
       toast.error(error.response?.data?.detail || "Failed to grant access.");
     }
   };
+
+  const filteredApps = apps.filter(app => {
+    const category = app.category.toLowerCase();
+    if (activeTab === "Music") return category === "music";
+    if (activeTab === "Books") return category === "books";
+    // Everything else (Games, Development, Productivity, etc.) goes to "Apps"
+    return category !== "music" && category !== "books";
+  });
 
   const colors = ["bg-blue-500", "bg-cyan-500", "bg-pink-500", "bg-purple-500", "bg-amber-500"];
 
@@ -168,15 +177,26 @@ export default function PublisherPage() {
 
       <section className="space-y-6">
         <h2 className="text-2xl font-bold text-on-surface">Quick Publish Content</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link href="/publisher/upload?category=Games&price=0" className="group">
+            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                <Gamepad2 size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-on-surface uppercase">Free Game</h3>
+                <p className="text-sm text-on-surface-variant">Publish your game for the community.</p>
+              </div>
+            </GlassCard>
+          </Link>
           <Link href="/publisher/upload?category=Music&price=0" className="group">
             <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
               <div className="w-16 h-16 rounded-2xl bg-pink-500/10 flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform">
                 <Music size={32} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-on-surface uppercase">Free Music Track</h3>
-                <p className="text-sm text-on-surface-variant">Share your tracks with the PandaStore community for free.</p>
+                <h3 className="text-xl font-bold text-on-surface uppercase">Free Music</h3>
+                <p className="text-sm text-on-surface-variant">Share your tracks for free.</p>
               </div>
             </GlassCard>
           </Link>
@@ -187,43 +207,80 @@ export default function PublisherPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-on-surface uppercase">Free E-Book</h3>
-                <p className="text-sm text-on-surface-variant">Release your latest writing or documentation for free.</p>
+                <p className="text-sm text-on-surface-variant">Release your latest writing.</p>
               </div>
             </GlassCard>
           </Link>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center gap-3">
-            <Code2 className="text-primary" />
-            <h2 className="text-2xl font-bold text-on-surface">Your Applications</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mt-8">
+        <div className="lg:col-span-3 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-outline-variant/30 pb-4">
+            <div className="flex items-center gap-3">
+              <Code2 className="text-primary" />
+              <h2 className="text-2xl font-bold text-on-surface">Your Applications</h2>
+            </div>
+            
+            <div className="flex bg-surface-low p-1 rounded-2xl gap-1">
+              {(["Apps", "Music", "Books"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    activeTab === tab ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  {tab === "Apps" ? "Games & Apps" : tab}
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="publisher-tab"
+                      className="absolute inset-0 bg-white shadow-sm rounded-xl -z-10"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {loading ? (
-            <div className="text-center py-10 text-on-surface-variant animate-pulse">Loading amazing applications...</div>
-          ) : apps.length === 0 ? (
-            <GlassCard className="p-10 text-center flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-surface-low flex items-center justify-center text-on-surface-variant">
-                <Code2 size={24} />
+            <div className="text-center py-20 text-on-surface-variant animate-pulse flex flex-col items-center gap-4">
+              <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              Fetching your portfolio...
+            </div>
+          ) : filteredApps.length === 0 ? (
+            <GlassCard className="p-16 text-center flex flex-col items-center justify-center gap-6 border-dashed">
+              <div className="w-20 h-20 rounded-full bg-surface-low flex items-center justify-center text-on-surface-variant">
+                {activeTab === "Apps" ? <Gamepad2 size={32} /> : 
+                 activeTab === "Music" ? <Music size={32} /> : 
+                 <BookOpen size={32} />}
               </div>
-              <p className="font-bold text-lg text-on-surface">No applications published yet</p>
-              <p className="text-sm text-on-surface-variant max-w-sm">Publish your first app to unlock analytics, user management, and revenue insights.</p>
+              <div className="space-y-2">
+                <p className="font-bold text-xl text-on-surface">No {activeTab === "Apps" ? "Apps or Games" : activeTab} Published</p>
+                <p className="text-sm text-on-surface-variant max-w-sm">Start your journey in this category by uploading your first creation.</p>
+              </div>
+              <Link href={`/publisher/upload?category=${activeTab === "Apps" ? "Games" : activeTab}`}>
+                <Button variant="secondary">Upload now</Button>
+              </Link>
             </GlassCard>
           ) : (
-            <div className="space-y-4">
-              {apps.map((app, i) => (
-                <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.1 }}>
-                  <GlassCard className="flex flex-col transition-all overflow-hidden relative">
+            <div className="grid grid-cols-1 gap-4">
+              {filteredApps.map((app, i) => (
+                <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                  <GlassCard className="flex flex-col transition-all overflow-hidden relative group">
                     <div className="flex justify-between items-center z-10 relative">
                       <div className="flex items-center gap-6">
-                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold`}>
+                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform`}>
                           {app.name[0]}
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-on-surface">{app.name}</h3>
-                          <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest mt-0.5">${app.price.toFixed(2)} • {app.version}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">${app.price.toFixed(2)}</span>
+                            <span className="w-1 h-1 rounded-full bg-outline-variant" />
+                            <span className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">v{app.version}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-4">
@@ -267,10 +324,10 @@ export default function PublisherPage() {
                   </GlassCard>
                 </motion.div>
               ))}
-              <Link href="/publisher/upload">
+              <Link href={`/publisher/upload?category=${activeTab === "Apps" ? "Games" : activeTab}`}>
                 <button className="w-full h-24 mt-4 border-2 border-dashed border-outline-variant rounded-3xl flex items-center justify-center gap-3 text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all group">
                   <Plus className="group-hover:rotate-90 transition-transform" />
-                  <span className="font-bold">Add Another Product</span>
+                  <span className="font-bold">Add Another {activeTab === "Apps" ? "Product" : activeTab}</span>
                 </button>
               </Link>
             </div>
