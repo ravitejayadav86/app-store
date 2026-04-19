@@ -44,7 +44,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({ full_name: "", email: "" });
+  const [formData, setFormData] = useState({ full_name: "", email: "", bio: "", is_private: false });
   const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0 });
   const [repos, setRepos] = useState<Repo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
