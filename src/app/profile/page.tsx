@@ -15,6 +15,8 @@ interface UserProfile {
   username: string;
   email: string;
   full_name?: string;
+  bio?: string;
+  is_private?: boolean;
   is_active: boolean;
   is_publisher: boolean;
   created_at: string;
@@ -93,7 +95,17 @@ useEffect(() => {
           is_private: profileRes.value.data.is_private || false
         });
       } else if (session?.user) {
-        setProfile({ id: 0, username: session.user.name || "User", email: session.user.email || "", full_name: session.user.name || "", is_active: true, is_publisher: false, created_at: new Date().toISOString() });
+        setProfile({ 
+          id: 0, 
+          username: session.user.name || "User", 
+          email: session.user.email || "", 
+          full_name: session.user.name || "", 
+          bio: "",
+          is_private: false,
+          is_active: true, 
+          is_publisher: false, 
+          created_at: new Date().toISOString() 
+        });
         setFormData({ full_name: session.user.name || "", email: session.user.email || "", bio: "", is_private: false });
       }
       const installs = purchasesRes.status === "fulfilled" ? purchasesRes.value.data.length : 0;
