@@ -84,3 +84,32 @@ class NotificationOut(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+# -- Community --
+class PostCreate(BaseModel):
+    content: str
+
+class ReplyCreate(BaseModel):
+    content: str
+
+class ReplyOut(BaseModel):
+    id: int
+    user_id: int
+    post_id: int
+    content: str
+    created_at: datetime
+    username: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+class PostOut(BaseModel):
+    id: int
+    user_id: int
+    content: str
+    created_at: datetime
+    username: Optional[str] = None
+    likes_count: int = 0
+    liked_by_me: bool = False
+    replies: List[ReplyOut] = []
+    class Config:
+        from_attributes = True

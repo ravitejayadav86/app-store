@@ -60,3 +60,30 @@ class Notification(Base):
     is_read    = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user       = relationship("User", back_populates="notifications")
+
+class Post(Base):
+    __tablename__ = "posts"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content    = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user       = relationship("User")
+    likes      = relationship("PostLike", back_populates="post", cascade="all, delete")
+    replies    = relationship("PostReply", back_populates="post", cascade="all, delete")
+
+class PostLike(Base):
+    __tablename__ = "post_likes"
+    id      = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    post    = relationship("Post", back_populates="likes")
+
+class PostReply(Base):
+    __tablename__ = "post_replies"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
+    post_id    = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    content    = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user       = relationship("User")
+    post       = relationship("Post", back_populates="replies")
