@@ -21,6 +21,10 @@ interface App {
   file_path: string | null;
 }
 
+interface ApiError {
+  response?: { data?: { detail?: string } };
+}
+
 const CATEGORY_TABS = ["All", "Apps", "Games", "Music", "Books"];
 
 const containerVariants = {
@@ -89,8 +93,9 @@ export default function Home() {
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success(`"${app.name}" downloaded to your files!`);
-    } catch {
-      toast.error("Download failed. Please try again.");
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      toast.error(error.response?.data?.detail || "Download failed. Please try again.");
     } finally {
       setDownloadingId(null);
     }

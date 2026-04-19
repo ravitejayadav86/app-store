@@ -106,7 +106,15 @@ def download_file(
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
-        raise HTTPException(404, "File not found")
+        raise HTTPException(404, "Download record not found for this app.")
+    
+    # Check if the physical file exists on disk
+    if not os.path.exists(app.file_path):
+        raise HTTPException(
+            status_code=404, 
+            detail="The app file was not found on the server's storage. It may have been removed or lost during a server restart. Please contact the publisher to re-upload."
+        )
+        
     return FileResponse(
         app.file_path,
         filename=os.path.basename(app.file_path),
