@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/Button";
 import api from "@/lib/api";
 
 interface Reply {
