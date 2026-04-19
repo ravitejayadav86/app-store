@@ -1,4 +1,3 @@
-$checkoutFixed = @'
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
@@ -81,7 +80,7 @@ function CheckoutContent() {
                   <CheckCircle2 size={24} className="text-primary" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xl font-bold tracking-[0.2em] text-on-surface">•••• 4242</p>
+                  <p className="text-xl font-bold tracking-[0.2em] text-on-surface">â€¢â€¢â€¢â€¢ 4242</p>
                   <p className="text-xs text-on-surface-variant uppercase font-bold tracking-widest opacity-60">Expires 12/26</p>
                 </div>
               </div>
