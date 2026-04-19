@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base
 from routes import auth, apps, users, admin, reviews, notifications
-from routes import auth, apps, users, admin, reviews, notifications, community
 import os
 
 Base.metadata.create_all(bind=engine)
