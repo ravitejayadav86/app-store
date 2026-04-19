@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 import models, schemas, auth
 from database import get_db
-import os, shutil, uuid
+import os, cloudinary, cloudinary.uploader
+
+cloudinary.config(
+    cloud_name="deii8hxll",
+    api_key="976199473967583",
+    api_secret="hmjlrH1hSjKTOHQw4r5TElfdUNE"
+)
 
 router = APIRouter(prefix="/apps", tags=["apps"])
 
@@ -60,6 +66,7 @@ def submit_app(
     db.commit()
     db.refresh(db_app)
     return db_app
+
 @router.post("/{app_id}/upload")
 def upload_file(
     app_id: int,
@@ -67,16 +74,36 @@ def upload_file(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    app = db.query(models.App).filter(models.App.id == app_id, models.App.developer == current_user.username).first()
+    app = db.query(models.App).filter(
+        models.App.id == app_id,
+        models.App.developer == current_user.username
+    ).first()
     if not app:
         raise HTTPException(404, "App not found")
-    os.makedirs("uploads", exist_ok=True)
-    file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    app.file_path = file_path
+
+    # Upload to Cloudinary
+    result = cloudinary.uploader.upload(
+        file.file,
+        resource_type="raw",
+        folder="pandastore",
+        public_id=f"app_{app_id}_{file.filename}"
+    )
+
+    # Save Cloudinary URL to database
+    app.file_path = result["secure_url"]
     db.commit()
-    return {"message": "File uploaded", "file_path": file_path}
+    return {"message": "File uploaded", "file_path": result["secure_url"]}
+
+@router.get("/{app_id}/download")
+def download_file(
+    app_id: int,
+    db: Session = Depends(get_db)
+):
+    app = db.query(models.App).filter(models.App.id == app_id).first()
+    if not app or not app.file_path:
+        raise HTTPException(404, "No file uploaded for this app.")
+    # Redirect to Cloudinary URL directly
+    return RedirectResponse(url=app.file_path)
 
 @router.post("/{app_id}/grant")
 def grant_access(
@@ -99,28 +126,6 @@ def grant_access(
         db.commit()
     return {"message": f"Access granted to {username}"}
 
-@router.get("/{app_id}/download")
-def download_file(
-    app_id: int,
-    db: Session = Depends(get_db)
-):
-    app = db.query(models.App).filter(models.App.id == app_id).first()
-    if not app or not app.file_path:
-        raise HTTPException(404, "Download record not found for this app.")
-    
-    # Check if the physical file exists on disk
-    if not os.path.exists(app.file_path):
-        raise HTTPException(
-            status_code=404, 
-            detail="The app file was not found on the server's storage. It may have been removed or lost during a server restart. Please contact the publisher to re-upload."
-        )
-        
-    return FileResponse(
-        app.file_path,
-        filename=os.path.basename(app.file_path),
-        media_type="application/octet-stream"
-    )
-
 @router.get("/{app_id}", response_model=schemas.AppOut)
 def get_app(app_id: int, db: Session = Depends(get_db)):
     app = db.query(models.App).filter(
@@ -140,25 +145,16 @@ def delete_app(
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app:
         raise HTTPException(404, "App not found")
-    
-    # Check if user is owner or admin
     if app.developer != current_user.username and not current_user.is_admin:
         raise HTTPException(403, "Not authorized to delete this app")
-    
-    # Delete file from filesystem if it exists
-    if app.file_path and os.path.exists(app.file_path):
+    if app.file_path and app.file_path.startswith("http"):
         try:
-            os.remove(app.file_path)
+            public_id = app.file_path.split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(f"pandastore/{public_id}", resource_type="raw")
         except Exception as e:
-            print(f"Error deleting file: {e}")
-    
-    # Delete associated records (Reviews and Purchases)
+            print(f"Error deleting from Cloudinary: {e}")
     db.query(models.Review).filter(models.Review.app_id == app_id).delete()
     db.query(models.Purchase).filter(models.Purchase.app_id == app_id).delete()
-    
-    # Delete the app record
     db.delete(app)
     db.commit()
-    
     return {"message": "App deleted successfully"}
-
