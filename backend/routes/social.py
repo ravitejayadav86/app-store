@@ -40,7 +40,7 @@ def search_users(q: str, db: Session = Depends(get_db)):
     users = db.query(models.User).filter(
         models.User.username.ilike(f"%{q}%")
     ).limit(10).all()
-    return [{"id": u.id, "username": u.username, "bio": u.bio, "is_private": u.is_private} for u in users]
+    return [{"id": u.id, "username": u.username, "bio": u.bio, "is_private": u.is_private, "avatar_url": u.avatar_url} for u in users]
 
 @router.get("/profile/{username}")
 def get_profile(
@@ -73,6 +73,7 @@ def get_profile(
     return {
         "id": user.id,
         "username": user.username,
+        "avatar_url": user.avatar_url,
         "bio": user.bio,
         "is_private": user.is_private,
         "is_admin": user.is_admin,
@@ -170,7 +171,7 @@ def send_message(
     db.add(message)
     db.commit()
     db.refresh(message)
-    return {"id": message.id, "content": message.content, "created_at": message.created_at, "sender_username": current_user.username}
+    return {"id": message.id, "content": message.content, "created_at": message.created_at, "sender_username": current_user.username, "sender_avatar_url": current_user.avatar_url}
 
 @router.get("/messages/{username}")
 def get_messages(
@@ -196,7 +197,8 @@ def get_messages(
             "content": m.content,
             "is_read": m.is_read,
             "created_at": m.created_at,
-            "sender_username": sender.username if sender else "Unknown"
+            "sender_username": sender.username if sender else "Unknown",
+            "sender_avatar_url": sender.avatar_url if sender else None
         })
     return result
 
@@ -220,6 +222,7 @@ def get_conversations(
             if other:
                 conversations.append({
                     "username": other.username,
+                    "avatar_url": other.avatar_url,
                     "last_message": m.content,
                     "created_at": m.created_at,
                     "is_read": m.is_read
@@ -262,7 +265,8 @@ async def websocket_endpoint(
                     "receiver_id": receiver.id,
                     "content": message.content,
                     "created_at": message.created_at.isoformat(),
-                    "sender_username": sender.username if sender else "Unknown"
+                    "sender_username": sender.username if sender else "Unknown",
+                    "sender_avatar_url": sender.avatar_url if sender else None
                 }
                 
                 await manager.send_to_user(receiver.id, payload)

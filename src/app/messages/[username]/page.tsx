@@ -15,6 +15,7 @@ interface Message {
   is_read: boolean;
   created_at: string;
   sender_username: string;
+  sender_avatar_url?: string | null;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
@@ -29,6 +30,7 @@ export default function ChatPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [recipientProfile, setRecipientProfile] = useState<{avatar_url?: string | null} | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -55,7 +57,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (currentUserId) fetchMessages();
-  }, [currentUserId, fetchMessages]);
+    
+    // Fetch recipient profile for avatar
+    if (username) {
+      api.get(`/social/profile/${username}`)
+        .then(res => setRecipientProfile(res.data))
+        .catch(() => {});
+    }
+  }, [currentUserId, fetchMessages, username]);
 
   // WebSocket connection
   useEffect(() => {
@@ -134,8 +143,10 @@ export default function ChatPage() {
           <ArrowLeft size={20} />
         </button>
         <Link href={`/users/${username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1">
-          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm">
-            {(username as string)?.[0]?.toUpperCase()}
+          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm overflow-hidden">
+            {recipientProfile?.avatar_url 
+              ? <img src={recipientProfile.avatar_url} alt={username as string} className="w-full h-full object-cover" />
+              : (username as string)?.[0]?.toUpperCase()}
           </div>
           <div>
             <p className="font-bold text-on-surface text-sm">{username}</p>
@@ -163,8 +174,10 @@ export default function ChatPage() {
           return (
             <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
               {!isMe && (
-                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary mr-2 flex-shrink-0 self-end mb-1">
-                  {msg.sender_username?.[0]?.toUpperCase()}
+                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary mr-2 flex-shrink-0 self-end mb-1 overflow-hidden">
+                  {msg.sender_avatar_url 
+                    ? <img src={msg.sender_avatar_url} alt={msg.sender_username} className="w-full h-full object-cover" />
+                    : msg.sender_username?.[0]?.toUpperCase()}
                 </div>
               )}
               <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${

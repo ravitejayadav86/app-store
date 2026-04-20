@@ -102,6 +102,7 @@ class ReplyOut(BaseModel):
     content: str
     created_at: datetime
     username: Optional[str] = None
+    avatar_url: Optional[str] = None
     class Config:
         from_attributes = True
 
@@ -111,6 +112,7 @@ class PostOut(BaseModel):
     content: str
     created_at: datetime
     username: Optional[str] = None
+    avatar_url: Optional[str] = None
     likes_count: int = 0
     liked_by_me: bool = False
     replies: List[ReplyOut] = []
@@ -121,6 +123,7 @@ class PostOut(BaseModel):
 class UserProfile(BaseModel):
     id: int
     username: str
+    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     is_private: bool
     is_admin: bool
@@ -144,6 +147,7 @@ class MessageOut(BaseModel):
     is_read: bool
     created_at: datetime
     sender_username: Optional[str] = None
+    sender_avatar_url: Optional[str] = None
     class Config:
         from_attributes = True
 

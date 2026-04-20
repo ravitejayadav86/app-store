@@ -36,7 +36,8 @@ def get_posts(
                 "post_id": r.post_id,
                 "content": r.content,
                 "created_at": r.created_at,
-                "username": replier.username if replier else "Deleted User"
+                "username": replier.username if replier else "Deleted User",
+                "avatar_url": replier.avatar_url if replier else None
             })
             
         result.append({
@@ -45,6 +46,7 @@ def get_posts(
             "content": p.content,
             "created_at": p.created_at,
             "username": author.username if author else "Deleted User",
+            "avatar_url": author.avatar_url if author else None,
             "likes_count": likes_count,
             "liked_by_me": liked_by_me,
             "replies": replies
@@ -71,6 +73,7 @@ def create_post(
         "content": new_post.content,
         "created_at": new_post.created_at,
         "username": current_user.username,
+        "avatar_url": current_user.avatar_url,
         "likes_count": 0,
         "liked_by_me": False,
         "replies": []
@@ -127,5 +130,6 @@ def reply_to_post(
         "post_id": new_reply.post_id,
         "content": new_reply.content,
         "created_at": new_reply.created_at,
-        "username": current_user.username
+        "username": current_user.username,
+        "avatar_url": current_user.avatar_url
     }

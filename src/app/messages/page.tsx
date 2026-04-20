@@ -21,6 +21,7 @@ import Link from "next/link";
 
 interface Conversation {
   username: string;
+  avatar_url?: string | null;
   last_message: string;
   created_at: string;
   is_read: boolean;
@@ -117,8 +118,10 @@ export default function MessagesPage() {
               >
                 <Link href={`/messages/${c.username}`}>
                   <GlassCard className="p-4 flex items-center gap-4 hover:bg-surface-low transition-colors group relative overflow-hidden">
-                    <div className="w-14 h-14 rounded-full bg-linear-to-br from-primary/10 to-transparent flex items-center justify-center text-xl font-bold text-primary flex-shrink-0 shadow-inner border border-primary/5">
-                      {c.username[0].toUpperCase()}
+                    <div className="w-14 h-14 rounded-full bg-linear-to-br from-primary/10 to-transparent flex items-center justify-center text-xl font-bold text-primary flex-shrink-0 shadow-inner border border-primary/5 overflow-hidden">
+                      {c.avatar_url 
+                        ? <img src={c.avatar_url} alt={c.username} className="w-full h-full object-cover" />
+                        : c.username[0].toUpperCase()}
                     </div>
                     
                     <div className="flex-1 min-w-0">

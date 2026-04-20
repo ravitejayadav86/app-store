@@ -28,6 +28,7 @@ import Link from "next/link";
 interface Profile {
   id: number;
   username: string;
+  avatar_url: string | null;
   bio: string;
   is_private: boolean;
   is_admin: boolean;
@@ -124,8 +125,10 @@ export default function UserProfile() {
         <div className="lg:col-span-4 space-y-6">
           <GlassCard className="p-8 flex flex-col items-center text-center gap-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center text-5xl font-bold text-primary shadow-inner border border-primary/10">
-                {profile.username[0].toUpperCase()}
+              <div className="w-32 h-32 rounded-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center text-5xl font-bold text-primary shadow-inner border border-primary/10 overflow-hidden">
+                {profile.avatar_url 
+                  ? <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+                  : profile.username[0].toUpperCase()}
               </div>
               {profile.is_admin && (
                 <div className="absolute -top-1 -right-1 bg-primary text-on-primary px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg uppercase tracking-wider">

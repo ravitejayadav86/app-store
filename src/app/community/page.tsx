@@ -16,6 +16,7 @@ interface Reply {
   content: string;
   created_at: string;
   username: string;
+  avatar_url?: string | null;
 }
 
 interface Post {
@@ -24,6 +25,7 @@ interface Post {
   content: string;
   created_at: string;
   username: string;
+  avatar_url?: string | null;
   likes_count: number;
   liked_by_me: boolean;
   replies: Reply[];
@@ -201,8 +203,10 @@ export default function CommunityPage() {
                   onClick={() => { router.push(`/users/${u.username}`); setUserResults([]); setUserSearch(""); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-low transition-colors text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                    {u.username[0].toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden">
+                    {u.avatar_url 
+                      ? <img src={u.avatar_url} alt={u.username} className="w-full h-full object-cover" />
+                      : u.username[0].toUpperCase()}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-on-surface">{u.username}</p>
@@ -260,8 +264,10 @@ export default function CommunityPage() {
                       onClick={() => router.push(`/users/${post.username}`)}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
-                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                        {post.username?.[0]?.toUpperCase() || "U"}
+                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
+                        {post.avatar_url 
+                          ? <img src={post.avatar_url} alt={post.username} className="w-full h-full object-cover" />
+                          : post.username?.[0]?.toUpperCase() || "U"}
                       </div>
                       <div className="text-left">
                         <p className="font-bold text-sm text-on-surface">{post.username}</p>
@@ -304,8 +310,10 @@ export default function CommunityPage() {
                       >
                         {post.replies.map((reply) => (
                           <div key={reply.id} className="flex items-start gap-3 pl-2">
-                            <div className="w-7 h-7 rounded-full bg-surface-low flex items-center justify-center text-xs font-bold text-on-surface-variant flex-shrink-0">
-                              {reply.username?.[0]?.toUpperCase() || "U"}
+                            <div className="w-7 h-7 rounded-full bg-surface-low flex items-center justify-center text-xs font-bold text-on-surface-variant flex-shrink-0 overflow-hidden">
+                              {reply.avatar_url 
+                                ? <img src={reply.avatar_url} alt={reply.username} className="w-full h-full object-cover" />
+                                : reply.username?.[0]?.toUpperCase() || "U"}
                             </div>
                             <div className="flex-1 bg-surface-low rounded-2xl px-3 py-2">
                               <div className="flex items-center justify-between mb-1">
