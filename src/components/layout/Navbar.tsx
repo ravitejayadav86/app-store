@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, User, Menu, X, ShieldAlert } from "lucide-react";
+import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { useRouter, usePathname } from "next/navigation";
@@ -22,7 +22,7 @@ export const Navbar = () => {
         if (searchQuery.trim()) {
             router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`);
             setSearchOpen(false);
-            setSearchQuery(""); // Fixed build error here
+            setSearchQuery("");
         }
     };
 
@@ -38,6 +38,7 @@ export const Navbar = () => {
                             fill
                             className="object-contain"
                             priority
+                            sizes="40px"
                         />
                     </div>
                     <span className="font-inter font-bold text-xl tracking-tight text-on-surface">PandaStore</span>
@@ -90,7 +91,7 @@ export const Navbar = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="p-2 text-on-surface-variant hover:text-primary transition-colors"
@@ -98,8 +99,15 @@ export const Navbar = () => {
                                 <Search size={20} />
                             </button>
 
+                            {/* Messages icon - logged in only */}
+                            {session && (
+                                <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+                                    <MessageCircle size={20} />
+                                </Link>
+                            )}
+
                             <div className="hidden sm:flex items-center gap-2">
-                                {/* Only show Admin button if logged in */}
+                                {/* Admin button */}
                                 {session && (
                                     <Link href="/admin">
                                         <Button variant="tertiary" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-500/10 border-red-500/20">
@@ -109,7 +117,7 @@ export const Navbar = () => {
                                     </Link>
                                 )}
 
-                                {/* Hide Sign In if user is already logged in */}
+                                {/* Sign In if not logged in */}
                                 {!session && (
                                     <Link href="/login">
                                         <Button variant="tertiary" size="sm">
@@ -124,11 +132,16 @@ export const Navbar = () => {
                                 </Link>
                             </div>
 
-                            {/* Notification Bell (logged-in only) */}
+                            {/* Notification Bell */}
                             {session && <NotificationBell />}
 
-                            {/* Profile Logo */}
-                            <Link href="/profile" className="ml-1 sm:ml-2 w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group">
+                            {/* Settings icon */}
+                            <Link href="/settings" className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                                <Settings size={18} />
+                            </Link>
+
+                            {/* Profile */}
+                            <Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group">
                                 <User size={18} className="group-hover:text-primary transition-colors" />
                             </Link>
 
@@ -164,6 +177,25 @@ export const Navbar = () => {
                                 {item}
                             </Link>
                         ))}
+
+                        {session && (
+                            <Link
+                                href="/messages"
+                                className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight flex items-center gap-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <MessageCircle size={16} /> Messages
+                            </Link>
+                        )}
+
+                        <Link
+                            href="/settings"
+                            className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight flex items-center gap-2"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            <Settings size={16} /> Settings
+                        </Link>
+
                         <div className="flex flex-col gap-3 mt-2 sm:hidden">
                             {session && (
                                 <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
@@ -192,4 +224,4 @@ export const Navbar = () => {
             </AnimatePresence>
         </nav>
     );
-};
+};

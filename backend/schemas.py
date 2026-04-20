@@ -7,13 +7,16 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
-
 class UserOut(BaseModel):
     id: int
     email: str
     username: str
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
     is_active: bool
     is_admin: bool
+    is_private: bool = False
     created_at: datetime
     class Config:
         from_attributes = True

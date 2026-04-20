@@ -12,8 +12,9 @@ class User(Base):
     is_active       = Column(Boolean, default=True)
     is_admin        = Column(Boolean, default=False)
     is_private      = Column(Boolean, default=False)
+    full_name       = Column(String, nullable=True)
     bio             = Column(Text, nullable=True)
-    public_key      = Column(Text, nullable=True) # RSA Public Key as JWK string
+    avatar_url      = Column(String, nullable=True)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
     purchases       = relationship("Purchase", back_populates="user")
     notifications   = relationship("Notification", back_populates="user")

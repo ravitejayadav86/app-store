@@ -3,6 +3,33 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
 from database import get_db
+from fastapi import WebSocket, WebSocketDisconnect
+from typing import Dict, List
+import json
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[int, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, user_id: int):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+
+    def disconnect(self, websocket: WebSocket, user_id: int):
+        if user_id in self.active_connections:
+            self.active_connections[user_id].remove(websocket)
+
+    async def send_to_user(self, user_id: int, message: dict):
+        if user_id in self.active_connections:
+            for ws in self.active_connections[user_id]:
+                try:
+                    await ws.send_text(json.dumps(message))
+                except:
+                    pass
+
+manager = ConnectionManager()
 
 router = APIRouter(prefix="/social", tags=["social"])
 
@@ -197,4 +224,49 @@ def get_conversations(
                     "created_at": m.created_at,
                     "is_read": m.is_read
                 })
-    return conversations
+    return conversations 
+
+@router.websocket("/ws/{user_id}")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            msg_data = json.loads(data)
+            
+            receiver = db.query(models.User).filter(
+                models.User.username == msg_data.get("to")
+            ).first()
+            
+            if receiver:
+                sender = db.query(models.User).filter(
+                    models.User.id == user_id
+                ).first()
+                
+                message = models.Message(
+                    sender_id=user_id,
+                    receiver_id=receiver.id,
+                    content=msg_data.get("content", "")
+                )
+                db.add(message)
+                db.commit()
+                db.refresh(message)
+                
+                payload = {
+                    "id": message.id,
+                    "sender_id": user_id,
+                    "receiver_id": receiver.id,
+                    "content": message.content,
+                    "created_at": message.created_at.isoformat(),
+                    "sender_username": sender.username if sender else "Unknown"
+                }
+                
+                await manager.send_to_user(receiver.id, payload)
+                await manager.send_to_user(user_id, payload)
+                
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
