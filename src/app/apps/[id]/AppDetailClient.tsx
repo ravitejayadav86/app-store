@@ -6,7 +6,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import {
   ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2,
-  Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info
+  Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info,
+  Sparkles, Database, Cloud, Briefcase
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -39,19 +40,26 @@ interface ApiError {
 
 function getCategoryIcon(category: string) {
   switch (category?.toLowerCase()) {
-    case "games": return <Gamepad2 size={64} className="text-primary" />;
-    case "music": return <Music size={64} className="text-primary" />;
-    case "books": return <BookOpen size={64} className="text-primary" />;
+    case "games": return <Gamepad2 size={64} className="text-emerald-500" />;
+    case "music": return <Music size={64} className="text-pink-500" />;
+    case "books": return <BookOpen size={64} className="text-purple-500" />;
+    case "productivity": return <Briefcase size={64} className="text-blue-500" />;
+    case "development": return <Database size={64} className="text-yellow-500" />;
+    case "utilities": return <Cloud size={64} className="text-cyan-500" />;
+    case "graphics": return <Sparkles size={64} className="text-orange-500" />;
     default: return <Code2 size={64} className="text-primary" />;
   }
 }
 
 function getCategoryGradient(category: string) {
   switch (category?.toLowerCase()) {
-    case "games": return "from-emerald-900/60 to-background";
-    case "music": return "from-pink-900/60 to-background";
-    case "books": return "from-purple-900/60 to-background";
-    default: return "from-blue-900/60 to-background";
+    case "games": return "from-emerald-950/40 via-emerald-900/10 to-background";
+    case "music": return "from-pink-950/40 via-pink-900/10 to-background";
+    case "books": return "from-purple-950/40 via-purple-900/10 to-background";
+    case "productivity": return "from-blue-950/40 via-blue-900/10 to-background";
+    case "development": return "from-yellow-950/40 via-yellow-900/10 to-background";
+    case "graphics": return "from-orange-950/40 via-orange-900/10 to-background";
+    default: return "from-primary-dim/20 via-surface-lowest/40 to-background";
   }
 }
 
@@ -123,24 +131,24 @@ function AppDetailContent() {
 
     // Check if a file has actually been uploaded
     if (!app.file_path) {
-      toast.custom((t) => (
-        <div className="bg-surface-low border border-outline-variant p-4 rounded-2xl shadow-2xl flex flex-col gap-3 max-w-sm">
+      toast.custom((id) => (
+        <div className="bg-surface-low border border-outline-variant p-4 rounded-2xl shadow-2xl flex flex-col gap-3 max-w-sm animate-in fade-in slide-in-from-bottom-5">
           <div className="flex items-start gap-4">
             <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
-              <Clock size={20} />
+              <Clock size={24} />
             </div>
-            <div>
-              <h4 className="font-bold text-on-surface">Almost Ready</h4>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
+            <div className="flex-1">
+              <h4 className="font-bold text-on-surface text-sm">Almost Ready</h4>
+              <p className="text-[12px] text-on-surface-variant leading-relaxed mt-1">
                 "{app.name}" has no file uploaded by the publisher yet. We have notified the developer to finalize the release.
               </p>
             </div>
           </div>
-          <Button size="sm" variant="secondary" onClick={() => toast.dismiss(t.id)}>
+          <Button size="sm" variant="secondary" className="w-full h-8 text-xs font-bold" onClick={() => toast.dismiss(id)}>
             Got it
           </Button>
         </div>
-      ), { duration: 5000 });
+      ), { duration: 6000 });
       return;
     }
 
@@ -204,8 +212,8 @@ function AppDetailContent() {
         <ArrowLeft size={20} /> Back to Store
       </button>
 
-      <GlassCard className="relative overflow-hidden mb-8">
-        <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(app.category)} pointer-events-none`} />
+      <GlassCard className="relative overflow-hidden mb-8 border-outline-variant/30 shadow-2xl">
+        <div className={`absolute inset-0 bg-linear-to-br ${getCategoryGradient(app.category)} pointer-events-none`} />
         <div className="relative z-10 p-8 md:p-12">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-surface-low to-background flex items-center justify-center border border-outline-variant shadow-2xl shrink-0">
