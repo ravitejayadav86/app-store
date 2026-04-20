@@ -15,6 +15,7 @@ interface UserProfile {
   username: string;
   email: string;
   full_name?: string;
+  avatar_url?: string;
   bio?: string;
   is_private?: boolean;
   is_active: boolean;
