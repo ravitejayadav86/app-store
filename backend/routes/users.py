@@ -72,3 +72,13 @@ def my_submissions(
     return db.query(models.App).filter(
         models.App.developer == current_user.username
     ).all()
+
+@router.post("/me/verify-publisher")
+def verify_publisher(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    current_user.is_publisher = True
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "User is now a verified publisher", "is_publisher": True}

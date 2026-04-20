@@ -1,35 +1,62 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from database import engine, Base
-from routes import auth, apps, users, admin, reviews, notifications, community, social, telemetry
+from routes import auth, apps, users, admin, reviews, notifications, community, social
+from security import limiter, add_security_headers
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import os
 
-# Pre-deployment schema update to ensure new columns exist in production (Postgres)
+# Auto-migrate new columns
 try:
     with engine.connect() as conn:
-        for col, col_type in [("is_private", "BOOLEAN DEFAULT FALSE"), ("bio", "TEXT"), ("public_key", "TEXT")]:
+        for col, col_type in [
+            ("is_private", "BOOLEAN DEFAULT FALSE"),
+            ("is_publisher", "BOOLEAN DEFAULT FALSE"),
+            ("bio", "TEXT"),
+            ("public_key", "TEXT"),
+            ("avatar_url", "TEXT"),
+            ("full_name", "TEXT"),
+        ]:
             try:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
                 conn.commit()
             except Exception:
-                pass # Column likely already exists
+                pass
+        for stmt in [
+            "CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, user_id INTEGER, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS post_likes (id SERIAL PRIMARY KEY, user_id INTEGER, post_id INTEGER)",
+            "CREATE TABLE IF NOT EXISTS post_replies (id SERIAL PRIMARY KEY, user_id INTEGER, post_id INTEGER, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS follows (id SERIAL PRIMARY KEY, follower_id INTEGER, following_id INTEGER, created_at TIMESTAMPTZ DEFAULT NOW())",
+            "CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, sender_id INTEGER, receiver_id INTEGER, content TEXT, is_read BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW())",
+        ]:
+            try:
+                conn.execute(text(stmt))
+                conn.commit()
+            except Exception:
+                pass
 except Exception as e:
-    print(f"Database connection or migration warning: {e}")
+    print(f"Migration warning: {e}")
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="App Store API", version="1.0.0")
+app = FastAPI(title="PandaStore API", version="2.0.0")
 
+# Rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Security headers
+app.middleware("http")(add_security_headers)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://app-store-smoky.vercel.app",
-        "https://app-store-ravitejayadav86s-projects.vercel.app"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -45,8 +72,7 @@ app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(community.router)
 app.include_router(social.router)
-app.include_router(telemetry.router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "2.0.0"}

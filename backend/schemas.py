@@ -16,6 +16,7 @@ class UserOut(BaseModel):
     avatar_url: Optional[str] = None
     is_active: bool
     is_admin: bool
+    is_publisher: bool
     is_private: bool = False
     created_at: datetime
     class Config:

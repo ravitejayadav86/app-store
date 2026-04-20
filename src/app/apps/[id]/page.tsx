@@ -6,10 +6,11 @@ import AppDetailClient from "./AppDetailClient";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
 
 export async function generateMetadata(
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
+  const { id } = await params;
   try {
-    const res = await fetch(`${API_BASE}/apps/${params.id}`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/apps/${id}`, { next: { revalidate: 3600 } });
     if (res.ok) {
       const app = await res.json();
       return {
@@ -30,7 +31,11 @@ export async function generateMetadata(
   return { title: "App Details" };
 }
 
-export default function AppPage() {
+export default async function AppPage({ params }: { params: Promise<{ id: string }> }) {
+  // We await params just to ensure compliance and avoid console warnings, 
+  // although AppDetailClient uses useParams() internally.
+  await params;
+  
   return (
     <Suspense
       fallback={

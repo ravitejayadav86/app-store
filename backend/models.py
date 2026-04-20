@@ -11,6 +11,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active       = Column(Boolean, default=True)
     is_admin        = Column(Boolean, default=False)
+    is_publisher    = Column(Boolean, default=False)
     is_private      = Column(Boolean, default=False)
     full_name       = Column(String, nullable=True)
     bio             = Column(Text, nullable=True)

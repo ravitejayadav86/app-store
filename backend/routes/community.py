@@ -1,85 +1,82 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import Optional
 import models, schemas, auth
 from database import get_db
 
 router = APIRouter(prefix="/community", tags=["community"])
 
-@router.get("", response_model=List[schemas.PostOut])
+def build_post(p, db, current_user=None):
+    author = db.query(models.User).filter(models.User.id == p.user_id).first()
+    likes_count = db.query(models.PostLike).filter(models.PostLike.post_id == p.id).count()
+    liked_by_me = False
+    if current_user:
+        liked_by_me = db.query(models.PostLike).filter(
+            models.PostLike.post_id == p.id,
+            models.PostLike.user_id == current_user.id
+        ).first() is not None
+    replies = []
+    for r in p.replies:
+        replier = db.query(models.User).filter(models.User.id == r.user_id).first()
+        replies.append({
+            "id": r.id,
+            "user_id": r.user_id,
+            "post_id": r.post_id,
+            "content": r.content,
+            "created_at": r.created_at,
+            "username": replier.username if replier else "Deleted",
+            "avatar_url": replier.avatar_url if replier else None
+        })
+    return {
+        "id": p.id,
+        "user_id": p.user_id,
+        "content": p.content,
+        "created_at": p.created_at,
+        "username": author.username if author else "Deleted",
+        "avatar_url": author.avatar_url if author else None,
+        "likes_count": likes_count,
+        "liked_by_me": liked_by_me,
+        "replies": replies
+    }
+
+@router.get("/posts")
 def get_posts(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_optional_user)
+    current_user: Optional[models.User] = Depends(auth.get_optional_user)
 ):
     posts = db.query(models.Post).order_by(models.Post.created_at.desc()).all()
-    result = []
-    for p in posts:
-        # Get post author
-        author = db.query(models.User).filter(models.User.id == p.user_id).first()
-        
-        # Get likes
-        likes_count = db.query(models.PostLike).filter(models.PostLike.post_id == p.id).count()
-        liked_by_me = False
-        if current_user:
-            liked_by_me = db.query(models.PostLike).filter(
-                models.PostLike.post_id == p.id,
-                models.PostLike.user_id == current_user.id
-            ).first() is not None
-        
-        # Get replies
-        replies = []
-        for r in p.replies:
-            replier = db.query(models.User).filter(models.User.id == r.user_id).first()
-            replies.append({
-                "id": r.id,
-                "user_id": r.user_id,
-                "post_id": r.post_id,
-                "content": r.content,
-                "created_at": r.created_at,
-                "username": replier.username if replier else "Deleted User",
-                "avatar_url": replier.avatar_url if replier else None
-            })
-            
-        result.append({
-            "id": p.id,
-            "user_id": p.user_id,
-            "content": p.content,
-            "created_at": p.created_at,
-            "username": author.username if author else "Deleted User",
-            "avatar_url": author.avatar_url if author else None,
-            "likes_count": likes_count,
-            "liked_by_me": liked_by_me,
-            "replies": replies
-        })
-    return result
+    return [build_post(p, db, current_user) for p in posts]
 
-@router.post("", response_model=schemas.PostOut)
+@router.post("/posts")
 def create_post(
     post: schemas.PostCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    new_post = models.Post(
-        user_id=current_user.id,
-        content=post.content
-    )
+    if not post.content.strip():
+        raise HTTPException(400, "Content cannot be empty")
+    new_post = models.Post(user_id=current_user.id, content=post.content)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    
-    return {
-        "id": new_post.id,
-        "user_id": new_post.user_id,
-        "content": new_post.content,
-        "created_at": new_post.created_at,
-        "username": current_user.username,
-        "avatar_url": current_user.avatar_url,
-        "likes_count": 0,
-        "liked_by_me": False,
-        "replies": []
-    }
+    return build_post(new_post, db, current_user)
 
-@router.post("/like/{post_id}")
+@router.delete("/posts/{post_id}")
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not post:
+        raise HTTPException(404, "Post not found")
+    if post.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(403, "Not authorized")
+    db.delete(post)
+    db.commit()
+    return {"message": "Deleted"}
+
+@router.post("/posts/{post_id}/like")
 def toggle_like(
     post_id: int,
     db: Session = Depends(get_db),
@@ -88,24 +85,21 @@ def toggle_like(
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(404, "Post not found")
-    
     existing = db.query(models.PostLike).filter(
         models.PostLike.user_id == current_user.id,
         models.PostLike.post_id == post_id
     ).first()
-    
     if existing:
         db.delete(existing)
         db.commit()
         return {"liked": False}
-    else:
-        like = models.PostLike(user_id=current_user.id, post_id=post_id)
-        db.add(like)
-        db.commit()
-        return {"liked": True}
+    like = models.PostLike(user_id=current_user.id, post_id=post_id)
+    db.add(like)
+    db.commit()
+    return {"liked": True}
 
-@router.post("/reply/{post_id}")
-def reply_to_post(
+@router.post("/posts/{post_id}/replies")
+def add_reply(
     post_id: int,
     reply: schemas.ReplyCreate,
     db: Session = Depends(get_db),
@@ -114,7 +108,6 @@ def reply_to_post(
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(404, "Post not found")
-    
     new_reply = models.PostReply(
         user_id=current_user.id,
         post_id=post_id,
@@ -123,7 +116,6 @@ def reply_to_post(
     db.add(new_reply)
     db.commit()
     db.refresh(new_reply)
-    
     return {
         "id": new_reply.id,
         "user_id": new_reply.user_id,
@@ -133,3 +125,18 @@ def reply_to_post(
         "username": current_user.username,
         "avatar_url": current_user.avatar_url
     }
+
+@router.delete("/replies/{reply_id}")
+def delete_reply(
+    reply_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    reply = db.query(models.PostReply).filter(models.PostReply.id == reply_id).first()
+    if not reply:
+        raise HTTPException(404, "Reply not found")
+    if reply.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(403, "Not authorized")
+    db.delete(reply)
+    db.commit()
+    return {"message": "Deleted"}

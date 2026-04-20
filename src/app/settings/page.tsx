@@ -1,16 +1,19 @@
 "use client";
-
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import {
   Download, Shield, Monitor, Settings, Wifi, HardDrive,
   Moon, Sun, Globe, Trash2, ChevronRight, Lock, Eye,
-  Bell, Smartphone, Code, LogOut, Check
+  Bell, Smartphone, Code, LogOut, Check, UserPlus, Sparkles,
+  ArrowRight, GitFork, Briefcase, ShieldCheck, Mail
 } from "lucide-react";
 import { toast } from "sonner";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import api from "@/lib/api";
+import { Button } from "@/components/ui/Button";
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -64,8 +67,14 @@ function SelectRow({ icon, label, description, options, value, onChange }: {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
   const [devTaps, setDevTaps] = useState(0);
   const [devMode, setDevMode] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [verifying, setVerifying] = useState(false);
 
   const [settings, setSettings] = useState({
     autoUpdate: "Over Wi-Fi only",
@@ -80,11 +89,32 @@ export default function SettingsPage() {
     language: "English",
   });
 
-  const update = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    toast.success("Setting saved!");
+  useEffect(() => {
+    fetchProfile();
+  }, [session]);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/users/me");
+      setProfile(res.data);
+    } catch (err) {
+      console.error("Failed to fetch profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
+   const update = async (key: string, value: any) => {
+  setSettings(prev => ({ ...prev, [key]: value }));
+  try {
+    if (key === "is_private" || key === "bio") {
+      await api.patch("/social/profile", { [key === "is_private" ? "is_private" : "bio"]: value });
+    }
+    toast.success("Setting saved!");
+  } catch {
+    toast.error("Failed to save setting.");
+  }
+};
   const handleClearCache = () => {
     toast.success("Cache cleared successfully!");
   };
@@ -98,6 +128,25 @@ export default function SettingsPage() {
       toast.success("🎉 Developer mode enabled!");
     } else if (taps >= 4) {
       toast.info(`${7 - taps} more taps to enable Developer Mode`);
+    }
+  };
+
+  const handleStartVerification = () => {
+    setShowWizard(true);
+    setWizardStep(1);
+  };
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    try {
+      await api.post("/users/me/verify-publisher");
+      toast.success("Congratulations! You are now a verified publisher.");
+      setShowWizard(false);
+      fetchProfile();
+    } catch {
+      toast.error("Verification failed. Please try again.");
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -127,25 +176,8 @@ export default function SettingsPage() {
       rows: (
         <>
           <SettingRow icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={<Toggle checked={settings.biometric} onChange={v => update("biometric", v)} />} />
-          <SettingRow icon={<Smartphone size={15} />} label="App Permissions Manager" description="Manage what apps can access on your device" right={
-            <button className="flex items-center gap-1 text-xs font-bold text-primary" onClick={() => toast.info("Opens system settings")}>
-              Open <ChevronRight size={14} />
-            </button>
-          } />
           <SettingRow icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={<Toggle checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
           <SettingRow icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={<Toggle checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
-        </>
-      )
-    },
-    {
-      title: "Display & Experience",
-      icon: <Monitor size={16} />,
-      color: "from-purple-500 to-violet-600",
-      rows: (
-        <>
-          <SelectRow icon={<Moon size={15} />} label="Theme" description="Choose your preferred appearance" options={["System Default", "Light", "Dark", "Amoled Black"]} value={settings.theme} onChange={v => update("theme", v)} />
-          <SelectRow icon={<Sun size={15} />} label="Video Autoplay" description="When to autoplay app preview videos" options={["Always", "Wi-Fi only", "Off"]} value={settings.videoAutoplay} onChange={v => update("videoAutoplay", v)} />
-          <SelectRow icon={<Globe size={15} />} label="Language & Region" description="Change storefront language and currency" options={["English", "Hindi", "Tamil", "Telugu", "Kannada"]} value={settings.language} onChange={v => update("language", v)} />
         </>
       )
     },
@@ -159,12 +191,6 @@ export default function SettingsPage() {
             <button onClick={handleClearCache} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
               Clear
             </button>
-          } />
-          <SettingRow icon={<HardDrive size={15} />} label="Installation Path" description="Choose storage location for downloads" right={
-            <select className="text-xs font-bold bg-surface-low border border-outline-variant rounded-xl px-3 py-2 text-on-surface focus:outline-none">
-              <option>Internal Storage</option>
-              <option>SD Card</option>
-            </select>
           } />
           <SettingRow
             icon={<Code size={15} />}
@@ -189,8 +215,152 @@ export default function SettingsPage() {
       </motion.div>
 
       <div className="space-y-4">
+        {/* Publisher Section */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <GlassCard className="p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4 rotate-12">
+              <Sparkles size={120} className="text-primary" />
+            </div>
+            
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-lg shadow-primary/20">
+                    <Briefcase size={20} />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-on-surface">Publisher Account</h2>
+                    <p className="text-xs text-on-surface-variant">Publish your own innovations</p>
+                  </div>
+                </div>
+                {profile?.is_publisher ? (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                    <ShieldCheck size={14} /> Verified
+                  </div>
+                ) : (
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border border-outline-variant px-3 py-1.5 rounded-full">
+                    Not Verified
+                  </div>
+                )}
+              </div>
+
+              {!profile?.is_publisher && !showWizard && (
+                <div className="bg-surface-low rounded-2xl p-5 border border-outline-variant/30 flex flex-col gap-4">
+                  <p className="text-sm text-on-surface leading-loose">
+                    Want to share your apps, music, or books with the world? Get verified to access the <span className="text-primary font-bold">Publisher Hub</span> and reach thousands of users.
+                  </p>
+                  <Button onClick={handleStartVerification} className="w-full sm:w-auto self-start">
+                    Apply for Verification <ArrowRight size={16} className="ml-2" />
+                  </Button>
+                </div>
+              )}
+
+              <AnimatePresence mode="wait">
+                {showWizard && (
+                  <motion.div
+                    key="wizard"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-6"
+                  >
+                    <div className="flex items-center gap-1 mb-4">
+                      {[1, 2, 3].map((s) => (
+                        <div key={s} className="flex-1 h-1.5 rounded-full bg-surface-low overflow-hidden">
+                          <motion.div 
+                            initial={false}
+                            animate={{ width: wizardStep >= s ? "100%" : "0%" }}
+                            className="h-full bg-primary"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {wizardStep === 1 && (
+                        <motion.div key="s1" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4">
+                          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-2">
+                             <UserPlus size={24} />
+                          </div>
+                          <h3 className="text-xl font-bold">Creator Profile</h3>
+                          <p className="text-sm text-on-surface-variant">Verify your details to build trust with your future audience.</p>
+                          <div className="space-y-3">
+                             <div className="p-4 rounded-xl bg-surface-low border border-outline-variant flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                   <Mail size={16} className="text-on-surface-variant" />
+                                   <span className="text-sm text-on-surface">{profile?.email}</span>
+                                </div>
+                                <Check size={16} className="text-green-500" />
+                             </div>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {wizardStep === 2 && (
+                        <motion.div key="s2" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4">
+                          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-2">
+                             <GitFork size={24} />
+                          </div>
+                          <h3 className="text-xl font-bold">Portfolio Link</h3>
+                          <p className="text-sm text-on-surface-variant">Connect your work or share a link to your public repositories.</p>
+                          <div className="relative">
+                            <input 
+                              type="text" 
+                              placeholder="https://github.com/username"
+                              className="w-full bg-surface-low rounded-xl px-4 py-3 border border-outline-variant focus:border-primary outline-none text-sm"
+                            />
+                            <GitFork className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {wizardStep === 3 && (
+                        <motion.div key="s3" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-4 text-center py-4">
+                          <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mx-auto mb-4">
+                             <ShieldCheck size={40} />
+                          </div>
+                          <h3 className="text-2xl font-bold">Almost There!</h3>
+                          <p className="text-sm text-on-surface-variant max-w-xs mx-auto">By clicking verify, you agree to our Publisher Terms and Code of Conduct.</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="flex gap-3 pt-4">
+                      {wizardStep > 1 && (
+                        <button 
+                          onClick={() => setWizardStep(s => s - 1)}
+                          className="px-6 py-3 rounded-xl border border-outline-variant hover:bg-surface-low font-bold text-sm"
+                        >
+                          Back
+                        </button>
+                      )}
+                      <Button 
+                        onClick={wizardStep === 3 ? handleVerify : () => setWizardStep(s => s + 1)}
+                        className="flex-grow py-6 text-base"
+                        disabled={verifying}
+                      >
+                        {verifying ? "Verifying..." : wizardStep === 3 ? "Complete Verification" : "Continue"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {profile?.is_publisher && (
+                <button 
+                  onClick={() => router.push("/publisher")}
+                  className="w-full py-4 rounded-2xl bg-surface-low border border-outline-variant hover:border-primary/50 flex items-center justify-center gap-2 group transition-all"
+                >
+                  <span className="font-bold text-sm group-hover:text-primary">Go to Publisher Hub</span>
+                  <ArrowRight size={16} className="text-on-surface-variant group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </button>
+              )}
+            </div>
+          </GlassCard>
+        </motion.div>
+
         {sections.map((section, i) => (
-          <motion.div key={section.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+          <motion.div key={section.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.08 }}>
             <GlassCard className="p-5">
               <div className="flex items-center gap-3 mb-2">
                 <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center text-white`}>

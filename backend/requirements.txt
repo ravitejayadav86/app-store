@@ -11,3 +11,6 @@ python-multipart==0.0.9
 pydantic==2.7.1
 pydantic-core==2.18.2
 cloudinary==1.36.0
+slowapi==0.1.9
+limits==3.6.0
+bleach==6.1.0
