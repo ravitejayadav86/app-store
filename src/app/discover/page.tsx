@@ -15,6 +15,7 @@ interface App {
   developer: string;
   price: number;
   created_at: string;
+  file_path?: string | null;
 }
 
 export default function DiscoverPage() {
@@ -109,10 +110,17 @@ export default function DiscoverPage() {
                         <p className="text-sm text-on-surface-variant">{app.category}</p>
                       </div>
                       <div className="flex items-center justify-between mt-auto">
-                        <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">
-                          {app.price === 0 ? "Free" : `$${app.price}`}
-                        </span>
-                        <Button size="sm">Details</Button>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">
+                            {app.price === 0 ? "Free" : `$${app.price}`}
+                          </span>
+                          {!app.file_path && (
+                            <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Unavailable</span>
+                          )}
+                        </div>
+                        <Button size="sm" variant={app.file_path ? "primary" : "secondary"}>
+                          {app.file_path ? "Get" : "View"}
+                        </Button>
                       </div>
                     </GlassCard>
                   </Link>
@@ -145,8 +153,15 @@ export default function DiscoverPage() {
                           <p className="text-sm text-on-surface-variant">{app.category}</p>
                         </div>
                         <div className="flex items-center justify-between mt-auto">
-                          <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">NEW</span>
-                          <Button size="sm">Details</Button>
+                          <div className="flex flex-col gap-0.5">
+                             <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">NEW</span>
+                             {!app.file_path && (
+                               <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Unavailable</span>
+                             )}
+                          </div>
+                          <Button size="sm" variant={app.file_path ? "primary" : "secondary"}>
+                            {app.file_path ? "Get" : "View"}
+                          </Button>
                         </div>
                       </GlassCard>
                     </Link>

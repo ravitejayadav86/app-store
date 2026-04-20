@@ -15,6 +15,7 @@ interface PurchasedApp {
   developer: string;
   price: number;
   version: string;
+  file_path?: string | null;
 }
 
 interface Purchase {
@@ -154,11 +155,17 @@ export default function LibraryPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center justify-between">
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                            <Download size={12} /> Owned
-                          </span>
-                          <Button size="sm" variant="tertiary">Open</Button>
+                          <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                              <Download size={12} /> Owned
+                            </span>
+                            {!app?.file_path && (
+                              <span className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">File Removed</span>
+                            )}
+                          </div>
+                          <Button size="sm" variant="tertiary" disabled={!app?.file_path}>
+                            {app?.file_path ? "Open" : "N/A"}
+                          </Button>
                         </div>
                       </div>
                     </GlassCard>

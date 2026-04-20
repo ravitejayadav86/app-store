@@ -14,6 +14,7 @@ interface App {
   category: string;
   developer: string;
   price: number;
+  file_path?: string | null;
 }
 
 export default function Home() {
@@ -141,13 +142,20 @@ export default function Home() {
                       <p className="text-sm text-on-surface-variant">{app.category}</p>
                     </div>
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-1 text-xs font-semibold text-primary">
-                        <span className="bg-primary/10 px-2 py-0.5 rounded uppercase">
-                          {app.price === 0 ? "FREE" : `$${app.price}`}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                          <span className="bg-primary/10 px-2 py-0.5 rounded uppercase">
+                            {app.price === 0 ? "FREE" : `$${app.price}`}
+                          </span>
+                        </div>
+                        {!app.file_path && (
+                          <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Not available</span>
+                        )}
                       </div>
                       <Link href={`/apps/${app.id}`}>
-                        <Button size="sm">Get</Button>
+                        <Button size="sm" variant={!app.file_path ? "secondary" : "primary"}>
+                          {app.file_path ? "Get" : "View"}
+                        </Button>
                       </Link>
                     </div>
                   </GlassCard>
