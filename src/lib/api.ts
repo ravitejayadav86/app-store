@@ -30,9 +30,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      // Token expired or invalid — clear it and redirect to login
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      const isLoginPage = window.location.pathname === "/login";
+      const hasToken = !!localStorage.getItem("token");
+
+      if (!isLoginPage && hasToken) {
+        // Only redirect if we thought we had a token but it's rejected
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else if (isLoginPage && hasToken) {
+        // Stuck on login with a bad token? Clear it.
+        localStorage.removeItem("token");
+      }
     }
     return Promise.reject(error);
   }

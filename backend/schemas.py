@@ -25,6 +25,10 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class OAuthLoginInput(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+
 class TokenData(BaseModel):
     username: Optional[str] = None
 

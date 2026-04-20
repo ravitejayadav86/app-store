@@ -30,8 +30,8 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/oauth-login", response_model=schemas.Token)
-def oauth_login(payload: dict, db: Session = Depends(get_db)):
-    email = payload.get("email")
+def oauth_login(payload: schemas.OAuthLoginInput, db: Session = Depends(get_db)):
+    email = payload.email
     if not email:
         raise HTTPException(400, "Email required")
 

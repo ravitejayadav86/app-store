@@ -33,6 +33,8 @@ function TokenSync() {
         window.dispatchEvent(new Event("tokenReady"));
       } catch (err) {
         console.error("Failed to sync OAuth token", err);
+        // Mark as synced anyway to prevent infinite retry loops in this component
+        synced.current = true;
       }
     };
 
