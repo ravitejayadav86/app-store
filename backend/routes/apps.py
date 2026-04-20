@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import models, schemas, auth
 from database import get_db
+from routes import telemetry
 import os, cloudinary, cloudinary.uploader
 
 cloudinary.config(
@@ -97,11 +98,18 @@ def upload_file(
 @router.get("/{app_id}/download")
 def download_file(
     app_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_optional_user)
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
         raise HTTPException(404, "No file uploaded for this app.")
+    # Broadcast to telemetry
+    username = current_user.username if current_user else "Someone"
+    # We use a background task or just await since it's async
+    import asyncio
+    asyncio.create_task(telemetry.notify_download(app.name, username))
+
     # Redirect to Cloudinary URL directly
     return RedirectResponse(url=app.file_path)
 

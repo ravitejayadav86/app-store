@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Search, Download, Package, Loader2 } from "lucide-react";
+import { Search, Download, Package, Loader2, Clock, Activity } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
 
@@ -92,15 +92,23 @@ export default function LibraryPage() {
               </button>
             ))}
           </div>
-          <div className="w-full md:w-96 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search your library..."
-              className="w-full pl-12 pr-4 py-3 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/50 transition-all font-medium"
-            />
+          <div className="w-full md:w-auto flex items-center gap-4">
+            <Link href="/library/updates">
+              <Button variant="secondary" className="flex items-center gap-2 px-6">
+                <Activity size={18} className="text-primary" />
+                <span>Downloads & Updates</span>
+              </Button>
+            </Link>
+            <div className="flex-1 md:w-96 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search your library..."
+                className="w-full pl-12 pr-4 py-3 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/50 transition-all font-medium"
+              />
+            </div>
           </div>
         </header>
 

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from database import engine, Base
-from routes import auth, apps, users, admin, reviews, notifications, community, social
+from routes import auth, apps, users, admin, reviews, notifications, community, social, telemetry
 import os
 
 # Pre-deployment schema update to ensure new columns exist in production (Postgres)
@@ -41,6 +41,7 @@ app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(community.router)
 app.include_router(social.router)
+app.include_router(telemetry.router)
 
 @app.get("/health")
 def health():
