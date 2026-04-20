@@ -21,20 +21,10 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        api.post("/auth/oauth-login", { email: session.user.email })
-          .then((res) => {
-            localStorage.setItem("token", res.data.access_token);
-            router.push("/");
-          })
-          .catch(() => {
-            toast.error("Failed to authenticate with backend.");
-          });
-      }
+    if (status === "authenticated") {
+      router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,13 +120,13 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => signIn("github", { callbackUrl: "/login" })}
+              onClick={() => signIn("github", { callbackUrl: "/" })}
               className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
             >
               <Code size={20} /> Github
             </button>
             <button
-              onClick={() => signIn("google", { callbackUrl: "/login" })}
+              onClick={() => signIn("google", { callbackUrl: "/" })}
               className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
             >
               <div className="w-5 h-5 bg-on-surface-variant rounded-full" /> Google

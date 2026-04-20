@@ -8,6 +8,10 @@ function TokenSync() {
   const synced = useRef(false);
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      synced.current = false;
+      return;
+    }
     if (status === "loading") return;
     if (synced.current) return;
     if (!session?.user?.email) return;
