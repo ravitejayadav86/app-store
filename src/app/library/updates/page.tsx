@@ -74,14 +74,16 @@ export default function UpdatesPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 flex flex-col gap-12">
-      <header className="flex items-center gap-6">
-        <Button variant="tertiary" size="sm" onClick={() => router.back()} className="rounded-full w-10 h-10 p-0">
-          <ArrowLeft size={20} />
-        </Button>
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-on-surface">Downloads & Updates</h1>
-          <p className="text-on-surface-variant mt-1">Manage your downloads and see live store activity.</p>
+    <div className="flex flex-col gap-12 pb-20">
+      <header className="px-4 md:px-8 mt-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-6">
+          <Button variant="tertiary" size="sm" onClick={() => router.back()} className="rounded-full w-12 h-12 p-0 bg-surface-low border-outline-variant hover:border-primary/50 transition-all shadow-sm">
+            <ArrowLeft size={20} />
+          </Button>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-on-surface">Downloads & Updates</h1>
+            <p className="text-on-surface-variant mt-1 text-lg font-medium opacity-70">Manage your collection and see live store pulse.</p>
+          </div>
         </div>
       </header>
 
@@ -93,32 +95,34 @@ export default function UpdatesPage() {
             <h2 className="font-bold uppercase tracking-widest text-xs">Live Store Activity</h2>
           </div>
           
-          <GlassCard className="p-6 space-y-4 min-h-[400px]">
+          <GlassCard className="p-6 space-y-4 min-h-[500px] border-outline-variant/50 bg-surface-lowest/50 backdrop-blur-xl shadow-2xl shadow-primary/5">
             <AnimatePresence mode="popLayout">
               {liveDownloads.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center opacity-40 py-20">
-                  <RefreshCw className="animate-spin mb-4" size={24} />
-                  <p className="text-sm font-medium">Waiting for activity...</p>
+                <div className="h-full flex flex-col items-center justify-center text-center py-20">
+                  <div className="p-4 rounded-3xl bg-primary/5 text-primary mb-6 animate-pulse">
+                    <RefreshCw size={32} />
+                  </div>
+                  <p className="text-sm font-bold text-on-surface-variant uppercase tracking-widest opacity-40">Listening for activity...</p>
                 </div>
               ) : (
                 liveDownloads.map((dl) => (
                   <motion.div
                     key={dl.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex items-center gap-4 p-3 rounded-2xl bg-surface-lowest border border-outline-variant/30"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-outline-variant/30 hover:border-primary/20 transition-colors shadow-sm"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-primary to-primary-dim flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       {dl.username[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate">
-                        <span className="text-primary">{dl.username}</span> is downloading
+                      <p className="text-sm font-bold truncate text-on-surface">
+                        <span className="text-primary">{dl.username}</span>
                       </p>
-                      <p className="text-xs text-on-surface-variant truncate font-medium">{dl.app_name}</p>
+                      <p className="text-[11px] text-on-surface-variant truncate font-bold uppercase tracking-tight opacity-60">Downloaded {dl.app_name}</p>
                     </div>
-                    <div className="text-[10px] font-bold text-on-surface-variant/40 italic">Just now</div>
+                    <div className="text-[10px] font-bold text-primary/40 bg-primary/5 px-2 py-1 rounded-full whitespace-nowrap">JUST NOW</div>
                   </motion.div>
                 ))
               )}
@@ -141,26 +145,26 @@ export default function UpdatesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <GlassCard className="p-6 flex items-center justify-between group hover:bg-surface-low transition-colors">
+                <GlassCard className="p-5 flex items-center justify-between group hover:bg-surface-low transition-all duration-500 border-outline-variant/40 hover:border-primary/30 shadow-sm">
                   <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-surface-low flex items-center justify-center text-on-surface-variant group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-                      <Package size={24} />
+                    <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500 shadow-inner group-hover:scale-105">
+                      <Package size={28} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">{app.name}</h3>
-                      <p className="text-xs text-on-surface-variant font-medium">
-                        v{app.version} • Downloaded {new Date(app.last_downloaded!).toLocaleDateString()}
+                      <h3 className="font-bold text-xl text-on-surface group-hover:text-primary transition-colors">{app.name}</h3>
+                      <p className="text-xs text-on-surface-variant font-bold uppercase tracking-widest opacity-60 mt-1">
+                        v{app.version} • {new Date(app.last_downloaded!).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="hidden md:flex flex-col items-end mr-4">
-                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:flex flex-col items-end mr-2">
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-500/10 px-3 py-1 rounded-full uppercase tracking-widest">
                         <CheckCircle size={10} /> Up to date
                       </span>
                     </div>
-                    <Button variant="secondary" size="sm">Open</Button>
-                    <Button variant="tertiary" size="sm" className="w-10 h-10 p-0 rounded-full">
+                    <Button variant="secondary" size="sm" className="rounded-xl px-6 font-bold h-10">Open</Button>
+                    <Button variant="tertiary" size="sm" className="w-10 h-10 p-0 rounded-xl border border-outline-variant hover:bg-primary/5 hover:text-primary transition-all">
                       <Download size={18} />
                     </Button>
                   </div>

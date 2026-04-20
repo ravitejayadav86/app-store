@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import {
   ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2,
-  Music, BookOpen, Loader2, Send, User, Calendar
+  Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -123,7 +123,24 @@ function AppDetailContent() {
 
     // Check if a file has actually been uploaded
     if (!app.file_path) {
-      toast.info(`"${app.name}" has no file uploaded by the publisher yet.`);
+      toast.custom((t) => (
+        <div className="bg-surface-low border border-outline-variant p-4 rounded-2xl shadow-2xl flex flex-col gap-3 max-w-sm">
+          <div className="flex items-start gap-4">
+            <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+              <Clock size={20} />
+            </div>
+            <div>
+              <h4 className="font-bold text-on-surface">Almost Ready</h4>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                "{app.name}" has no file uploaded by the publisher yet. We have notified the developer to finalize the release.
+              </p>
+            </div>
+          </div>
+          <Button size="sm" variant="secondary" onClick={() => toast.dismiss(t.id)}>
+            Got it
+          </Button>
+        </div>
+      ), { duration: 5000 });
       return;
     }
 
@@ -216,8 +233,16 @@ function AppDetailContent() {
             <div className="w-full md:w-auto shrink-0 flex flex-col gap-3">
               <Button
                 size="lg"
-                className={`w-full md:w-48 py-6 text-lg shadow-xl ${!app.file_path ? "opacity-60 cursor-not-allowed" : "shadow-primary/25"}`}
+                className={`w-full md:w-48 py-6 text-lg transition-all duration-300 ${
+                  !app.file_path 
+                    ? "bg-surface-low text-on-surface-variant border border-outline-variant hover:bg-orange-500/5 hover:text-orange-600 hover:border-orange-500/20" 
+                    : "shadow-xl shadow-primary/25"
+                }`}
                 onClick={() => {
+                  if (!app.file_path) {
+                    handleDownload(); // Triggers the "Remind Publisher" toast
+                    return;
+                  }
                   if (app.price > 0) {
                     router.push(`/checkout?appId=${app.id}`);
                   } else {
@@ -226,11 +251,17 @@ function AppDetailContent() {
                 }}
                 disabled={downloading}
               >
-                <Download size={20} className="mr-2" />
+                {downloading ? (
+                  <Loader2 className="animate-spin mr-2" size={20} />
+                ) : !app.file_path ? (
+                  <Bell size={20} className="mr-2" />
+                ) : (
+                  <Download size={20} className="mr-2" />
+                )}
                 {downloading
-                  ? "Downloading..."
+                  ? "Processing..."
                   : !app.file_path
-                  ? "Not Available"
+                  ? "Remind Publisher"
                   : app.price === 0
                   ? "Free Download"
                   : `Buy $${app.price}`}
