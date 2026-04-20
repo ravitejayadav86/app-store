@@ -117,7 +117,7 @@ useEffect(() => {
     }
   };
 
-  const fetchMyApps = async () => {
+      const fetchMyApps = async () => {
     setMyAppsLoading(true);
     try {
       const res = await api.get("/apps/me");
@@ -127,7 +127,7 @@ useEffect(() => {
     } finally {
       setMyAppsLoading(false);
     }
-  };
+    };
 
   const handleDeleteApp = async (appId: number, appName: string) => {
     if (!confirm(`Are you sure you want to delete "${appName}"? This action cannot be undone.`)) return;
@@ -141,6 +141,22 @@ useEffect(() => {
       toast.error("Failed to delete app");
     }
   };
+  
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await api.post("/users/me/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    toast.success("Avatar updated!");
+    setProfile(prev => prev ? { ...prev, avatar_url: res.data.avatar_url } : prev);
+  } catch {
+    toast.error("Failed to upload avatar.");
+  }
+};
 
   const handleSave = async () => {
     setSaving(true);
@@ -192,13 +208,16 @@ useEffect(() => {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <div className="relative group">
                 <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-on-primary text-4xl font-bold shadow-lg overflow-hidden">
-                  {session?.user?.image
-                    ? <img src={session.user.image} alt="avatar" className="w-full h-full object-cover" />
-                    : avatarLetter}
+                {profile?.avatar_url
+                 ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                   : session?.user?.image
+                 ? <img src={session.user.image} alt="avatar" className="w-full h-full object-cover" />
+                  : avatarLetter}
                 </div>
-                <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera size={14} className="text-on-primary" />
-                </button>
+               <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                   <Camera size={14} className="text-on-primary" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
               </div>
               <div className="flex-1 text-center sm:text-left">
                 {editing ? (
