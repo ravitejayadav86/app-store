@@ -73,12 +73,23 @@ def my_submissions(
         models.App.developer == current_user.username
     ).all()
 
-@router.post("/me/verify-publisher")
+@router.post("/me/verify-publisher", response_model=schemas.MessageResponse)
 def verify_publisher(
+    data: Optional[schemas.UpdateProfile] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    current_user.is_publisher = True
-    db.commit()
-    db.refresh(current_user)
-    return {"message": "User is now a verified publisher", "is_publisher": True}
+    try:
+        current_user.is_publisher = True
+        if data:
+            if data.public_key:
+                current_user.public_key = data.public_key
+            if data.bio:
+                current_user.bio = data.bio
+        
+        db.commit()
+        db.refresh(current_user)
+        return {"message": "Success! You are now a verified publisher."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

@@ -98,6 +98,7 @@ export default function SettingsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [verifying, setVerifying] = useState(false);
+  const [portfolioLink, setPortfolioLink] = useState("");
 
   const [settings, setSettings] = useState({
     autoUpdate: "Over Wi-Fi only",
@@ -180,6 +181,7 @@ export default function SettingsPage() {
   };
 
   const handleStartVerification = () => {
+    setPortfolioLink("");
     setShowWizard(true);
     setWizardStep(1);
   };
@@ -187,12 +189,15 @@ export default function SettingsPage() {
   const handleVerify = async () => {
     setVerifying(true);
     try {
-      await api.post("/users/me/verify-publisher");
-      toast.success("Congratulations! You are now a verified publisher.");
+      const res = await api.post("/users/me/verify-publisher", { 
+        public_key: portfolioLink || null 
+      });
+      toast.success(res.data.message || "Congratulations! You are now a verified publisher.");
       setShowWizard(false);
       fetchProfile();
-    } catch {
-      toast.error("Verification failed. Please try again.");
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || err.response?.data?.message || "Verification failed. Please try again.";
+      toast.error(detail);
     } finally {
       setVerifying(false);
     }
@@ -454,6 +459,8 @@ export default function SettingsPage() {
                           <div className="relative">
                             <input 
                               type="text" 
+                              value={portfolioLink}
+                              onChange={(e) => setPortfolioLink(e.target.value)}
                               placeholder="https://github.com/username"
                               className="w-full bg-surface-low rounded-xl px-4 py-3 border border-outline-variant focus:border-primary outline-none text-sm"
                             />

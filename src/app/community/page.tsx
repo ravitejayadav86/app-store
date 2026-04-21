@@ -43,14 +43,21 @@ export default function CommunityPage() {
   const router = useRouter();
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<any[]>([]);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const searchUsers = async (q: string) => {
     setUserSearch(q);
     if (q.length < 2) { setUserResults([]); return; }
+    setIsSearching(true);
     try {
       const res = await api.get(`/social/search?q=${q}`);
       setUserResults(res.data);
-    } catch {}
+    } catch {
+      toast.error("Failed to search users");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const fetchPosts = useCallback(async () => {
@@ -175,7 +182,10 @@ export default function CommunityPage() {
             <Button 
               variant="secondary" 
               className="bg-white/10 text-white border-white/20"
-              onClick={() => document.getElementById('user-search')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                document.getElementById('user-search')?.scrollIntoView({ behavior: 'smooth' });
+                searchInputRef.current?.focus();
+              }}
             >
               <Search size={16} className="mr-2" />
               Find People
@@ -190,31 +200,38 @@ export default function CommunityPage() {
         <div className="relative" id="user-search">
           <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
+            ref={searchInputRef}
             value={userSearch}
             onChange={e => searchUsers(e.target.value)}
             placeholder="Search users..."
             className="w-full pl-11 pr-4 py-3 rounded-2xl bg-surface-low border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
           />
-          {userResults.length > 0 && (
+          {userSearch.length >= 2 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 overflow-hidden">
-              {userResults.map((u: any) => (
-                <button
-                  key={u.id}
-                  onClick={() => { router.push(`/users/${u.username}`); setUserResults([]); setUserSearch(""); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-low transition-colors text-left"
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden">
-                    {u.avatar_url 
-                      ? <img src={u.avatar_url} alt={u.username} className="w-full h-full object-cover" />
-                      : u.username[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface">{u.full_name || u.username}</p>
-                    <p className="text-[10px] text-on-surface-variant font-medium">@{u.username}</p>
-                    {u.bio && <p className="text-xs text-on-surface-variant line-clamp-1 mt-0.5">{u.bio}</p>}
-                  </div>
-                </button>
-              ))}
+              {isSearching ? (
+                <div className="p-4 text-center text-xs text-on-surface-variant animate-pulse">Searching...</div>
+              ) : userResults.length > 0 ? (
+                userResults.map((u: any) => (
+                  <button
+                    key={u.id}
+                    onClick={() => { router.push(`/users/${u.username}`); setUserResults([]); setUserSearch(""); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-low transition-colors text-left"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden">
+                      {u.avatar_url 
+                        ? <img src={u.avatar_url} alt={u.username} className="w-full h-full object-cover" />
+                        : u.username[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-on-surface">{u.full_name || u.username}</p>
+                      <p className="text-[10px] text-on-surface-variant font-medium">@{u.username}</p>
+                      {u.bio && <p className="text-xs text-on-surface-variant line-clamp-1 mt-0.5">{u.bio}</p>}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="p-4 text-center text-xs text-on-surface-variant">No users found for "{userSearch}"</div>
+              )}
             </div>
           )}
         </div>

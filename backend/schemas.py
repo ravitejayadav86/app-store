@@ -172,3 +172,7 @@ class UpdateProfile(BaseModel):
     safe_browsing: Optional[bool] = None
     auto_update: Optional[str] = None
     download_pref: Optional[str] = None
+
+class MessageResponse(BaseModel):
+    message: str
+    detail: Optional[str] = None

@@ -13,19 +13,34 @@ import os
 # Auto-migrate new columns
 try:
     with engine.connect() as conn:
-        for col, col_type in [
+        print("Running migrations...")
+        # Columns to add to users table
+        user_cols = [
             ("is_private", "BOOLEAN DEFAULT FALSE"),
             ("is_publisher", "BOOLEAN DEFAULT FALSE"),
             ("bio", "TEXT"),
             ("public_key", "TEXT"),
             ("avatar_url", "TEXT"),
             ("full_name", "TEXT"),
-        ]:
+            ("billing_address", "TEXT"),
+            ("payment_method", "TEXT"),
+            ("biometric_enabled", "BOOLEAN DEFAULT FALSE"),
+            ("safe_browsing", "BOOLEAN DEFAULT TRUE"),
+            ("auto_update", "TEXT DEFAULT 'Over Wi-Fi only'"),
+            ("download_pref", "TEXT DEFAULT 'Ask every time'"),
+        ]
+        
+        for col, col_type in user_cols:
             try:
+                # PostgreSQL specific check for column existence
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
                 conn.commit()
-            except Exception:
+                print(f"Added column {col}")
+            except Exception as e:
+                # Column likely exists
                 pass
+
+        # Table creations (handled by create_all normally, but let's be explicit for social features)
         for stmt in [
             "CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, user_id INTEGER, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW())",
             "CREATE TABLE IF NOT EXISTS post_likes (id SERIAL PRIMARY KEY, user_id INTEGER, post_id INTEGER)",
@@ -38,8 +53,9 @@ try:
                 conn.commit()
             except Exception:
                 pass
+        print("Migrations complete.")
 except Exception as e:
-    print(f"Migration warning: {e}")
+    print(f"Migration error: {e}")
 
 Base.metadata.create_all(bind=engine)
 
