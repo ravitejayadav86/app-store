@@ -170,7 +170,7 @@ export default function ChatPage() {
       {/* Header */}
       <div className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md sticky top-0 z-20">
         <button onClick={() => router.back()} className="text-on-surface-variant hover:text-primary transition-colors">
-          <ArrowLeft size(20) />
+          <ArrowLeft size={20} />
         </button>
         <Link href={`/users/${username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1">
           <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary/20 to-transparent flex items-center justify-center font-bold text-primary text-sm overflow-hidden shadow-inner border border-primary/5">
