@@ -64,11 +64,22 @@ export default function ProfilePage() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token && !session) { router.push("/login"); return; }
-  if (session || token) fetchProfile();
-}, [session?.user?.email]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token && !session) { 
+      const timer = setTimeout(() => {
+        if (!localStorage.getItem("token") && !session) router.push("/login");
+      }, 2000); // Give it a moment to sync if it's currently doing so
+      return () => clearTimeout(timer);
+    }
+    if (session || token) fetchProfile();
+
+    const handleSync = () => {
+      fetchProfile();
+    };
+    window.addEventListener("auth-synced", handleSync);
+    return () => window.removeEventListener("auth-synced", handleSync);
+  }, [session?.user?.email, router]);
 
 useEffect(() => {
   const githubLogin = (session as any)?.login;

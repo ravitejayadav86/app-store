@@ -55,8 +55,7 @@ def get_my_stats(
     ).count()
     
     published = db.query(models.App).filter(
-        models.App.developer == current_user.username,
-        models.App.is_approved == True
+        models.App.developer == current_user.username
     ).count()
     
     reviews = db.query(models.Review).filter(

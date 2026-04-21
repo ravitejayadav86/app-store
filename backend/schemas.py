@@ -143,6 +143,8 @@ class UserProfile(BaseModel):
     created_at: datetime
     followers_count: int = 0
     following_count: int = 0
+    installs_count: int = 0
+    reviews_count: int = 0
     is_following: bool = False
     apps: List[AppOut] = []
     posts: List[PostOut] = []

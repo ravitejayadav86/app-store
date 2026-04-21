@@ -42,6 +42,9 @@ def get_profile(
     
     followers_count = db.query(models.Follow).filter(models.Follow.following_id == user.id).count()
     following_count = db.query(models.Follow).filter(models.Follow.follower_id == user.id).count()
+    installs_count = db.query(models.Purchase).filter(models.Purchase.user_id == user.id).count()
+    reviews_count = db.query(models.Review).filter(models.Review.user_id == user.id).count()
+    
     is_following = False
     
     if current_user:
@@ -99,6 +102,8 @@ def get_profile(
         "created_at": user.created_at,
         "followers_count": followers_count,
         "following_count": following_count,
+        "installs_count": installs_count,
+        "reviews_count": reviews_count,
         "is_following": is_following,
         "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "created_at": a.created_at} for a in apps],
         "posts": posts

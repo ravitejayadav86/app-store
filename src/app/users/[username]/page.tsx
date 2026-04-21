@@ -149,15 +149,20 @@ export default function UserProfile() {
               </p>
             </div>
 
-            <div className="flex items-center gap-6 py-2 border-y border-outline-variant/30 w-full justify-center">
-              <div className="text-center">
+            <div className="flex flex-wrap items-center gap-4 py-4 border-y border-outline-variant/30 w-full justify-center">
+              <div className="text-center min-w-[70px]">
                 <p className="text-xl font-bold">{profile.followers_count}</p>
                 <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Followers</p>
               </div>
-              <div className="w-px h-8 bg-outline-variant/30" />
-              <div className="text-center">
+              <div className="w-px h-8 bg-outline-variant/30 hidden sm:block" />
+              <div className="text-center min-w-[70px]">
                 <p className="text-xl font-bold">{profile.following_count}</p>
                 <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Following</p>
+              </div>
+              <div className="w-px h-8 bg-outline-variant/30 hidden sm:block" />
+              <div className="text-center min-w-[70px]">
+                <p className="text-xl font-bold">{profile.apps.length}</p>
+                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Published</p>
               </div>
             </div>
 
