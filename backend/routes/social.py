@@ -50,8 +50,7 @@ def get_profile(
             models.Follow.following_id == user.id
         ).first() is not None
 
-    apps = []
-        ).all()
+    apps = db.query(models.App).filter(models.App.developer == user.username).all()
 
     posts = []
     if not user.is_private or is_following or (current_user and current_user.id == user.id):
