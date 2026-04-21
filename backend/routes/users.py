@@ -112,3 +112,36 @@ def verify_publisher(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    @router.get("/me/stats")
+def get_my_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    installs = db.query(models.Purchase).filter(
+        models.Purchase.user_id == current_user.id
+    ).count()
+    
+    published = db.query(models.App).filter(
+        models.App.developer == current_user.username,
+        models.App.is_approved == True
+    ).count()
+    
+    reviews = db.query(models.Review).filter(
+        models.Review.user_id == current_user.id
+    ).count()
+    
+    followers = db.query(models.Follow).filter(
+        models.Follow.following_id == current_user.id
+    ).count()
+    
+    following = db.query(models.Follow).filter(
+        models.Follow.follower_id == current_user.id
+    ).count()
+    
+    return {
+        "installs": installs,
+        "published": published,
+        "reviews": reviews,
+        "followers": followers,
+        "following": following
+    }
