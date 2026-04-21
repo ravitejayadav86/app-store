@@ -176,3 +176,10 @@ class UpdateProfile(BaseModel):
 class MessageResponse(BaseModel):
     message: str
     detail: Optional[str] = None
+
+class UserStats(BaseModel):
+    installs: int
+    reviews: int
+    published: int
+    followers: int
+    following: int

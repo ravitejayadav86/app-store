@@ -118,23 +118,13 @@ useEffect(() => {
         setFormData({ full_name: session.user.name || "", email: session.user.email || "", bio: "", is_private: false });
       }
 
-      // Fetch social stats if we have a username
-      let followers = 0;
-      let following = 0;
-      if (username) {
-        try {
-          const socialRes = await api.get(`/social/profile/${username}`);
-          followers = socialRes.data.followers_count || 0;
-          following = socialRes.data.following_count || 0;
-          setProfile(prev => prev ? { ...prev, followers_count: followers, following_count: following } : prev);
-        } catch (err) {
-          console.error("Failed to fetch social stats", err);
-        }
+      // Fetch consolidated stats
+      try {
+        const statsRes = await api.get("/users/me/stats");
+        setLiveStats(statsRes.data);
+      } catch (err) {
+        console.error("Failed to fetch consolidated stats", err);
       }
-
-      const installs = purchasesRes.status === "fulfilled" ? purchasesRes.value.data.length : 0;
-      const published = analyticsRes.status === "fulfilled" ? analyticsRes.value.data.approved : 0;
-      setLiveStats({ installs, reviews: 0, published, followers, following });
     } finally {
       setLoading(false);
       fetchMyApps();

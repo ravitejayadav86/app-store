@@ -8,6 +8,7 @@ import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp, Sear
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import api from "@/lib/api";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface Reply {
   id: number;
@@ -45,6 +46,30 @@ export default function CommunityPage() {
   const [userResults, setUserResults] = useState<any[]>([]);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Real-time Integration
+  const { onEvent } = useRealtime(currentUserId || undefined);
+
+  onEvent("NEW_POST", (data) => {
+    setPosts(prev => {
+      if (prev.find(p => p.id === data.post.id)) return prev;
+      return [data.post, ...prev];
+    });
+  });
+
+  onEvent("NEW_REPLY", (data) => {
+    setPosts(prev => prev.map(p => {
+      if (p.id === data.reply.post_id) {
+        if (p.replies.find(r => r.id === data.reply.id)) return p;
+        return { ...p, replies: [...p.replies, data.reply] };
+      }
+      return p;
+    }));
+  });
+
+  onEvent("NOTIFICATION", (data) => {
+    toast.info(data.title, { description: data.message });
+  });
 
   const searchUsers = async (q: string) => {
     setUserSearch(q);

@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import models, schemas, auth
 from database import get_db
+import asyncio
+from realtime import manager
 
 router = APIRouter(prefix="/community", tags=["community"])
 
@@ -59,7 +61,14 @@ def create_post(
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return build_post(new_post, db, current_user)
+    
+    data = build_post(new_post, db, current_user)
+    # Broadcast to everyone
+    asyncio.create_task(manager.broadcast({
+        "type": "NEW_POST",
+        "post": data
+    }))
+    return data
 
 @router.delete("/posts/{post_id}")
 def delete_post(
@@ -114,9 +123,29 @@ def add_reply(
         content=reply.content
     )
     db.add(new_reply)
-    db.commit()
-    db.refresh(new_reply)
-    return {
+    
+    # Send Notification to Post Author if they are NOT the replier
+    if post.user_id != current_user.id:
+        notif = models.Notification(
+            user_id=post.user_id,
+            title="New Reply",
+            message=f"@{current_user.username} replied to your post!"
+        )
+        db.add(notif)
+        db.commit()
+        db.refresh(notif)
+        asyncio.create_task(manager.send_to_user(post.user_id, {
+            "type": "NOTIFICATION",
+            "id": notif.id,
+            "title": notif.title,
+            "message": notif.message,
+            "created_at": notif.created_at.isoformat()
+        }))
+    else:
+        db.commit()
+        db.refresh(new_reply)
+        
+    data = {
         "id": new_reply.id,
         "user_id": new_reply.user_id,
         "post_id": new_reply.post_id,
@@ -125,6 +154,14 @@ def add_reply(
         "username": current_user.username,
         "avatar_url": current_user.avatar_url
     }
+    
+    # Broadcast to everyone
+    asyncio.create_task(manager.broadcast({
+        "type": "NEW_REPLY",
+        "reply": data
+    }))
+    
+    return data
 
 @router.delete("/replies/{reply_id}")
 def delete_reply(

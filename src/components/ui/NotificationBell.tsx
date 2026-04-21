@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Bell, CheckCheck, X } from "lucide-react";
 import api from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface Notification {
   id: number;
@@ -21,7 +22,28 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [userId, setUserId] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api.get("/users/me")
+      .then(res => setUserId(res.data.id))
+      .catch(() => {});
+  }, []);
+
+  const { onEvent } = useRealtime(userId || undefined);
+
+  onEvent("NOTIFICATION", (data) => {
+    const newNotif: Notification = {
+      id: data.id,
+      title: data.title,
+      message: data.message,
+      is_read: false,
+      created_at: data.created_at || new Date().toISOString()
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    setUnread(prev => prev + 1);
+  });
 
   const fetchNotifications = useCallback(async () => {
     try {

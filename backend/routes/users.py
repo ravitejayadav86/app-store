@@ -36,6 +36,25 @@ def update_me(
     db.refresh(current_user)
     return current_user
 
+@router.get("/me/stats", response_model=schemas.UserStats)
+def get_my_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    installs = db.query(models.Purchase).filter(models.Purchase.user_id == current_user.id).count()
+    reviews = db.query(models.Review).filter(models.Review.user_id == current_user.id).count()
+    published = db.query(models.App).filter(models.App.developer == current_user.username, models.App.is_approved == True).count()
+    followers = db.query(models.Follow).filter(models.Follow.following_id == current_user.id).count()
+    following = db.query(models.Follow).filter(models.Follow.follower_id == current_user.id).count()
+    
+    return {
+        "installs": installs,
+        "reviews": reviews,
+        "published": published,
+        "followers": followers,
+        "following": following
+    }
+
 @router.post("/me/avatar")
 def upload_avatar(
     file: UploadFile = File(...),
