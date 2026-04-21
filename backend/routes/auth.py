@@ -46,6 +46,14 @@ def register(request: Request, user: schemas.UserCreate, db: Session = Depends(g
 @limiter.limit("10/minute")
 def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     identifier = form.username.lower()
+    check_login_attempts(identifier)
+    user = db.query(models.User).filter(models.User.username == form.username).first()
+    if not user or not auth.verify_password(form.password, user.hashed_password):
+        record_failed_attempt(identifier)
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    clear_attempts(identifier)
+    token = auth.create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
     
     # Check lockout
     check_login_attempts(identifier)
@@ -54,7 +62,7 @@ def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Ses
     
     if not user or not auth.verify_password(form.password, user.hashed_password):
         record_failed_attempt(identifier)
-        attempts_left = 5 - len([a for a in (login_attempts if hasattr(login_attempts, '__getitem__') else {}).get(identifier, []) if True])
+       
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password"
