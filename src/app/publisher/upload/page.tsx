@@ -179,9 +179,7 @@ function UploadFormContent() {
     screenshots.forEach((s) => formData.append("screenshots", s));
 
     try {
-      await api.post(`/apps/${appId}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post(`/apps/${appId}/upload`, formData);
       toast.success("Application is now live!");
       setStep(3);
     } catch (err: unknown) {

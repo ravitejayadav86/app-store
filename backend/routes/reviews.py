@@ -4,8 +4,13 @@ from sqlalchemy.orm import Session
 import models, schemas, auth
 from database import get_db
 
-router = APIRouter(prefix="/reviews", tags=["reviews"])
 
+@router.get("/me", response_model=List[schemas.ReviewOut])
+def get_my_reviews(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return db.query(models.Review).filter(models.Review.user_id == current_user.id).all()
 
 @router.get("/{app_id}", response_model=List[schemas.ReviewOut])
 def get_reviews(app_id: int, db: Session = Depends(get_db)):

@@ -40,6 +40,19 @@ try:
                 # Column likely exists
                 pass
 
+        # Columns to add to apps table
+        app_cols = [
+            ("icon_url", "TEXT"),
+            ("screenshot_urls", "TEXT"),
+        ]
+        for col, col_type in app_cols:
+            try:
+                conn.execute(text(f"ALTER TABLE apps ADD COLUMN {col} {col_type}"))
+                conn.commit()
+                print(f"Added column {col} to apps")
+            except Exception:
+                pass
+
         # Table creations (handled by create_all normally, but let's be explicit for social features)
         for stmt in [
             "CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, user_id INTEGER, content TEXT, created_at TIMESTAMPTZ DEFAULT NOW())",

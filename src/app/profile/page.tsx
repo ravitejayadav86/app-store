@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { User, Users, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, ExternalLink, GitFork, Trash2 } from "lucide-react";
@@ -57,6 +57,12 @@ export default function ProfilePage() {
   const [reposLoading, setReposLoading] = useState(false);
   const [myApps, setMyApps] = useState<any[]>([]);
   const [myAppsLoading, setMyAppsLoading] = useState(false);
+  const [purchasedApps, setPurchasedApps] = useState<any[]>([]);
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [following, setFollowing] = useState<any[]>([]);
+  const [myReviews, setMyReviews] = useState<any[]>([]);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
 useEffect(() => {
   const token = localStorage.getItem("token");
@@ -125,9 +131,40 @@ useEffect(() => {
       } catch (err) {
         console.error("Failed to fetch consolidated stats", err);
       }
+
+      // Fetch purchases
+      try {
+        const purchasesRes = await api.get("/users/me/purchases");
+        setPurchasedApps(purchasesRes.data);
+      } catch (err) {
+        console.error("Failed to fetch purchases", err);
+      }
     } finally {
       setLoading(false);
       fetchMyApps();
+    }
+  };
+
+  const fetchDetails = async (tab: string) => {
+    setActiveTab(tab === activeTab ? null : tab);
+    if (tab === activeTab) return;
+
+    setDetailsLoading(true);
+    try {
+      if (tab === "Followers") {
+        const res = await api.get(`/social/followers/${profile?.username}`);
+        setFollowers(res.data);
+      } else if (tab === "Following") {
+        const res = await api.get(`/social/following/${profile?.username}`);
+        setFollowing(res.data);
+      } else if (tab === "Reviews") {
+        const res = await api.get("/reviews/me");
+        setMyReviews(res.data);
+      }
+    } catch {
+      toast.error(`Failed to fetch ${tab.toLowerCase()}`);
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -263,7 +300,7 @@ useEffect(() => {
           </GlassCard>
         </motion.div>
 
-        {/* Stats */}
+        {/* Interactive Stats Buttons */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
             { label: "Followers", value: liveStats.followers, icon: User },
@@ -272,13 +309,181 @@ useEffect(() => {
             { label: "Published", value: liveStats.published, icon: Package },
             { label: "Reviews", value: liveStats.reviews, icon: Star },
           ].map((stat, i) => (
-            <GlassCard key={i} className="p-4 text-center">
-              <stat.icon size={18} className="text-primary mx-auto mb-2" />
-              <p className="text-xl font-bold text-on-surface">{stat.value}</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
-            </GlassCard>
+            <button 
+              key={i} 
+              onClick={() => fetchDetails(stat.label)}
+              className={`group relative transition-all duration-300 ${activeTab === stat.label ? 'scale-105' : 'hover:scale-105'}`}
+            >
+              <GlassCard className={`p-4 text-center transition-all h-full ${activeTab === stat.label ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:border-primary/30'}`}>
+                <stat.icon size={18} className={`mx-auto mb-2 transition-colors ${activeTab === stat.label ? 'text-primary' : 'text-primary/60 group-hover:text-primary'}`} />
+                <p className="text-xl font-bold text-on-surface">{stat.value}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
+                {activeTab === stat.label && (
+                   <motion.div layoutId="activeTabUnderline" className="absolute -bottom-1 left-4 right-4 h-0.5 bg-primary rounded-full" />
+                )}
+              </GlassCard>
+            </button>
           ))}
         </motion.div>
+
+        {/* Detailed List View */}
+        <AnimatePresence mode="wait">
+          {activeTab && (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -20 }}
+              className="overflow-hidden"
+            >
+              <GlassCard className="p-8 border-primary/20 bg-primary/5">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    {activeTab === "Followers" && <User size={16} />}
+                    {activeTab === "Following" && <Users size={16} />}
+                    {activeTab === "Installed" && <Download size={16} />}
+                    {activeTab === "Published" && <Package size={16} />}
+                    {activeTab === "Reviews" && <Star size={16} />}
+                    {activeTab} Detailed View
+                  </h3>
+                  <button onClick={() => setActiveTab(null)} className="p-1 hover:bg-primary/10 rounded-lg transition-colors">
+                    <X size={16} className="text-on-surface-variant" />
+                  </button>
+                </div>
+
+                {detailsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-4">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Hydrating data...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Followers / Following List */}
+                    {(activeTab === "Followers" || activeTab === "Following") && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {(activeTab === "Followers" ? followers : following).length === 0 ? (
+                          <div className="col-span-full py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
+                            No {activeTab.toLowerCase()} found.
+                          </div>
+                        ) : (
+                          (activeTab === "Followers" ? followers : following).map((u: any) => (
+                            <div key={u.id} className="flex items-center justify-between p-4 bg-surface/40 rounded-2xl border border-outline-variant hover:border-primary/30 transition-all group">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                  {u.avatar_url ? <img src={u.avatar_url} className="w-full h-full rounded-full object-cover" /> : u.username[0].toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-sm text-on-surface">@{u.username}</p>
+                                  <p className="text-[10px] text-on-surface-variant line-clamp-1">{u.bio || "No bio set."}</p>
+                                </div>
+                              </div>
+                              <Button size="sm" variant="secondary" onClick={() => router.push(`/users/${u.username}`)}>
+                                Profile
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+
+                    {/* Installed Apps List */}
+                    {activeTab === "Installed" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {purchasedApps.length === 0 ? (
+                          <div className="col-span-full py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
+                            No apps installed yet.
+                          </div>
+                        ) : (
+                          purchasedApps.map((p: any) => (
+                            <div key={p.id} className="flex items-center gap-4 p-4 bg-surface/40 rounded-2xl border border-outline-variant hover:border-primary/30 transition-all cursor-pointer" onClick={() => router.push(`/apps/${p.app.id}`)}>
+                              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                                {p.app.name[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-on-surface truncate">{p.app.name}</p>
+                                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">{p.app.category} • v{p.app.version}</p>
+                              </div>
+                              {p.app.file_path && (
+                                <span className="bg-green-500/10 text-green-600 px-2 py-0.5 rounded text-[10px] font-bold">READY</span>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+
+                    {/* Published Apps List (Real-time Status) */}
+                    {activeTab === "Published" && (
+                      <div className="space-y-3">
+                        {myApps.length === 0 ? (
+                          <div className="py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
+                            No apps published yet.
+                          </div>
+                        ) : (
+                          myApps.map((app: any) => (
+                            <div key={app.id} className="flex items-center justify-between p-4 bg-surface/40 rounded-2xl border border-outline-variant">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                  {app.name[0].toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-on-surface">{app.name}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${app.is_approved ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                                      {app.is_approved ? 'APPROVED' : 'PENDING APPROVAL'}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-0.5 rounded-full">
+                                      {app.category.toUpperCase()}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => router.push(`/apps/${app.id}`)} className="p-2 hover:bg-primary/10 rounded-xl transition-all text-primary"><ExternalLink size={18} /></button>
+                                <button onClick={() => handleDeleteApp(app.id, app.name)} className="p-2 hover:bg-red-50 rounded-xl transition-all text-red-500"><Trash2 size={18} /></button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                        <Button variant="secondary" className="w-full mt-2" onClick={() => router.push("/publisher")}>Upload New Achievement</Button>
+                      </div>
+                    )}
+
+                    {/* Reviews List */}
+                    {activeTab === "Reviews" && (
+                      <div className="space-y-4">
+                        {myReviews.length === 0 ? (
+                          <div className="py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
+                            No reviews placed yet.
+                          </div>
+                        ) : (
+                          myReviews.map((r: any) => (
+                            <div key={r.id} className="p-4 bg-surface/40 rounded-2xl border border-outline-variant">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={12} className={i < r.rating ? "fill-primary text-primary" : "text-on-surface-variant/20"} />
+                                  ))}
+                                </div>
+                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                                  {new Date(r.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <p className="text-sm text-on-surface-variant leading-relaxed">"{r.comment || "No comment provided."}"</p>
+                              <div className="mt-3 flex justify-end">
+                                <Button size="sm" variant="tertiary" className="text-[10px]" onClick={() => router.push(`/apps/${r.app_id}`)}>View App</Button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Bio Section */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}>

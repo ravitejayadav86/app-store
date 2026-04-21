@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import models, schemas, auth
 from database import get_db
 from routes import telemetry
-import os, cloudinary, cloudinary.uploader
+import os, cloudinary, cloudinary.uploader, json, re
+
+def sanitize_id(filename: str) -> str:
+    return re.sub(r'[^a-zA-Z0-9.\-_]', '_', filename)
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -72,7 +75,9 @@ def submit_app(
 @router.post("/{app_id}/upload")
 def upload_file(
     app_id: int,
-    file: UploadFile = File(...),
+    file: UploadFile = File(None),
+    icon: Optional[UploadFile] = File(None),
+    screenshots: List[UploadFile] = File([]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -83,18 +88,48 @@ def upload_file(
     if not app:
         raise HTTPException(404, "App not found")
 
-    # Upload to Cloudinary
-    result = cloudinary.uploader.upload(
-        file.file,
-        resource_type="raw",
-        folder="pandastore",
-        public_id=f"app_{app_id}_{file.filename}"
-    )
+    # 1. Upload App File (if provided)
+    if file:
+        safe_name = sanitize_id(file.filename)
+        result = cloudinary.uploader.upload(
+            file.file,
+            resource_type="raw",
+            folder="pandastore",
+            public_id=f"app_{app_id}_{safe_name}"
+        )
+        app.file_path = result["secure_url"]
 
-    # Save Cloudinary URL to database
-    app.file_path = result["secure_url"]
+    # 2. Upload Icon (if provided)
+    if icon:
+        icon_result = cloudinary.uploader.upload(
+            icon.file,
+            resource_type="image",
+            folder="pandastore/icons",
+            public_id=f"icon_{app_id}"
+        )
+        app.icon_url = icon_result["secure_url"]
+
+    # 3. Upload Screenshots (if provided)
+    if screenshots:
+        shot_urls = []
+        for i, shot in enumerate(screenshots):
+            shot_result = cloudinary.uploader.upload(
+                shot.file,
+                resource_type="image",
+                folder=f"pandastore/screenshots/{app_id}",
+                public_id=f"shot_{i}_{sanitize_id(shot.filename)}"
+            )
+            shot_urls.append(shot_result["secure_url"])
+        app.screenshot_urls = json.dumps(shot_urls)
+
     db.commit()
-    return {"message": "File uploaded", "file_path": result["secure_url"]}
+    db.refresh(app)
+    return {
+        "message": "Files uploaded successfully",
+        "file_path": app.file_path,
+        "icon_url": app.icon_url,
+        "screenshot_urls": app.screenshot_urls
+    }
 
 @router.get("/{app_id}/download")
 def download_file(
