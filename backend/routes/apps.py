@@ -21,7 +21,6 @@ router = APIRouter(prefix="/apps", tags=["apps"])
 from fastapi_cache.decorator import cache
 
 @router.get("/", response_model=List[schemas.AppOut])
-@cache(expire=60)
 def get_apps(db: Session = Depends(get_db)):
     return db.query(models.App).filter(
         models.App.is_approved == True,
@@ -176,7 +175,6 @@ def grant_access(
     return {"message": f"Access granted to {username}"}
 
 @router.get("/{app_id}", response_model=schemas.AppOut)
-@cache(expire=300)
 def get_app(app_id: int, db: Session = Depends(get_db)):
     app = db.query(models.App).filter(
         models.App.id == app_id,

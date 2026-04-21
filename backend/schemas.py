@@ -14,9 +14,9 @@ class UserOut(BaseModel):
     full_name: Optional[str] = None
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
-    is_active: bool
-    is_admin: bool
-    is_publisher: bool
+    is_active: bool = True
+    is_admin: bool = False
+    is_publisher: bool = False
     is_private: bool = False
     billing_address: Optional[str] = None
     payment_method: Optional[str] = None
@@ -165,6 +165,8 @@ class MessageOut(BaseModel):
         from_attributes = True
 
 class UpdateProfile(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
     bio: Optional[str] = None
     is_private: Optional[bool] = None
     public_key: Optional[str] = None

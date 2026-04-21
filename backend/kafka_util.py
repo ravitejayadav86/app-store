@@ -15,9 +15,19 @@ class KafkaManager:
     async def start(self):
         self.producer = AIOKafkaProducer(
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            request_timeout_ms=5000,
+            retry_backoff_ms=500
         )
-        await self.producer.start()
+        try:
+            # Wait at most 5 seconds for Kafka to connect
+            await asyncio.wait_for(self.producer.start(), timeout=5.0)
+        except asyncio.TimeoutError:
+            print("Kafka connection timed out. Producer will not be available.")
+            self.producer = None
+        except Exception as e:
+            print(f"Error starting Kafka producer: {e}")
+            self.producer = None
 
     async def stop(self):
         if self.producer:

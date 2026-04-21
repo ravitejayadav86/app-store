@@ -84,16 +84,29 @@ import time
 @app.on_event("startup")
 async def startup():
     # Cache init
-    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    try:
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        # Use a short connection timeout for Redis
+        redis = aioredis.from_url(
+            redis_url, 
+            encoding="utf8", 
+            decode_responses=True,
+            socket_connect_timeout=5.0
+        )
+        # Check if redis is actually reachable
+        await asyncio.wait_for(redis.ping(), timeout=5.0)
+        FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+        print("Redis cache initialized")
+    except Exception as e:
+        print(f"Could not initialize Redis cache: {e}")
     
     # Kafka init
     try:
         await kafka_manager.start()
-        print("Kafka producer started")
+        if kafka_manager.producer:
+            print("Kafka producer started")
     except Exception as e:
-        print(f"Could not start Kafka: {e}")
+        print(f"Unexpected error during Kafka startup: {e}")
 
 @app.on_event("shutdown")
 async def shutdown():
