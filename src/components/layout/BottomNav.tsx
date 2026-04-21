@@ -27,6 +27,7 @@ export const BottomNav = () => {
             <Link
               key={item.name}
               href={item.href}
+              aria-label={item.name}
               className={`relative flex flex-col items-center gap-1 w-16 py-2 transition-colors duration-300 ${
                 isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}

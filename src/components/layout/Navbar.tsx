@@ -46,19 +46,21 @@ export const Navbar = () => {
 
                 {/* Search Bar (expanded) */}
                 {searchOpen ? (
-                    <form onSubmit={handleSearch} className="flex-1 mx-6 flex items-center gap-2">
+                    <form onSubmit={handleSearch} className="flex-1 mx-6 flex items-center gap-2" role="search">
+                        <label htmlFor="nav-search-input" className="sr-only">Search PandaStore</label>
                         <input
                             autoFocus
+                            id="nav-search-input"
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search apps, games, music..."
                             className="w-full bg-surface-low border border-outline-variant rounded-full px-5 py-2 text-sm text-on-surface outline-none focus:border-primary transition-colors"
                         />
-                        <button type="submit" className="p-2 text-primary">
+                        <button type="submit" className="p-2 text-primary" aria-label="Submit search">
                             <Search size={20} />
                         </button>
-                        <button type="button" onClick={() => setSearchOpen(false)} className="p-2 text-on-surface-variant">
+                        <button type="button" onClick={() => setSearchOpen(false)} className="p-2 text-on-surface-variant" aria-label="Close search">
                             <X size={20} />
                         </button>
                     </form>
@@ -95,13 +97,14 @@ export const Navbar = () => {
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                                aria-label="Open search"
                             >
                                 <Search size={20} />
                             </button>
 
                             {/* Messages icon - logged in only */}
                             {session && (
-                                <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+                                <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Messages">
                                     <MessageCircle size={20} />
                                 </Link>
                             )}
@@ -136,12 +139,12 @@ export const Navbar = () => {
                             {session && <NotificationBell />}
 
                             {/* Settings icon */}
-                            <Link href="/settings" className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                            <Link href="/settings" className="p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
                                 <Settings size={18} />
                             </Link>
 
                             {/* Profile */}
-                            <Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group">
+                            <Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
                                 <User size={18} className="group-hover:text-primary transition-colors" />
                             </Link>
 

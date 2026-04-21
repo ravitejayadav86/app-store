@@ -26,7 +26,7 @@ export const Footer = () => {
 
         {/* Links */}
         <div>
-          <h4 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Explore</h4>
+          <h2 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Explore</h2>
           <ul className="space-y-4">
             {["New Releases", "Top Charts", "Editors Choice", "Collections"].map((item) => (
               <li key={item}>
@@ -39,7 +39,7 @@ export const Footer = () => {
         </div>
 
         <div>
-          <h4 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Platform</h4>
+          <h2 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Platform</h2>
           <ul className="space-y-4">
             {["iOS & macOS", "Android", "Web Player", "Dashboard"].map((item) => (
               <li key={item}>
@@ -52,7 +52,7 @@ export const Footer = () => {
         </div>
 
         <div>
-          <h4 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Community</h4>
+          <h2 className="font-semibold text-sm mb-6 uppercase tracking-widest text-on-surface">Community</h2>
           <ul className="space-y-4">
             {["For Developers", "Blog", "Support", "Careers"].map((item) => (
               <li key={item}>

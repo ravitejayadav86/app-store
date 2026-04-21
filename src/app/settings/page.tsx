@@ -32,10 +32,13 @@ interface Profile {
   download_pref: string;
 }
 
-function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (v: boolean) => void; id: string }) {
+function Toggle({ checked, onChange, id, label }: { checked: boolean; onChange: (v: boolean) => void; id: string; label: string }) {
   return (
     <button
       id={id}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${checked ? "bg-primary" : "bg-outline-variant"}`}
     >
@@ -44,7 +47,7 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (v: boo
   );
 }
 
-function SettingRow({ icon, label, description, right, id }: { icon: React.ReactNode; label: string; description?: string; right: React.ReactNode; id?: string }) {
+function SettingRow({ icon, label, description, right, id }: { icon: React.ReactNode; label: string; description?: string; right: (label: string) => React.ReactNode; id?: string }) {
   return (
     <div id={id} className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
       <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
@@ -54,7 +57,7 @@ function SettingRow({ icon, label, description, right, id }: { icon: React.React
         <p className="text-sm font-semibold text-on-surface">{label}</p>
         {description && <p className="text-xs text-on-surface-variant mt-0.5">{description}</p>}
       </div>
-      <div className="flex-shrink-0">{right}</div>
+      <div className="flex-shrink-0">{right(label)}</div>
     </div>
   );
 }
@@ -70,7 +73,7 @@ function SelectRow({ icon, label, description, options, value, onChange, id }: {
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-on-surface">{label}</p>
+        <label htmlFor={id} className="text-sm font-semibold text-on-surface block cursor-pointer">{label}</label>
         {description && <p className="text-xs text-on-surface-variant mt-0.5">{description}</p>}
       </div>
       <select
@@ -212,29 +215,33 @@ export default function SettingsPage() {
         </div>
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {profile?.is_admin && (
-            <Link href="/admin" id="link-admin-panel" className="block">
-              <button id="btn-admin-panel-top" className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <Shield size={16} />
-                  </div>
-                  <span className="text-sm font-bold">Admin Panel</span>
+            <Link 
+              href="/admin" 
+              id="link-admin-panel" 
+              className="group flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <Shield size={16} />
                 </div>
-                <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
-              </button>
+                <span className="text-sm font-bold">Admin Panel</span>
+              </div>
+              <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
             </Link>
           )}
           {profile?.is_publisher && (
-            <Link href="/publisher" id="link-publisher-portal" className="block">
-              <button id="btn-publisher-portal-top" className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all group">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                    <Sparkles size={16} />
-                  </div>
-                  <span className="text-sm font-bold">Publisher Hub</span>
+            <Link 
+              href="/publisher" 
+              id="link-publisher-portal" 
+              className="group flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                  <Sparkles size={16} />
                 </div>
-                <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
-              </button>
+                <span className="text-sm font-bold">Publisher Hub</span>
+              </div>
+              <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
             </Link>
           )}
         </div>
@@ -254,21 +261,23 @@ export default function SettingsPage() {
             icon={<User size={15} />} 
             label="Username" 
             description={profile?.username || "Panda user"} 
-            right={<span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
+            right={() => <span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
           />
           <SettingRow 
             id="row-email" 
             icon={<Mail size={15} />} 
             label="Email Address" 
             description={profile?.email || "user@example.com"} 
-            right={<span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
+            right={() => <span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
           />
           <div className="py-4 border-b border-outline-variant/20">
             <div className="flex items-center gap-4 mb-3">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
                 <Info size={15} />
               </div>
-              <p className="text-sm font-semibold text-on-surface">Biography</p>
+              <div className="flex-1 min-w-0">
+                <label htmlFor="field-bio" className="text-sm font-semibold text-on-surface block cursor-pointer mb-1">Biography</label>
+              </div>
             </div>
             <textarea 
               id="field-bio"
@@ -276,6 +285,7 @@ export default function SettingsPage() {
               placeholder="Tell the community about yourself..."
               defaultValue={profile?.bio || ""}
               onBlur={(e) => update("bio", e.target.value)}
+              aria-label="Your biography"
             />
           </div>
           <SettingRow 
@@ -283,7 +293,7 @@ export default function SettingsPage() {
             icon={<Lock size={15} />} 
             label="Private Account" 
             description="Hide your library and activity from public view" 
-            right={<Toggle id="setting-is-private" checked={profile?.is_private || false} onChange={v => update("is_private", v)} />} 
+            right={(label) => <Toggle id="setting-is-private" label={label} checked={profile?.is_private || false} onChange={v => update("is_private", v)} />} 
           />
         </>
       )
@@ -299,7 +309,7 @@ export default function SettingsPage() {
               <CreditCard size={15} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-on-surface">Payment Method</p>
+              <label htmlFor="input-payment-method" className="text-sm font-semibold text-on-surface block cursor-pointer">Payment Method</label>
               <input 
                 id="input-payment-method"
                 className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
@@ -317,7 +327,7 @@ export default function SettingsPage() {
               <Home size={15} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-on-surface">Billing Address</p>
+              <label htmlFor="input-billing-address" className="text-sm font-semibold text-on-surface block cursor-pointer">Billing Address</label>
               <input 
                 id="input-billing-address"
                 className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
@@ -339,9 +349,9 @@ export default function SettingsPage() {
       color: "from-red-500 to-rose-600",
       rows: (
         <>
-          <SettingRow id="row-biometric" icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={<Toggle id="setting-biometric" checked={settings.biometric} onChange={v => update("biometric", v)} />} />
-          <SettingRow id="row-safe-browsing" icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={<Toggle id="setting-safe-browsing" checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
-          <SettingRow id="row-data-sharing" icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={<Toggle id="setting-data-sharing" checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
+          <SettingRow id="row-biometric" icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={(label) => <Toggle id="setting-biometric" label={label} checked={settings.biometric} onChange={v => update("biometric", v)} />} />
+          <SettingRow id="row-safe-browsing" icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={(label) => <Toggle id="setting-safe-browsing" label={label} checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
+          <SettingRow id="row-data-sharing" icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={(label) => <Toggle id="setting-data-sharing" label={label} checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
         </>
       )
     },
@@ -353,8 +363,8 @@ export default function SettingsPage() {
         <>
           <SelectRow id="setting-auto-update" icon={<Wifi size={15} />} label="Auto-update apps" description="When to automatically update installed apps" options={["Over Wi-Fi only", "Over any network", "Don't auto-update"]} value={settings.autoUpdate} onChange={v => update("autoUpdate", v)} />
           <SelectRow id="setting-download-pref" icon={<Download size={15} />} label="App download preference" description="Network preference for downloading apps" options={["Ask every time", "Over Wi-Fi only", "Over any network"]} value={settings.downloadPref} onChange={v => update("downloadPref", v)} />
-          <SettingRow id="row-auto-archive" icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={<Toggle id="setting-auto-archive" checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
-          <SettingRow id="row-background-activity" icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={<Toggle id="setting-background-activity" checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
+          <SettingRow id="row-auto-archive" icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={(label) => <Toggle id="setting-auto-archive" label={label} checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
+          <SettingRow id="row-background-activity" icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={(label) => <Toggle id="setting-background-activity" label={label} checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
         </>
       )
     },
@@ -364,21 +374,21 @@ export default function SettingsPage() {
       color: "from-amber-500 to-orange-600",
       rows: (
         <>
-          <SettingRow id="row-clear-cache" icon={<Trash2 size={15} />} label="Clear Cache" description="Remove temporary thumbnails and cached data" right={
-            <button id="btn-clear-cache" onClick={handleClearCache} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
+          <SettingRow id="row-clear-cache" icon={<Trash2 size={15} />} label="Clear Cache" description="Remove temporary thumbnails and cached data" right={(label) => (
+            <button id="btn-clear-cache" onClick={handleClearCache} aria-label={label} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
               Clear
             </button>
-          } />
+          )} />
           <SettingRow
             id="row-dev-mode"
             icon={<Code size={15} />}
             label="Build Version"
             description={devMode ? "🎉 Developer Mode Active" : "Tap 7 times to enable Developer Mode"}
-            right={
-              <button id="btn-dev-mode" onClick={handleDevTap} className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${devMode ? "bg-green-500/10 text-green-500 flex items-center gap-1" : "bg-surface-low text-on-surface-variant hover:bg-surface border border-outline-variant"}`}>
+            right={(label) => (
+              <button id="btn-dev-mode" onClick={handleDevTap} aria-label={label} className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${devMode ? "bg-green-500/10 text-green-500 flex items-center gap-1" : "bg-surface-low text-on-surface-variant hover:bg-surface border border-outline-variant"}`}>
                 {devMode ? <><Check size={12} /> Enabled</> : "v1.0.0"}
               </button>
-            }
+            )}
           />
         </>
       )
@@ -413,18 +423,21 @@ export default function SettingsPage() {
                     <p className="text-xs text-on-surface-variant">Publish your own innovations</p>
                   </div>
                 </div>
-                {profile?.is_publisher ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
-                    <ShieldCheck size={14} /> Verified
-                  </div>
-                ) : (
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border border-outline-variant px-3 py-1.5 rounded-full">
-                    Not Verified
-                  </div>
+                {!loading && (
+                  profile?.is_publisher ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                      <ShieldCheck size={14} /> Verified
+                    </div>
+                  ) : (
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border border-outline-variant px-3 py-1.5 rounded-full">
+                      Not Verified
+                    </div>
+                  )
                 )}
+                {loading && <div className="w-20 h-6 bg-surface-low animate-pulse rounded-full" />}
               </div>
 
-              {!profile?.is_publisher && !showWizard && (
+              {!loading && !profile?.is_publisher && !showWizard && (
                 <div className="bg-surface-low rounded-2xl p-5 border border-outline-variant/30 flex flex-col gap-4">
                   <p className="text-sm text-on-surface leading-loose">
                     Want to share your apps, music, or books with the world? Get verified to access the <span className="text-primary font-bold">Publisher Hub</span> and reach thousands of users.
@@ -444,7 +457,7 @@ export default function SettingsPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-6"
                   >
-                    <div className="flex items-center gap-1 mb-4">
+                    <div className="flex items-center gap-1 mb-4" role="progressbar" aria-valuenow={wizardStep} aria-valuemin={1} aria-valuemax={3}>
                       {[1, 2, 3].map((s) => (
                         <div key={s} className="flex-1 h-1.5 rounded-full bg-surface-low overflow-hidden">
                           <motion.div 

@@ -109,7 +109,7 @@ export default function Home() {
                     <div className="flex items-center gap-1 text-xs font-semibold text-primary">
                       <span className="bg-primary/10 px-2 py-0.5 rounded">FREE</span>
                     </div>
-                    <Button size="sm">Get</Button>
+                    <Button size="sm" aria-label={`Get ${app.title}`}>Get</Button>
                   </div>
                 </GlassCard>
               </motion.div>
