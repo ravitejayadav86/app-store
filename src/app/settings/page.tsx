@@ -7,7 +7,8 @@ import {
   Download, Shield, Monitor, Settings, Wifi, HardDrive,
   Moon, Sun, Globe, Trash2, ChevronRight, Lock, Eye,
   Bell, Smartphone, Code, LogOut, Check, UserPlus, Sparkles,
-  ArrowRight, GitFork, Briefcase, ShieldCheck, Mail
+  ArrowRight, GitFork, Briefcase, ShieldCheck, Mail, CreditCard,
+  User, Home, Info
 } from "lucide-react";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
@@ -19,6 +20,8 @@ interface Profile {
   id: number;
   username: string;
   email: string;
+  bio: string;
+  is_private: boolean;
   is_publisher: boolean;
   is_admin: boolean;
 }
@@ -166,17 +169,122 @@ export default function SettingsPage() {
     signOut({ callbackUrl: "/" });
   };
 
+  const dashboardSection = (profile?.is_admin || profile?.is_publisher) && (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+      <GlassCard className="p-0 overflow-hidden border-primary/20 bg-linear-to-br from-primary/5 to-transparent">
+        <div className="bg-primary/10 px-6 py-3 border-b border-primary/10 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary">
+            <Settings size={14} className="animate-spin-slow" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Management Console</span>
+          </div>
+          {profile?.is_admin && <span className="bg-primary text-on-primary px-2 py-0.5 rounded text-[8px] font-black uppercase">Staff</span>}
+        </div>
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {profile?.is_admin && (
+            <Link href="/admin" id="link-admin-panel" className="block">
+              <button id="btn-admin-panel-top" className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <Shield size={16} />
+                  </div>
+                  <span className="text-sm font-bold">Admin Panel</span>
+                </div>
+                <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+          )}
+          {profile?.is_publisher && (
+            <Link href="/publisher" id="link-publisher-portal" className="block">
+              <button id="btn-publisher-portal-top" className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-surface hover:bg-primary/10 border border-outline-variant hover:border-primary/30 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                    <Sparkles size={16} />
+                  </div>
+                  <span className="text-sm font-bold">Publisher Hub</span>
+                </div>
+                <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+          )}
+        </div>
+      </GlassCard>
+    </motion.div>
+  );
+
   const sections = [
     {
-      title: "Downloads & Updates",
-      icon: <Download size={16} />,
-      color: "from-blue-500 to-indigo-600",
+      title: "Account Settings",
+      icon: <User size={16} />,
+      color: "from-indigo-500 to-purple-600",
       rows: (
         <>
-          <SelectRow id="setting-auto-update" icon={<Wifi size={15} />} label="Auto-update apps" description="When to automatically update installed apps" options={["Over Wi-Fi only", "Over any network", "Don't auto-update"]} value={settings.autoUpdate} onChange={v => update("autoUpdate", v)} />
-          <SelectRow id="setting-download-pref" icon={<Download size={15} />} label="App download preference" description="Network preference for downloading apps" options={["Ask every time", "Over Wi-Fi only", "Over any network"]} value={settings.downloadPref} onChange={v => update("downloadPref", v)} />
-          <SettingRow id="row-auto-archive" icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={<Toggle id="setting-auto-archive" checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
-          <SettingRow id="row-background-activity" icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={<Toggle id="setting-background-activity" checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
+          <SettingRow 
+            id="row-username" 
+            icon={<User size={15} />} 
+            label="Username" 
+            description={profile?.username || "Panda user"} 
+            right={<span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
+          />
+          <SettingRow 
+            id="row-email" 
+            icon={<Mail size={15} />} 
+            label="Email Address" 
+            description={profile?.email || "user@example.com"} 
+            right={<span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-1 rounded">Read-only</span>} 
+          />
+          <div className="py-4 border-b border-outline-variant/20">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                <Info size={15} />
+              </div>
+              <p className="text-sm font-semibold text-on-surface">Biography</p>
+            </div>
+            <textarea 
+              id="field-bio"
+              className="w-full bg-surface-low border border-outline-variant rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[100px]"
+              placeholder="Tell the community about yourself..."
+              defaultValue={profile?.bio || ""}
+              onBlur={(e) => update("bio", e.target.value)}
+            />
+          </div>
+          <SettingRow 
+            id="row-private-account" 
+            icon={<Lock size={15} />} 
+            label="Private Account" 
+            description="Hide your library and activity from public view" 
+            right={<Toggle id="setting-is-private" checked={profile?.is_private || false} onChange={v => update("is_private", v)} />} 
+          />
+        </>
+      )
+    },
+    {
+      title: "Billing & Payments",
+      icon: <CreditCard size={16} />,
+      color: "from-emerald-500 to-teal-600",
+      rows: (
+        <>
+          <SettingRow 
+            id="row-payment-method" 
+            icon={<CreditCard size={15} />} 
+            label="Payment Method" 
+            description="Visa ending in 4242" 
+            right={
+              <button id="btn-manage-payments" className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
+                Manage
+              </button>
+            } 
+          />
+          <SettingRow 
+            id="row-billing-address" 
+            icon={<Home size={15} />} 
+            label="Billing Address" 
+            description="123 Digital Avenue, CA 94025" 
+            right={
+              <button id="btn-edit-address" className="text-xs font-bold text-on-surface-variant bg-surface-low px-3 py-1.5 rounded-xl hover:bg-surface border border-outline-variant transition-all">
+                Edit
+              </button>
+            } 
+          />
         </>
       )
     },
@@ -189,6 +297,19 @@ export default function SettingsPage() {
           <SettingRow id="row-biometric" icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={<Toggle id="setting-biometric" checked={settings.biometric} onChange={v => update("biometric", v)} />} />
           <SettingRow id="row-safe-browsing" icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={<Toggle id="setting-safe-browsing" checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
           <SettingRow id="row-data-sharing" icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={<Toggle id="setting-data-sharing" checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
+        </>
+      )
+    },
+    {
+      title: "Download & Install",
+      icon: <Download size={16} />,
+      color: "from-blue-500 to-indigo-600",
+      rows: (
+        <>
+          <SelectRow id="setting-auto-update" icon={<Wifi size={15} />} label="Auto-update apps" description="When to automatically update installed apps" options={["Over Wi-Fi only", "Over any network", "Don't auto-update"]} value={settings.autoUpdate} onChange={v => update("autoUpdate", v)} />
+          <SelectRow id="setting-download-pref" icon={<Download size={15} />} label="App download preference" description="Network preference for downloading apps" options={["Ask every time", "Over Wi-Fi only", "Over any network"]} value={settings.downloadPref} onChange={v => update("downloadPref", v)} />
+          <SettingRow id="row-auto-archive" icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={<Toggle id="setting-auto-archive" checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
+          <SettingRow id="row-background-activity" icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={<Toggle id="setting-background-activity" checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
         </>
       )
     },
@@ -227,6 +348,8 @@ export default function SettingsPage() {
       </motion.div>
 
       <div className="space-y-4">
+        {dashboardSection}
+
         {/* Publisher Section */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <GlassCard className="p-6 relative overflow-hidden">
@@ -386,26 +509,6 @@ export default function SettingsPage() {
             </GlassCard>
           </motion.div>
         ))}
-
-        {/* Admin Panel (Admin Only) */}
-        {profile?.is_admin && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-            <Link href="/admin" id="link-admin-panel">
-              <button id="btn-admin-panel" className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-blue-200 text-blue-500 hover:bg-blue-50 transition-all font-bold text-sm">
-                <Shield size={16} /> Admin Panel
-              </button>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Publisher Portal */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
-          <Link href="/publisher" id="link-publisher-portal">
-            <button id="btn-publisher-portal" className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-outline-variant text-on-surface hover:bg-surface-low transition-all font-bold text-sm">
-              <Sparkles size={16} /> Publisher Portal
-            </button>
-          </Link>
-        </motion.div>
 
         {/* Sign Out */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
