@@ -88,9 +88,18 @@ function UploadFormContent() {
   useEffect(() => {
     const category = searchParams.get("category");
     const price = searchParams.get("price");
-    if (category || price) {
+    const idParam = searchParams.get("id");
+    const nameParam = searchParams.get("name");
+
+    if (idParam) {
+      setAppId(parseInt(idParam));
+      setStep(2); // Jump straight to upload
+    }
+
+    if (nameParam || category || price) {
       setMetadata(prev => ({
         ...prev,
+        name: nameParam || prev.name,
         category: category || prev.category,
         price: price ? parseFloat(price) : prev.price
       }));
