@@ -51,12 +51,44 @@ def get_profile(
         ).first() is not None
 
     apps = []
-    if not user.is_private or is_following or (current_user and current_user.id == user.id):
-        apps = db.query(models.App).filter(
-            models.App.developer == user.username,
-            models.App.is_approved == True,
-            models.App.is_active == True
         ).all()
+
+    posts = []
+    if not user.is_private or is_following or (current_user and current_user.id == user.id):
+        raw_posts = db.query(models.Post).filter(models.Post.user_id == user.id).order_by(models.Post.created_at.desc()).all()
+        for p in raw_posts:
+            likes_count = db.query(models.PostLike).filter(models.PostLike.post_id == p.id).count()
+            liked_by_me = False
+            if current_user:
+                liked_by_me = db.query(models.PostLike).filter(
+                    models.PostLike.post_id == p.id,
+                    models.PostLike.user_id == current_user.id
+                ).first() is not None
+            
+            # Simple reply hydration
+            replies = []
+            for r in p.replies:
+                replies.append({
+                    "id": r.id,
+                    "user_id": r.user_id,
+                    "post_id": r.post_id,
+                    "content": r.content,
+                    "created_at": r.created_at,
+                    "username": r.user.username,
+                    "avatar_url": r.user.avatar_url
+                })
+            
+            posts.append({
+                "id": p.id,
+                "user_id": p.user_id,
+                "content": p.content,
+                "created_at": p.created_at,
+                "username": user.username,
+                "avatar_url": user.avatar_url,
+                "likes_count": likes_count,
+                "liked_by_me": liked_by_me,
+                "replies": replies
+            })
 
     return {
         "id": user.id,
@@ -69,7 +101,8 @@ def get_profile(
         "followers_count": followers_count,
         "following_count": following_count,
         "is_following": is_following,
-        "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "created_at": a.created_at} for a in apps]
+        "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "created_at": a.created_at} for a in apps],
+        "posts": posts
     }
 
 @router.post("/follow/{username}")

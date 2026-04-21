@@ -16,6 +16,7 @@ import {
   UserCheck,
   Music,
   Book,
+  Heart,
   Layout,
   Globe,
   Loader2,
@@ -37,6 +38,7 @@ interface Profile {
   following_count: number;
   is_following: boolean;
   apps: any[];
+  posts: any[];
 }
 
 export default function UserProfile() {
@@ -46,6 +48,8 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
   const [isMe, setIsMe] = useState(false);
+  const [activeTab, setActiveTab] = useState<"Contributions" | "Activity">("Contributions");
+
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -207,14 +211,25 @@ export default function UserProfile() {
         <div className="lg:col-span-8 space-y-8">
           <div className="flex items-center justify-between border-b border-outline-variant pb-4">
             <div className="flex gap-8">
-              <button className="text-sm font-bold border-b-2 border-primary pb-4 -mb-[18px]">Contributions</button>
-              <button className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors pb-4 -mb-[18px]">Activity</button>
+              <button 
+                onClick={() => setActiveTab("Contributions")}
+                className={`text-sm font-bold transition-all ${activeTab === "Contributions" ? "border-b-2 border-primary pb-4 -mb-[18px]" : "text-on-surface-variant hover:text-on-surface pb-4 -mb-[18px]"}`}
+              >
+                Contributions
+              </button>
+              <button 
+                onClick={() => setActiveTab("Activity")}
+                className={`text-sm font-bold transition-all ${activeTab === "Activity" ? "border-b-2 border-primary pb-4 -mb-[18px]" : "text-on-surface-variant hover:text-on-surface pb-4 -mb-[18px]"}`}
+              >
+                Activity
+              </button>
             </div>
           </div>
 
           <AnimatePresence mode="wait">
             {!canSeeContent ? (
               <motion.div 
+                key="private"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="py-20 flex flex-col items-center justify-center text-center gap-4 bg-surface-low rounded-3xl border border-dashed border-outline-variant"
@@ -232,48 +247,106 @@ export default function UserProfile() {
                   Request to Follow
                 </Button>
               </motion.div>
-            ) : profile.apps.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="py-20 flex flex-col items-center justify-center text-center gap-4"
-              >
-                <Package size={48} className="text-outline-variant opacity-30" />
-                <p className="text-on-surface-variant">No contributions published yet.</p>
-              </motion.div>
+            ) : activeTab === "Contributions" ? (
+              profile.apps.length === 0 ? (
+                <motion.div 
+                  key="no-apps"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-20 flex flex-col items-center justify-center text-center gap-4"
+                >
+                  <Package size={48} className="text-outline-variant opacity-30" />
+                  <p className="text-on-surface-variant">No contributions published yet.</p>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="apps"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  {profile.apps.map((app, index) => (
+                    <motion.div
+                      key={app.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Link href={`/apps/${app.id}`}>
+                        <GlassCard className="p-4 hover:bg-surface-low transition-colors group cursor-pointer flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center shadow-inner group-hover:bg-surface-high transition-colors">
+                            {getIcon(app.category)}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-on-surface group-hover:text-primary transition-colors">{app.name}</h4>
+                            <p className="text-xs text-on-surface-variant">{app.category}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-bold text-primary">
+                              {app.price === 0 ? "FREE" : `$${app.price}`}
+                            </p>
+                            <p className="text-[10px] text-on-surface-variant mt-1">v{app.version}</p>
+                          </div>
+                        </GlassCard>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )
             ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              >
-                {profile.apps.map((app, index) => (
-                  <motion.div
-                    key={app.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link href={`/apps/${app.id}`}>
-                      <GlassCard className="p-4 hover:bg-surface-low transition-colors group cursor-pointer flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center shadow-inner group-hover:bg-surface-high transition-colors">
-                          {getIcon(app.category)}
+              // Activity Tab: User's Posts
+              profile.posts.length === 0 ? (
+                <motion.div 
+                  key="no-posts"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-20 flex flex-col items-center justify-center text-center gap-4"
+                >
+                  <MessageSquare size={48} className="text-outline-variant opacity-30" />
+                  <p className="text-on-surface-variant">No activity posts yet.</p>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="posts"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-4"
+                >
+                  {profile.posts.map((post, index) => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <GlassCard className="p-6 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full rounded-full object-cover" /> : profile.username[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm">{profile.username}</p>
+                            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
+                              {new Date(post.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-on-surface group-hover:text-primary transition-colors">{app.name}</h4>
-                          <p className="text-xs text-on-surface-variant">{app.category}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs font-bold text-primary">
-                            {app.price === 0 ? "FREE" : `$${app.price}`}
-                          </p>
-                          <p className="text-[10px] text-on-surface-variant mt-1">v{app.version}</p>
+                        <p className="text-sm leading-relaxed text-on-surface-variant">{post.content}</p>
+                        <div className="flex items-center gap-4 pt-4 border-t border-outline-variant/30">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant">
+                            <Heart size={14} className={post.liked_by_me ? "fill-primary text-primary" : ""} />
+                            {post.likes_count}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant">
+                            <MessageSquare size={14} />
+                            {post.replies.length}
+                          </div>
                         </div>
                       </GlassCard>
-                    </Link>
-                  </motion.div>
-                ))}
-              </motion.div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )
             )}
           </AnimatePresence>
         </div>

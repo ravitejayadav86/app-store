@@ -46,6 +46,7 @@ class AppBase(BaseModel):
     price: float = 0.0
     category: str
     version: str = "1.0.0"
+    external_url: Optional[str] = None
 
 class AppCreate(AppBase):
     pass # No developer field here, it's inferred from Auth token
@@ -144,6 +145,7 @@ class UserProfile(BaseModel):
     following_count: int = 0
     is_following: bool = False
     apps: List[AppOut] = []
+    posts: List[PostOut] = []
     class Config:
         from_attributes = True
 

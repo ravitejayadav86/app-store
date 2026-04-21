@@ -114,6 +114,7 @@ function UploadFormContent() {
     version: "1.0.0",
     website: "",
     supportEmail: "",
+    external_url: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -165,10 +166,15 @@ function UploadFormContent() {
 
   const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file || !appId) return;
+    if (!appId) return;
+    if (!file && !metadata.external_url) {
+      toast.error("Please upload a file or provide a link in the previous step.");
+      return;
+    }
+    
     setLoading(true);
     const formData = new FormData();
-    formData.append("file", file);
+    if (file) formData.append("file", file);
     if (iconFile) formData.append("icon", iconFile);
     screenshots.forEach((s) => formData.append("screenshots", s));
 
@@ -333,6 +339,24 @@ function UploadFormContent() {
                   </div>
                 </div>
 
+                {(metadata.category === "Music" || metadata.category === "Books") && (
+                  <div className="space-y-2 p-6 rounded-3xl bg-primary/5 border border-primary/10">
+                    <label className="text-xs font-bold uppercase tracking-widest text-primary ml-1 flex items-center gap-2">
+                      <Globe size={14} /> Connect External Link (Optional)
+                    </label>
+                    <input
+                      value={metadata.external_url || ""}
+                      onChange={(e) => setMetadata({ ...metadata, external_url: e.target.value })}
+                      placeholder="https://soundcloud.com/you or direct link..."
+                      className="w-full px-6 py-4 rounded-2xl glass border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                    />
+                    <p className="text-[10px] text-on-surface-variant mt-2 px-2 leading-relaxed">
+                      If provided, users will be redirected to this link for your {metadata.category.toLowerCase()}. 
+                      You won&apos;t need to upload a file in the next step.
+                    </p>
+                  </div>
+                )}
+
                 <Button size="lg" className="w-full py-6 text-lg" disabled={loading}>
                   {loading ? "Saving..." : "Continue to Upload"} <ArrowRight className="ml-2" />
                 </Button>
@@ -346,13 +370,20 @@ function UploadFormContent() {
             <GlassCard className="p-10 space-y-8">
               <form onSubmit={handleFileUpload} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App File</label>
+                  <div className="flex justify-between items-end px-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">App File</label>
+                    {metadata.external_url && (
+                      <span className="text-[10px] font-bold text-primary flex items-center gap-1">
+                        <CheckCircle2 size={12} /> External Link Connected
+                      </span>
+                    )}
+                  </div>
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-full h-48 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"}`}
+                    className={`w-full h-48 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"} ${metadata.external_url && !file ? "opacity-60 grayscale-[0.5]" : ""}`}
                   >
                     <input
                       ref={fileInputRef}
@@ -366,6 +397,12 @@ function UploadFormContent() {
                         <FileText size={32} className="text-primary" />
                         <p className="font-bold text-on-surface">{file.name}</p>
                         <p className="text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
+                      </>
+                    ) : metadata.external_url ? (
+                      <>
+                        <Globe size={32} className="text-primary/40" />
+                        <p className="font-bold text-on-surface">External link will be used</p>
+                        <p className="text-xs text-on-surface-variant">Or click to replace with a file</p>
                       </>
                     ) : (
                       <>
@@ -405,7 +442,7 @@ function UploadFormContent() {
                   <p className="text-xs text-on-surface-variant">PNG or JPG screenshots of your app in action</p>
                 </div>
 
-                <Button size="lg" className="w-full py-6 text-lg" disabled={loading || !file}>
+                <Button size="lg" className="w-full py-6 text-lg" disabled={loading || (!file && !metadata.external_url)}>
                   {loading ? "Uploading..." : "Publish Application"} <CheckCircle2 className="ml-2" />
                 </Button>
               </form>

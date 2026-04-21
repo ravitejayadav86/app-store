@@ -61,7 +61,8 @@ def submit_app(
         version=app.version,
         developer=current_user.username,
         is_active=True,
-        is_approved=True
+        is_approved=True,
+        file_path=app.external_url
     )
     db.add(db_app)
     db.commit()
