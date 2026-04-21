@@ -13,7 +13,9 @@ import {
   User, 
   Loader2,
   Lock,
-  Plus
+  Plus,
+  Check,
+  CheckCheck
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -25,6 +27,7 @@ interface Conversation {
   last_message: string;
   created_at: string;
   is_read: boolean;
+  unread_count?: number;
 }
 
 export default function MessagesPage() {
@@ -132,13 +135,17 @@ export default function MessagesPage() {
                           {formatTime(c.created_at)}
                         </span>
                       </div>
-                      <p className={`text-sm truncate ${!c.is_read ? "font-bold text-on-surface" : "text-on-surface-variant"}`}>
+                      <p className={`text-sm truncate ${c.unread_count && c.unread_count > 0 ? "font-bold text-on-surface" : "text-on-surface-variant"}`}>
                         {c.last_message}
                       </p>
                     </div>
 
-                    {!c.is_read && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/50 flex-shrink-0" />
+                    {c.unread_count && c.unread_count > 0 ? (
+                      <div className="min-w-[20px] h-5 rounded-full bg-primary px-1.5 flex items-center justify-center shadow-sm shadow-primary/30 flex-shrink-0">
+                        <span className="text-[10px] font-bold text-on-primary">{c.unread_count}</span>
+                      </div>
+                    ) : (
+                      c.is_read ? <CheckCheck size={14} className="text-primary/40" /> : <Check size={14} className="text-on-surface-variant/20" />
                     )}
                     
                     <ChevronRight size={16} className="text-outline-variant group-hover:text-primary transition-colors group-hover:translate-x-1" />

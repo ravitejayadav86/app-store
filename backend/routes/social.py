@@ -205,6 +205,32 @@ def get_following(username: str, db: Session = Depends(get_db)):
     return result
 
 # -- Messages --
+@router.post("/messages/{username}/read")
+def mark_read(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    other = db.query(models.User).filter(models.User.username == username).first()
+    if not other:
+        raise HTTPException(404, "User not found")
+    
+    db.query(models.Message).filter(
+        models.Message.sender_id == other.id,
+        models.Message.receiver_id == current_user.id,
+        models.Message.is_read == False
+    ).update({"is_read": True})
+    db.commit()
+    
+    # Notify sender that their messages were read
+    import asyncio
+    asyncio.create_task(manager.send_to_user(other.id, {
+        "type": "MESSAGES_READ",
+        "by": current_user.username
+    }))
+    
+    return {"status": "ok"}
+
 @router.post("/messages/{username}")
 def send_message(
     username: str,
@@ -223,7 +249,23 @@ def send_message(
     db.add(message)
     db.commit()
     db.refresh(message)
-    return {"id": message.id, "content": message.content, "created_at": message.created_at, "sender_username": current_user.username, "sender_avatar_url": current_user.avatar_url}
+    
+    payload = {
+        "id": message.id, 
+        "content": message.content, 
+        "created_at": message.created_at.isoformat(), 
+        "sender_username": current_user.username, 
+        "sender_avatar_url": current_user.avatar_url,
+        "sender_id": current_user.id,
+        "receiver_id": receiver.id,
+        "is_read": False
+    }
+    
+    # Notify via WebSocket if possible
+    import asyncio
+    asyncio.create_task(manager.send_to_user(receiver.id, payload))
+    
+    return payload
 
 @router.get("/messages/{username}")
 def get_messages(
@@ -241,7 +283,6 @@ def get_messages(
     
     result = []
     for m in messages:
-        sender = db.query(models.User).filter(models.User.id == m.sender_id).first()
         result.append({
             "id": m.id,
             "sender_id": m.sender_id,
@@ -249,8 +290,8 @@ def get_messages(
             "content": m.content,
             "is_read": m.is_read,
             "created_at": m.created_at,
-            "sender_username": sender.username if sender else "Unknown",
-            "sender_avatar_url": sender.avatar_url if sender else None
+            "sender_username": m.sender.username if m.sender else "Unknown",
+            "sender_avatar_url": m.sender.avatar_url if m.sender else None
         })
     return result
 
@@ -259,6 +300,7 @@ def get_conversations(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    # Use a more efficient query to get last messages
     messages = db.query(models.Message).filter(
         (models.Message.sender_id == current_user.id) |
         (models.Message.receiver_id == current_user.id)
@@ -272,12 +314,20 @@ def get_conversations(
             seen.add(other_id)
             other = db.query(models.User).filter(models.User.id == other_id).first()
             if other:
+                # Count unread messages from this user
+                unread_count = db.query(models.Message).filter(
+                    models.Message.sender_id == other_id,
+                    models.Message.receiver_id == current_user.id,
+                    models.Message.is_read == False
+                ).count()
+                
                 conversations.append({
                     "username": other.username,
                     "avatar_url": other.avatar_url,
                     "last_message": m.content,
                     "created_at": m.created_at,
-                    "is_read": m.is_read
+                    "is_read": m.is_read or m.sender_id == current_user.id,
+                    "unread_count": unread_count
                 })
     return conversations 
 
@@ -293,6 +343,26 @@ async def websocket_endpoint(
             data = await websocket.receive_text()
             msg_data = json.loads(data)
             
+            msg_type = msg_data.get("type", "MESSAGE")
+            
+            if msg_type == "READ":
+                # Handle read confirmation
+                other_username = msg_data.get("to")
+                other = db.query(models.User).filter(models.User.username == other_username).first()
+                if other:
+                    db.query(models.Message).filter(
+                        models.Message.sender_id == other.id,
+                        models.Message.receiver_id == user_id,
+                        models.Message.is_read == False
+                    ).update({"is_read": True})
+                    db.commit()
+                    
+                    await manager.send_to_user(other.id, {
+                        "type": "MESSAGES_READ",
+                        "by_id": user_id
+                    })
+                continue
+
             receiver = db.query(models.User).filter(
                 models.User.username == msg_data.get("to")
             ).first()
@@ -318,7 +388,8 @@ async def websocket_endpoint(
                     "content": message.content,
                     "created_at": message.created_at.isoformat(),
                     "sender_username": sender.username if sender else "Unknown",
-                    "sender_avatar_url": sender.avatar_url if sender else None
+                    "sender_avatar_url": sender.avatar_url if sender else None,
+                    "is_read": False
                 }
                 
                 await manager.send_to_user(receiver.id, payload)
@@ -326,3 +397,6 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
+    except Exception as e:
+        print(f"WS Error: {e}")
+        manager.disconnect(websocket, user_id)
