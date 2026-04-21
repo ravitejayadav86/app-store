@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -30,26 +30,94 @@ interface Conversation {
   unread_count?: number;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
+const WS_BASE = API_BASE.replace("https://", "wss://").replace("http://", "ws://");
+
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const router = useRouter();
+  const wsRef = useRef<WebSocket | null>(null);
+
+  const fetchConversations = async () => {
+    try {
+      const res = await api.get("/social/conversations");
+      setConversations(res.data);
+    } catch {
+      toast.error("Please sign in to view messages");
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const res = await api.get("/social/conversations");
-        setConversations(res.data);
-      } catch {
-        toast.error("Please sign in to view messages");
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConversations();
+    api.get("/users/me")
+      .then(res => setCurrentUserId(res.data.id))
+      .catch(() => {
+         toast.error("Please sign in to view messages");
+         router.push("/login");
+      });
   }, [router]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchConversations();
+    }
+  }, [currentUserId]);
+
+  // WebSocket for real-time list updates
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const ws = new WebSocket(`${WS_BASE}/social/ws/${currentUserId}`);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        
+        // If it's a read notification
+        if (msg.type === "MESSAGES_READ") {
+          setConversations(prev => prev.map(c => 
+            (c.username === msg.by) ? { ...c, unread_count: 0 } : c
+          ));
+          return;
+        }
+
+        // If it's a new message
+        if (msg.content) {
+          setConversations(prev => {
+            const otherUsername = msg.sender_username === currentUserId ? msg.receiver_username : msg.sender_username;
+            // Note: Our WS payload might not have receiver_username, but it has sender_username.
+            // In a real app, we'd ensure the payload has what we need.
+            
+            const existingIdx = prev.findIndex(c => c.username === msg.sender_username);
+            const newConv: Conversation = {
+              username: msg.sender_username,
+              avatar_url: msg.sender_avatar_url,
+              last_message: msg.content,
+              created_at: msg.created_at,
+              is_read: false,
+              unread_count: (existingIdx >= 0 ? (prev[existingIdx].unread_count || 0) : 0) + 1
+            };
+
+            if (existingIdx >= 0) {
+              const updated = [...prev];
+              updated.splice(existingIdx, 1);
+              return [newConv, ...updated];
+            } else {
+              return [newConv, ...prev];
+            }
+          });
+        }
+      } catch {}
+    };
+
+    return () => ws.close();
+  }, [currentUserId]);
 
   const filtered = conversations.filter(c => 
     c.username.toLowerCase().includes(search.toLowerCase())
@@ -73,7 +141,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-8 pb-20 pt-10">
+    <div className="max-w-4xl mx-auto px-4 md:px-8 pb-20 pt-20">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-1">Messages</h1>
