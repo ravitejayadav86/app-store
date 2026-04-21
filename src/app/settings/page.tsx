@@ -299,51 +299,6 @@ export default function SettingsPage() {
       )
     },
     {
-      title: "Billing & Payments",
-      icon: <CreditCard size={16} />,
-      color: "from-emerald-500 to-teal-600",
-      rows: (
-        <>
-          <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-              <CreditCard size={15} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <label htmlFor="input-payment-method" className="text-sm font-semibold text-on-surface block cursor-pointer">Payment Method</label>
-              <input 
-                id="input-payment-method"
-                className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
-                placeholder="e.g. Visa ending in 4242"
-                defaultValue={profile?.payment_method || ""}
-                onBlur={(e) => update("payment_method", e.target.value)}
-              />
-            </div>
-            <div className="flex-shrink-0">
-               <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded lowercase opacity-0 group-hover:opacity-100 transition-opacity">Auto-saved</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-              <Home size={15} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <label htmlFor="input-billing-address" className="text-sm font-semibold text-on-surface block cursor-pointer">Billing Address</label>
-              <input 
-                id="input-billing-address"
-                className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
-                placeholder="123 Digital Avenue, Phase 4"
-                defaultValue={profile?.billing_address || ""}
-                onBlur={(e) => update("billing_address", e.target.value)}
-              />
-            </div>
-            <div className="flex-shrink-0">
-               <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded lowercase opacity-0 group-hover:opacity-100 transition-opacity">Auto-saved</span>
-            </div>
-          </div>
-        </>
-      )
-    },
-    {
       title: "Security & Privacy",
       icon: <Shield size={16} />,
       color: "from-red-500 to-rose-600",

@@ -21,6 +21,8 @@ interface UserProfile {
   is_active: boolean;
   is_publisher: boolean;
   created_at: string;
+  followers_count?: number;
+  following_count?: number;
 }
 
 interface Repo {
@@ -38,6 +40,8 @@ interface LiveStats {
   installs: number;
   reviews: number;
   published: number;
+  followers: number;
+  following: number;
 }
 
 export default function ProfilePage() {
@@ -48,7 +52,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ full_name: "", email: "", bio: "", is_private: false });
-  const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0 });
+  const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0, followers: 0, following: 0 });
   const [repos, setRepos] = useState<Repo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
   const [myApps, setMyApps] = useState<any[]>([]);
@@ -87,7 +91,10 @@ useEffect(() => {
         api.get("/users/me/purchases"),
         api.get("/apps/analytics"),
       ]);
+
+      let username = "";
       if (profileRes.status === "fulfilled") {
+        username = profileRes.value.data.username;
         setProfile(profileRes.value.data);
         setFormData({ 
           full_name: profileRes.value.data.full_name || "", 
@@ -96,6 +103,7 @@ useEffect(() => {
           is_private: profileRes.value.data.is_private || false
         });
       } else if (session?.user) {
+        username = session.user.name || "";
         setProfile({ 
           id: 0, 
           username: session.user.name || "User", 
@@ -109,9 +117,24 @@ useEffect(() => {
         });
         setFormData({ full_name: session.user.name || "", email: session.user.email || "", bio: "", is_private: false });
       }
+
+      // Fetch social stats if we have a username
+      let followers = 0;
+      let following = 0;
+      if (username) {
+        try {
+          const socialRes = await api.get(`/social/profile/${username}`);
+          followers = socialRes.data.followers_count || 0;
+          following = socialRes.data.following_count || 0;
+          setProfile(prev => prev ? { ...prev, followers_count: followers, following_count: following } : prev);
+        } catch (err) {
+          console.error("Failed to fetch social stats", err);
+        }
+      }
+
       const installs = purchasesRes.status === "fulfilled" ? purchasesRes.value.data.length : 0;
       const published = analyticsRes.status === "fulfilled" ? analyticsRes.value.data.approved : 0;
-      setLiveStats({ installs, reviews: 0, published });
+      setLiveStats({ installs, reviews: 0, published, followers, following });
     } finally {
       setLoading(false);
       fetchMyApps();
@@ -240,7 +263,10 @@ useEffect(() => {
                     <button onClick={() => setEditing(false)} className="p-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all"><X size={16} className="text-on-surface-variant" /></button>
                   </>
                 ) : (
-                  <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all text-sm font-bold text-on-surface"><Edit3 size={14} /> Edit</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => router.push(`/users/${profile?.username}`)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all text-sm font-bold text-primary"><ExternalLink size={14} /> Public Profile</button>
+                    <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all text-sm font-bold text-on-surface"><Edit3 size={14} /> Edit</button>
+                  </div>
                 )}
               </div>
             </div>
@@ -248,16 +274,18 @@ useEffect(() => {
         </motion.div>
 
         {/* Stats */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-3 gap-4">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
-            { label: "Apps Installed", value: liveStats.installs, icon: Download },
-            { label: "Apps Published", value: liveStats.published, icon: Package },
-            { label: "Reviews Given", value: liveStats.reviews, icon: Star },
+            { label: "Followers", value: liveStats.followers, icon: User },
+            { label: "Following", value: liveStats.following, icon: Users },
+            { label: "Installed", value: liveStats.installs, icon: Download },
+            { label: "Published", value: liveStats.published, icon: Package },
+            { label: "Reviews", value: liveStats.reviews, icon: Star },
           ].map((stat, i) => (
-            <GlassCard key={i} className="p-6 text-center">
-              <stat.icon size={22} className="text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold text-on-surface">{stat.value}</p>
-              <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
+            <GlassCard key={i} className="p-4 text-center">
+              <stat.icon size={18} className="text-primary mx-auto mb-2" />
+              <p className="text-xl font-bold text-on-surface">{stat.value}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
             </GlassCard>
           ))}
         </motion.div>

@@ -209,8 +209,9 @@ export default function CommunityPage() {
                       : u.username[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-on-surface">{u.username}</p>
-                    {u.bio && <p className="text-xs text-on-surface-variant">{u.bio}</p>}
+                    <p className="text-sm font-bold text-on-surface">{u.full_name || u.username}</p>
+                    <p className="text-[10px] text-on-surface-variant font-medium">@{u.username}</p>
+                    {u.bio && <p className="text-xs text-on-surface-variant line-clamp-1 mt-0.5">{u.bio}</p>}
                   </div>
                 </button>
               ))}

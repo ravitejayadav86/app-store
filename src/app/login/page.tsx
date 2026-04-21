@@ -26,6 +26,15 @@ export default function LoginPage() {
     }
   }, [status, router]);
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("error") === "session_expired") {
+        toast.error("Your session has expired. Please sign in again.");
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

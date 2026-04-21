@@ -38,9 +38,10 @@ def search_users(q: str, db: Session = Depends(get_db)):
     if not q or len(q) < 2:
         return []
     users = db.query(models.User).filter(
-        models.User.username.ilike(f"%{q}%")
+        (models.User.username.ilike(f"%{q}%")) |
+        (models.User.full_name.ilike(f"%{q}%"))
     ).limit(10).all()
-    return [{"id": u.id, "username": u.username, "bio": u.bio, "is_private": u.is_private, "avatar_url": u.avatar_url} for u in users]
+    return [{"id": u.id, "username": u.username, "full_name": u.full_name, "bio": u.bio, "is_private": u.is_private, "avatar_url": u.avatar_url} for u in users]
 
 @router.get("/profile/{username}")
 def get_profile(
