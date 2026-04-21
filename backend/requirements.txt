@@ -17,4 +17,3 @@ bleach==6.1.0
 redis==4.6.0
 celery==5.4.0
 fastapi-cache2[redis]==0.2.1
-aiokafka==0.10.0

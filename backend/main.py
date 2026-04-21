@@ -77,8 +77,6 @@ from redis import asyncio as aioredis
 
 app = FastAPI(title="PandaStore API", version="2.0.0")
 
-from kafka_util import kafka_manager, log_request_to_kafka
-
 @app.on_event("startup")
 async def startup():
     # Cache init
@@ -95,38 +93,10 @@ async def startup():
         print("Redis cache initialized")
     except Exception as e:
         print(f"Could not initialize Redis cache: {e}")
-    
-    # Kafka init
-    try:
-        await kafka_manager.start()
-        if kafka_manager.producer:
-            print("Kafka producer started")
-    except Exception as e:
-        print(f"Unexpected error during Kafka startup: {e}")
 
 @app.on_event("shutdown")
 async def shutdown():
-    await kafka_manager.stop()
-
-@app.middleware("http")
-async def kafka_logging_middleware(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    
-    # Background task to log to Kafka
-    request_data = {
-        "method": request.method,
-        "url": str(request.url),
-        "client_ip": request.client.host if request.client else "unknown",
-        "status_code": response.status_code,
-        "process_time": process_time,
-        "timestamp": time.time()
-    }
-    
-    asyncio.create_task(log_request_to_kafka(request_data))
-    
-    return response
+    pass
 
 # Rate limiter
 app.state.limiter = limiter
