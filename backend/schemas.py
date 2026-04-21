@@ -18,6 +18,12 @@ class UserOut(BaseModel):
     is_admin: bool
     is_publisher: bool
     is_private: bool = False
+    billing_address: Optional[str] = None
+    payment_method: Optional[str] = None
+    biometric_enabled: bool = False
+    safe_browsing: bool = True
+    auto_update: str = "Over Wi-Fi only"
+    download_pref: str = "Ask every time"
     created_at: datetime
     class Config:
         from_attributes = True
@@ -160,3 +166,9 @@ class UpdateProfile(BaseModel):
     bio: Optional[str] = None
     is_private: Optional[bool] = None
     public_key: Optional[str] = None
+    billing_address: Optional[str] = None
+    payment_method: Optional[str] = None
+    biometric_enabled: Optional[bool] = None
+    safe_browsing: Optional[bool] = None
+    auto_update: Optional[str] = None
+    download_pref: Optional[str] = None

@@ -17,6 +17,15 @@ class User(Base):
     bio             = Column(Text, nullable=True)
     avatar_url      = Column(String, nullable=True)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Settings & Persistence
+    billing_address   = Column(Text, nullable=True)
+    payment_method    = Column(String, nullable=True)
+    biometric_enabled = Column(Boolean, default=False)
+    safe_browsing     = Column(Boolean, default=True)
+    auto_update       = Column(String, default="Over Wi-Fi only")
+    download_pref     = Column(String, default="Ask every time")
+    
     purchases       = relationship("Purchase", back_populates="user")
     notifications   = relationship("Notification", back_populates="user")
 

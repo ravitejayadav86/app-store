@@ -123,6 +123,18 @@ def update_profile(
         current_user.is_private = data.is_private
     if data.public_key is not None:
         current_user.public_key = data.public_key
+    if data.billing_address is not None:
+        current_user.billing_address = data.billing_address
+    if data.payment_method is not None:
+        current_user.payment_method = data.payment_method
+    if data.biometric_enabled is not None:
+        current_user.biometric_enabled = data.biometric_enabled
+    if data.safe_browsing is not None:
+        current_user.safe_browsing = data.safe_browsing
+    if data.auto_update is not None:
+        current_user.auto_update = data.auto_update
+    if data.download_pref is not None:
+        current_user.download_pref = data.download_pref
     db.commit()
     return {"message": "Profile updated"}
 

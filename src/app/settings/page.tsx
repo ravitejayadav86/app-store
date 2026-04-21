@@ -24,6 +24,12 @@ interface Profile {
   is_private: boolean;
   is_publisher: boolean;
   is_admin: boolean;
+  billing_address: string;
+  payment_method: string;
+  biometric_enabled: boolean;
+  safe_browsing: boolean;
+  auto_update: string;
+  download_pref: string;
 }
 
 function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (v: boolean) => void; id: string }) {
@@ -110,7 +116,16 @@ export default function SettingsPage() {
   const fetchProfile = async () => {
     try {
       const res = await api.get("/users/me");
-      setProfile(res.data);
+      const data = res.data as Profile;
+      setProfile(data);
+      // Sync settings state with profile data
+      setSettings(prev => ({
+        ...prev,
+        biometric: data.biometric_enabled,
+        safeBrowsing: data.safe_browsing,
+        autoUpdate: data.auto_update,
+        downloadPref: data.download_pref
+      }));
     } catch (err) {
       console.error("Failed to fetch profile");
     } finally {
@@ -119,13 +134,29 @@ export default function SettingsPage() {
   };
 
   const update = async (key: string, value: any) => {
+    // Optimistic update for UI state
     setSettings(prev => ({ ...prev, [key]: value }));
+    
+    // Mapping frontend keys to backend keys
+    const fieldMap: Record<string, string> = {
+      biometric: "biometric_enabled",
+      safeBrowsing: "safe_browsing",
+      autoUpdate: "auto_update",
+      downloadPref: "download_pref",
+      is_private: "is_private",
+      bio: "bio",
+      billing_address: "billing_address",
+      payment_method: "payment_method"
+    };
+
+    const backendKey = fieldMap[key] || key;
+    
     try {
-      if (key === "is_private" || key === "bio") {
-        await api.patch("/social/profile", { [key === "is_private" ? "is_private" : "bio"]: value });
-      }
+      await api.patch("/social/profile", { [backendKey]: value });
+      setProfile(prev => prev ? { ...prev, [backendKey]: value } : null);
       toast.success("Setting saved!");
-    } catch {
+    } catch (err) {
+      console.error("Save failed:", err);
       toast.error("Failed to save setting.");
     }
   };
@@ -263,28 +294,42 @@ export default function SettingsPage() {
       color: "from-emerald-500 to-teal-600",
       rows: (
         <>
-          <SettingRow 
-            id="row-payment-method" 
-            icon={<CreditCard size={15} />} 
-            label="Payment Method" 
-            description="Visa ending in 4242" 
-            right={
-              <button id="btn-manage-payments" className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
-                Manage
-              </button>
-            } 
-          />
-          <SettingRow 
-            id="row-billing-address" 
-            icon={<Home size={15} />} 
-            label="Billing Address" 
-            description="123 Digital Avenue, CA 94025" 
-            right={
-              <button id="btn-edit-address" className="text-xs font-bold text-on-surface-variant bg-surface-low px-3 py-1.5 rounded-xl hover:bg-surface border border-outline-variant transition-all">
-                Edit
-              </button>
-            } 
-          />
+          <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+              <CreditCard size={15} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-on-surface">Payment Method</p>
+              <input 
+                id="input-payment-method"
+                className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
+                placeholder="e.g. Visa ending in 4242"
+                defaultValue={profile?.payment_method || ""}
+                onBlur={(e) => update("payment_method", e.target.value)}
+              />
+            </div>
+            <div className="flex-shrink-0">
+               <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded lowercase opacity-0 group-hover:opacity-100 transition-opacity">Auto-saved</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+              <Home size={15} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-on-surface">Billing Address</p>
+              <input 
+                id="input-billing-address"
+                className="text-xs text-on-surface-variant bg-transparent border-none outline-none focus:ring-0 w-full p-0 mt-0.5 placeholder:opacity-50"
+                placeholder="123 Digital Avenue, Phase 4"
+                defaultValue={profile?.billing_address || ""}
+                onBlur={(e) => update("billing_address", e.target.value)}
+              />
+            </div>
+            <div className="flex-shrink-0">
+               <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded lowercase opacity-0 group-hover:opacity-100 transition-opacity">Auto-saved</span>
+            </div>
+          </div>
         </>
       )
     },
