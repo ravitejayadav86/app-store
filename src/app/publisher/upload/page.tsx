@@ -470,7 +470,7 @@ function UploadFormContent() {
                     setIconPreview(null);
                     setScreenshots([]);
                     setScreenshotPreviews([]);
-                    setMetadata({ name: "", description: "", price: 0, category: "Development", version: "1.0.0", website: "", supportEmail: "" });
+                    setMetadata({ name: "", description: "", price: 0, category: "Development", version: "1.0.0", website: "", supportEmail: "", external_url: "" });
                   }}
                   className="px-6 py-3 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
                 >
