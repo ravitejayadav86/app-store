@@ -1,50 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Star, ArrowRight, Zap, Shield, Sparkles, Layout, Database, Cloud, Loader2 } from "lucide-react";
-import api from "@/lib/api";
-
-interface App {
-  id: number;
-  name: string;
-  category: string;
-  developer: string;
-  price: number;
-  file_path?: string | null;
-}
+import { Star, ArrowRight, Zap, Shield, Sparkles, Layout, Database, Cloud } from "lucide-react";
 
 export default function Home() {
   const categories = ["Games", "Productivity", "Graphics", "Utilities", "Social", "Development"];
-  const [apps, setApps] = useState<App[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchApps = async () => {
-      try {
-        const res = await api.get("/apps/");
-        setApps(res.data.slice(0, 4)); // Show first 4 apps
-      } catch (error) {
-        console.error("Failed to fetch apps:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchApps();
-  }, []);
-
-  const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "productivity": return <Layout className="text-blue-500" />;
-      case "development": return <Database className="text-purple-500" />;
-      case "utilities": return <Cloud className="text-cyan-500" />;
-      case "graphics": return <Sparkles className="text-pink-500" />;
-      default: return <Layout className="text-primary" />;
-    }
-  };
+  const apps = [
+    { title: "Horizon Docs", category: "Productivity", icon: <Layout className="text-blue-500" /> },
+    { title: "Quantum Code", category: "Development", icon: <Database className="text-purple-500" /> },
+    { title: "Nebula Sync", category: "Utilities", icon: <Cloud className="text-cyan-500" /> },
+    { title: "Lumina Edit", category: "Graphics", icon: <Sparkles className="text-pink-500" /> },
+  ];
 
   return (
     <div className="flex flex-col gap-20 pb-20">
@@ -120,55 +90,30 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {loading ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-20">
-                <Loader2 className="animate-spin text-primary mb-4" size={48} />
-                <p className="text-on-surface-variant">Gathering innovations...</p>
-              </div>
-            ) : apps.length > 0 ? (
-              apps.map((app, index) => (
-                <motion.div
-                  key={app.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                >
-                  <GlassCard className="flex flex-col gap-6 h-full">
-                    <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-3xl shadow-inner">
-                      {getCategoryIcon(app.category)}
+            {apps.map((app, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 + index * 0.1 }}
+              >
+                <GlassCard className="flex flex-col gap-6 h-full">
+                  <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-3xl shadow-inner">
+                    {app.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">{app.title}</h3>
+                    <p className="text-sm text-on-surface-variant">{app.category}</p>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <span className="bg-primary/10 px-2 py-0.5 rounded">FREE</span>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1">{app.name}</h3>
-                      <p className="text-sm text-on-surface-variant">{app.category}</p>
-                    </div>
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1 text-xs font-semibold text-primary">
-                          <span className="bg-primary/10 px-2 py-0.5 rounded uppercase">
-                            {app.price === 0 ? "FREE" : `$${app.price}`}
-                          </span>
-                        </div>
-                        {!app.file_path && (
-                          <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Not available</span>
-                        )}
-                      </div>
-                      <Link href={`/apps/${app.id}`}>
-                        <Button size="sm" variant={!app.file_path ? "secondary" : "primary"}>
-                          {app.file_path ? "Get" : "View"}
-                        </Button>
-                      </Link>
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center bg-surface-low rounded-3xl border border-dashed border-outline-variant">
-                <p className="text-on-surface-variant text-lg">No innovations found yet. Be the first to publish!</p>
-                <Link href="/publisher/upload">
-                  <Button className="mt-4" variant="secondary">Publish App</Button>
-                </Link>
-              </div>
-            )}
+                    <Button size="sm">Get</Button>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

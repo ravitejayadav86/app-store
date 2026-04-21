@@ -12,12 +12,21 @@ import {
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+interface Profile {
+  id: number;
+  username: string;
+  email: string;
+  is_publisher: boolean;
+  is_admin: boolean;
+}
+
+function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (v: boolean) => void; id: string }) {
   return (
     <button
+      id={id}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${checked ? "bg-primary" : "bg-outline-variant"}`}
     >
@@ -26,9 +35,9 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-function SettingRow({ icon, label, description, right }: { icon: React.ReactNode; label: string; description?: string; right: React.ReactNode }) {
+function SettingRow({ icon, label, description, right, id }: { icon: React.ReactNode; label: string; description?: string; right: React.ReactNode; id?: string }) {
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
+    <div id={id} className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
       <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
         {icon}
       </div>
@@ -41,9 +50,10 @@ function SettingRow({ icon, label, description, right }: { icon: React.ReactNode
   );
 }
 
-function SelectRow({ icon, label, description, options, value, onChange }: {
+function SelectRow({ icon, label, description, options, value, onChange, id }: {
   icon: React.ReactNode; label: string; description?: string;
   options: string[]; value: string; onChange: (v: string) => void;
+  id: string;
 }) {
   return (
     <div className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0">
@@ -55,6 +65,7 @@ function SelectRow({ icon, label, description, options, value, onChange }: {
         {description && <p className="text-xs text-on-surface-variant mt-0.5">{description}</p>}
       </div>
       <select
+        id={id}
         value={value}
         onChange={e => onChange(e.target.value)}
         className="text-xs font-bold bg-surface-low border border-outline-variant rounded-xl px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -69,7 +80,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [devTaps, setDevTaps] = useState(0);
   const [devMode, setDevMode] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
@@ -104,17 +115,17 @@ export default function SettingsPage() {
     }
   };
 
-   const update = async (key: string, value: any) => {
-  setSettings(prev => ({ ...prev, [key]: value }));
-  try {
-    if (key === "is_private" || key === "bio") {
-      await api.patch("/social/profile", { [key === "is_private" ? "is_private" : "bio"]: value });
+  const update = async (key: string, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    try {
+      if (key === "is_private" || key === "bio") {
+        await api.patch("/social/profile", { [key === "is_private" ? "is_private" : "bio"]: value });
+      }
+      toast.success("Setting saved!");
+    } catch {
+      toast.error("Failed to save setting.");
     }
-    toast.success("Setting saved!");
-  } catch {
-    toast.error("Failed to save setting.");
-  }
-};
+  };
   const handleClearCache = () => {
     toast.success("Cache cleared successfully!");
   };
@@ -162,10 +173,10 @@ export default function SettingsPage() {
       color: "from-blue-500 to-indigo-600",
       rows: (
         <>
-          <SelectRow icon={<Wifi size={15} />} label="Auto-update apps" description="When to automatically update installed apps" options={["Over Wi-Fi only", "Over any network", "Don't auto-update"]} value={settings.autoUpdate} onChange={v => update("autoUpdate", v)} />
-          <SelectRow icon={<Download size={15} />} label="App download preference" description="Network preference for downloading apps" options={["Ask every time", "Over Wi-Fi only", "Over any network"]} value={settings.downloadPref} onChange={v => update("downloadPref", v)} />
-          <SettingRow icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={<Toggle checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
-          <SettingRow icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={<Toggle checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
+          <SelectRow id="setting-auto-update" icon={<Wifi size={15} />} label="Auto-update apps" description="When to automatically update installed apps" options={["Over Wi-Fi only", "Over any network", "Don't auto-update"]} value={settings.autoUpdate} onChange={v => update("autoUpdate", v)} />
+          <SelectRow id="setting-download-pref" icon={<Download size={15} />} label="App download preference" description="Network preference for downloading apps" options={["Ask every time", "Over Wi-Fi only", "Over any network"]} value={settings.downloadPref} onChange={v => update("downloadPref", v)} />
+          <SettingRow id="row-auto-archive" icon={<HardDrive size={15} />} label="Auto-Archive" description="Remove unused apps while keeping data" right={<Toggle id="setting-auto-archive" checked={settings.autoArchive} onChange={v => update("autoArchive", v)} />} />
+          <SettingRow id="row-background-activity" icon={<Bell size={15} />} label="Background Activity" description="Check for updates while app is closed" right={<Toggle id="setting-background-activity" checked={settings.backgroundActivity} onChange={v => update("backgroundActivity", v)} />} />
         </>
       )
     },
@@ -175,9 +186,9 @@ export default function SettingsPage() {
       color: "from-red-500 to-rose-600",
       rows: (
         <>
-          <SettingRow icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={<Toggle checked={settings.biometric} onChange={v => update("biometric", v)} />} />
-          <SettingRow icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={<Toggle checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
-          <SettingRow icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={<Toggle checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
+          <SettingRow id="row-biometric" icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={<Toggle id="setting-biometric" checked={settings.biometric} onChange={v => update("biometric", v)} />} />
+          <SettingRow id="row-safe-browsing" icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={<Toggle id="setting-safe-browsing" checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
+          <SettingRow id="row-data-sharing" icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={<Toggle id="setting-data-sharing" checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
         </>
       )
     },
@@ -187,17 +198,18 @@ export default function SettingsPage() {
       color: "from-amber-500 to-orange-600",
       rows: (
         <>
-          <SettingRow icon={<Trash2 size={15} />} label="Clear Cache" description="Remove temporary thumbnails and cached data" right={
-            <button onClick={handleClearCache} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
+          <SettingRow id="row-clear-cache" icon={<Trash2 size={15} />} label="Clear Cache" description="Remove temporary thumbnails and cached data" right={
+            <button id="btn-clear-cache" onClick={handleClearCache} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-all">
               Clear
             </button>
           } />
           <SettingRow
+            id="row-dev-mode"
             icon={<Code size={15} />}
             label="Build Version"
             description={devMode ? "🎉 Developer Mode Active" : "Tap 7 times to enable Developer Mode"}
             right={
-              <button onClick={handleDevTap} className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${devMode ? "bg-green-500/10 text-green-500 flex items-center gap-1" : "bg-surface-low text-on-surface-variant hover:bg-surface border border-outline-variant"}`}>
+              <button id="btn-dev-mode" onClick={handleDevTap} className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${devMode ? "bg-green-500/10 text-green-500 flex items-center gap-1" : "bg-surface-low text-on-surface-variant hover:bg-surface border border-outline-variant"}`}>
                 {devMode ? <><Check size={12} /> Enabled</> : "v1.0.0"}
               </button>
             }
@@ -249,7 +261,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-on-surface leading-loose">
                     Want to share your apps, music, or books with the world? Get verified to access the <span className="text-primary font-bold">Publisher Hub</span> and reach thousands of users.
                   </p>
-                  <Button onClick={handleStartVerification} className="w-full sm:w-auto self-start">
+                  <Button id="btn-apply-verification" onClick={handleStartVerification} className="w-full sm:w-auto self-start">
                     Apply for Verification <ArrowRight size={16} className="ml-2" />
                   </Button>
                 </div>
@@ -335,6 +347,7 @@ export default function SettingsPage() {
                         </button>
                       )}
                       <Button 
+                        id="btn-wizard-action"
                         onClick={wizardStep === 3 ? handleVerify : () => setWizardStep(s => s + 1)}
                         className="flex-grow py-6 text-base"
                         disabled={verifying}
@@ -348,6 +361,7 @@ export default function SettingsPage() {
 
               {profile?.is_publisher && (
                 <button 
+                  id="btn-publisher-hub"
                   onClick={() => router.push("/publisher")}
                   className="w-full py-4 rounded-2xl bg-surface-low border border-outline-variant hover:border-primary/50 flex items-center justify-center gap-2 group transition-all"
                 >
@@ -373,9 +387,30 @@ export default function SettingsPage() {
           </motion.div>
         ))}
 
+        {/* Admin Panel (Admin Only) */}
+        {profile?.is_admin && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+            <Link href="/admin" id="link-admin-panel">
+              <button id="btn-admin-panel" className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-blue-200 text-blue-500 hover:bg-blue-50 transition-all font-bold text-sm">
+                <Shield size={16} /> Admin Panel
+              </button>
+            </Link>
+          </motion.div>
+        )}
+
+        {/* Publisher Portal */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
+          <Link href="/publisher" id="link-publisher-portal">
+            <button id="btn-publisher-portal" className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-outline-variant text-on-surface hover:bg-surface-low transition-all font-bold text-sm">
+              <Sparkles size={16} /> Publisher Portal
+            </button>
+          </Link>
+        </motion.div>
+
         {/* Sign Out */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <button
+            id="btn-logout"
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold text-sm"
           >
