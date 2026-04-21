@@ -6,8 +6,17 @@ from typing import Dict
 import bleach
 import re
 
-# Rate limiter
-limiter = Limiter(key_func=get_remote_address)
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+REDIS_URL = os.getenv("REDIS_URL", "memory://")
+
+# Rate limiter with Redis backend support for horizontal scaling
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri=REDIS_URL
+)
 
 # Login attempt tracker
 login_attempts: Dict[str, list] = {}

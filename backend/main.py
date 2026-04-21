@@ -72,7 +72,53 @@ except Exception as e:
 
 Base.metadata.create_all(bind=engine)
 
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
+
 app = FastAPI(title="PandaStore API", version="2.0.0")
+
+from kafka_util import kafka_manager, log_request_to_kafka
+import time
+
+@app.on_event("startup")
+async def startup():
+    # Cache init
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    
+    # Kafka init
+    try:
+        await kafka_manager.start()
+        print("Kafka producer started")
+    except Exception as e:
+        print(f"Could not start Kafka: {e}")
+
+@app.on_event("shutdown")
+async def shutdown():
+    await kafka_manager.stop()
+
+@app.middleware("http")
+async def kafka_logging_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    
+    # Background task to log to Kafka
+    request_data = {
+        "method": request.method,
+        "url": str(request.url),
+        "client_ip": request.client.host if request.client else "unknown",
+        "status_code": response.status_code,
+        "process_time": process_time,
+        "timestamp": time.time()
+    }
+    
+    import asyncio
+    asyncio.create_task(log_request_to_kafka(request_data))
+    
+    return response
 
 # Rate limiter
 app.state.limiter = limiter
