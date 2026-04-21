@@ -14,7 +14,7 @@ cloudinary==1.36.0
 slowapi==0.1.9
 limits==3.6.0
 bleach==6.1.0
-redis==5.0.4
+redis==4.6.0
 celery==5.4.0
 fastapi-cache2[redis]==0.2.1
 aiokafka==0.10.0
