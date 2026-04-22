@@ -157,12 +157,16 @@ class UserProfile(BaseModel):
 
 class MessageCreate(BaseModel):
     content: str
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
 
 class MessageOut(BaseModel):
     id: int
     sender_id: int
     receiver_id: int
     content: str
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None
     is_read: bool
     created_at: datetime
     sender_username: Optional[str] = None

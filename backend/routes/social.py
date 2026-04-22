@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
@@ -249,7 +249,9 @@ async def send_message(
     message = models.Message(
         sender_id=current_user.id,
         receiver_id=receiver.id,
-        content=msg.content
+        content=msg.content,
+        media_url=msg.media_url,
+        media_type=msg.media_type
     )
     db.add(message)
     db.commit()
@@ -258,6 +260,8 @@ async def send_message(
     payload = {
         "id": message.id, 
         "content": message.content, 
+        "media_url": message.media_url,
+        "media_type": message.media_type,
         "created_at": message.created_at.isoformat(), 
         "sender_username": current_user.username, 
         "sender_avatar_url": current_user.avatar_url,
@@ -271,6 +275,46 @@ async def send_message(
     asyncio.create_task(manager.send_to_user(receiver.id, payload))
     
     return payload
+
+@router.post("/messages/{username}/upload")
+def upload_chat_file(
+    username: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    import cloudinary.uploader
+    from backend.routes.apps import sanitize_id
+    
+    receiver = db.query(models.User).filter(models.User.username == username).first()
+    if not receiver:
+        raise HTTPException(404, "User not found")
+        
+    try:
+        # Determine resource type based on file extension or mime type
+        content_type = file.content_type or ""
+        filename = file.filename or "file"
+        
+        if content_type.startswith("image/"):
+            res_type = "image"
+        elif content_type.startswith("video/"):
+            res_type = "video"
+        else:
+            res_type = "raw"
+            
+        result = cloudinary.uploader.upload(
+            file.file,
+            resource_type=res_type,
+            folder=f"pandastore/chat/{current_user.username}",
+            public_id=f"msg_{sanitize_id(filename)}"
+        )
+        
+        return {
+            "media_url": result["secure_url"],
+            "media_type": res_type
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Upload failed: {str(e)}")
 
 @router.get("/messages/{username}")
 def get_messages(
@@ -293,6 +337,8 @@ def get_messages(
             "sender_id": m.sender_id,
             "receiver_id": m.receiver_id,
             "content": m.content,
+            "media_url": m.media_url,
+            "media_type": m.media_type,
             "is_read": m.is_read,
             "created_at": m.created_at,
             "sender_username": m.sender.username if m.sender else "Unknown",

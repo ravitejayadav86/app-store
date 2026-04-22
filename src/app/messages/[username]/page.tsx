@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Send, Lock, Image as ImageIcon, Check, CheckCheck } from "lucide-react";
+import { ArrowLeft, Send, Lock, Image as ImageIcon, Check, CheckCheck, FileText, Loader2, X, Download } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -16,6 +16,8 @@ interface Message {
   created_at: string;
   sender_username: string;
   sender_avatar_url?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
@@ -31,6 +33,10 @@ export default function ChatPage() {
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [recipientProfile, setRecipientProfile] = useState<{avatar_url?: string | null} | null>(null);
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -127,20 +133,66 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileToUpload(file);
+    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+      setFilePreview(URL.createObjectURL(file));
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const removeFile = () => {
+    setFileToUpload(null);
+    setFilePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !fileToUpload) return;
     setSending(true);
-    const content = newMessage;
+    let finalMediaUrl = null;
+    let finalMediaType = null;
+
+    if (fileToUpload) {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+      try {
+        const res = await api.post(`/social/messages/${username}/upload`, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        finalMediaUrl = res.data.media_url;
+        finalMediaType = res.data.media_type;
+      } catch {
+        toast.error("Failed to upload file");
+        setSending(false);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    const content = newMessage.trim() || (fileToUpload ? "Sent an attachment" : "");
     setNewMessage("");
+    removeFile();
 
     try {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({
           to: username,
-          content
+          content,
+          media_url: finalMediaUrl,
+          media_type: finalMediaType
         }));
       } else {
-        const res = await api.post(`/social/messages/${username}`, { content });
+        const res = await api.post(`/social/messages/${username}`, { 
+          content,
+          media_url: finalMediaUrl,
+          media_type: finalMediaType
+        });
         setMessages(prev => [...prev, {
           ...res.data,
           sender_id: currentUserId!,
@@ -222,7 +274,24 @@ export default function ChatPage() {
                   ? "bg-primary text-on-primary rounded-3xl rounded-br-sm"
                   : "bg-surface-low text-on-surface rounded-3xl rounded-bl-sm border border-outline-variant/30"
               }`}>
-                <p className="leading-relaxed text-sm">{msg.content}</p>
+                {msg.media_url && (
+                  <div className="mb-2 rounded-2xl overflow-hidden mt-1">
+                    {msg.media_type === "image" ? (
+                      <img src={msg.media_url} alt="attachment" className="w-full h-auto max-h-60 object-cover" />
+                    ) : msg.media_type === "video" ? (
+                      <video src={msg.media_url} controls className="w-full h-auto max-h-60 object-cover rounded-2xl" />
+                    ) : (
+                      <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
+                        <FileText size={20} />
+                        <span className="text-sm font-bold truncate flex-1">Download File</span>
+                        <Download size={16} />
+                      </a>
+                    )}
+                  </div>
+                )}
+                {msg.content && msg.content !== "Sent an attachment" && (
+                  <p className="leading-relaxed text-sm whitespace-pre-wrap">{msg.content}</p>
+                )}
                 <div className={`flex items-center gap-1.5 mt-1.5 ${isMe ? "justify-end" : "justify-start"}`}>
                    <p className={`text-[10px] font-medium ${isMe ? "text-on-primary/60" : "text-on-surface-variant"}`}>
                     {timeAgo(msg.created_at)}
@@ -246,28 +315,63 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="px-4 py-4 border-t border-outline-variant/30 bg-surface/80 backdrop-blur-md pb-8">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <div className="flex-1 relative">
-            <input
-              value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="Message..."
-              className="w-full px-5 py-3.5 rounded-3xl bg-surface-low border border-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-               <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-                  <ImageIcon size={18} />
-               </button>
+        <div className="max-w-4xl mx-auto flex flex-col gap-3">
+          
+          {fileToUpload && (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface-low border border-outline-variant w-fit relative animate-in fade-in slide-in-from-bottom-2">
+              <button onClick={removeFile} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white hover:scale-110 transition-transform z-10">
+                <X size={12} />
+              </button>
+              {filePreview ? (
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/10">
+                  {fileToUpload.type.startsWith("video/") ? (
+                    <video src={filePreview} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={filePreview} alt="preview" className="w-full h-full object-cover" />
+                  )}
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <FileText size={24} />
+                </div>
+              )}
+              <div className="max-w-[150px]">
+                <p className="text-xs font-bold text-on-surface truncate">{fileToUpload.name}</p>
+                <p className="text-[10px] text-on-surface-variant">{(fileToUpload.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 bg-surface-low/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <Loader2 size={16} className="text-primary animate-spin" />
+                </div>
+              )}
             </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <input
+                value={newMessage}
+                onChange={e => setNewMessage(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
+                placeholder="Message..."
+                disabled={sending}
+                className="w-full pl-5 pr-12 py-3.5 rounded-3xl bg-surface-low border border-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-inner disabled:opacity-50"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                 <button onClick={() => fileInputRef.current?.click()} disabled={sending} className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+                    <ImageIcon size={18} />
+                 </button>
+              </div>
+            </div>
+            <button
+              onClick={handleSend}
+              disabled={sending || (!newMessage.trim() && !fileToUpload)}
+              className="w-12 h-12 flex-shrink-0 rounded-2xl bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
+            >
+              {sending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+            </button>
           </div>
-          <button
-            onClick={handleSend}
-            disabled={sending || !newMessage.trim()}
-            className="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
-          >
-            <Send size={20} />
-          </button>
         </div>
       </div>
     </div>

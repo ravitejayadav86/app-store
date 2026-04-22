@@ -66,6 +66,21 @@ try:
                         print(f"Added column {col} to apps")
                     except Exception as e:
                         print(f"Error adding {col} to apps: {e}")
+                        
+        if "messages" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("messages")]
+            msg_cols = [
+                ("media_url", "TEXT"),
+                ("media_type", "TEXT"),
+            ]
+            for col, col_type in msg_cols:
+                if col not in columns:
+                    try:
+                        conn.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {col_type}"))
+                        conn.commit()
+                        print(f"Added column {col} to messages")
+                    except Exception as e:
+                        print(f"Error adding {col} to messages: {e}")
 
         print("Migrations complete.")
 except Exception as e:
