@@ -75,7 +75,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                 ) : (
                     <>
                         {/* Categories - Desktop */}
-                        <div className="hidden md:flex items-center gap-6">
+                        <div className="hidden lg:flex items-center gap-1.5">
                             {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => {
                                 const href = `/${item.toLowerCase() === 'discover' ? '' : item.toLowerCase()}`;
                                 const isActive = pathname === href || (href !== "/" && pathname?.startsWith(href));
@@ -83,9 +83,9 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                     <Link
                                         key={item}
                                         href={href}
-                                        className={`relative text-sm font-bold transition-all px-5 py-2 rounded-full ${
+                                        className={`relative text-sm font-bold transition-all px-4 py-2 rounded-full ${
                                             isActive ? "text-primary" : "text-on-surface-variant hover:text-primary hover:bg-primary/5"
-                                        } tracking-tight`}
+                                        } tracking-tight whitespace-nowrap`}
                                     >
                                         <span className="relative z-10">{item}</span>
                                         {isActive && (
@@ -101,7 +101,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-1 sm:gap-2">
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="p-2 text-on-surface-variant hover:text-primary transition-colors"
@@ -117,12 +117,12 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 </Link>
                             )}
 
-                            <div className="hidden sm:flex items-center gap-2">
+                            <div className="hidden xl:flex items-center gap-1.5">
                                 {/* Admin button */}
                                 {session && (
                                     <Link href="/admin">
-                                        <Button variant="tertiary" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-500/10 border-red-500/20">
-                                            <ShieldAlert size={18} className="mr-2" />
+                                        <Button variant="tertiary" size="sm" className="h-9 text-red-500 hover:text-red-400 hover:bg-red-500/10 border-red-500/20 px-3">
+                                            <ShieldAlert size={16} className="mr-1.5" />
                                             Admin
                                         </Button>
                                     </Link>
@@ -131,15 +131,15 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 {/* Sign In if not logged in */}
                                 {!session && (
                                     <Link href="/login">
-                                        <Button variant="tertiary" size="sm">
-                                            <User size={18} className="mr-2" />
+                                        <Button variant="tertiary" size="sm" className="h-9 px-4">
+                                            <User size={16} className="mr-1.5" />
                                             Sign In
                                         </Button>
                                     </Link>
                                 )}
 
                                 <Link href="/publisher">
-                                    <Button size="sm">Publisher</Button>
+                                    <Button size="sm" className="h-9 px-4">Publisher</Button>
                                 </Link>
                             </div>
 
@@ -147,12 +147,12 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             {session && <NotificationBell />}
 
                             {/* Settings icon - hidden on mobile */}
-                            <Link href="/settings" className="hidden md:flex p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
+                            <Link href="/settings" className="hidden sm:flex p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
                                 <Settings size={18} />
                             </Link>
 
                             {/* Profile */}
-                            <Link href="/profile" className="hidden md:flex w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
+                            <Link href="/profile" className="flex w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
                                 <User size={18} className="group-hover:text-primary transition-colors" />
                             </Link>
                         </div>
