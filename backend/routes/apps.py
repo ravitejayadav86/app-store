@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -154,20 +154,22 @@ def upload_file(
 @router.get("/{app_id}/download")
 def download_file(
     app_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_optional_user)
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
         raise HTTPException(404, "No file uploaded for this app.")
-    # Broadcast to telemetry
+    
+    # Broadcast to telemetry in background
     username = current_user.username if current_user else "Someone"
-    # We use a background task or just await since it's async
-    import asyncio
-    asyncio.create_task(telemetry.notify_download(app.name, username))
+    background_tasks.add_task(telemetry.notify_download, app.name, username)
 
-    # Redirect to Cloudinary URL directly
-    return RedirectResponse(url=app.file_path)
+    # Redirect to file URL
+    # If it's a local path (starts with /uploads), we ensure it stays on the same domain
+    url = app.file_path
+    return RedirectResponse(url=url)
 
 @router.post("/{app_id}/nudge")
 async def nudge_publisher(
