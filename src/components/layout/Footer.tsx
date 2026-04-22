@@ -1,8 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export const Footer = () => {
+  const pathname = usePathname();
+  
+  // Hide footer on messenger pages
+  if (pathname?.startsWith("/messages")) {
+    return null;
+  }
+
   return (
     <footer className="bg-surface-low border-t border-outline-variant pt-20 pb-10 px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
