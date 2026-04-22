@@ -220,37 +220,41 @@ function AppDetailContent() {
   return (
     <div className="min-h-screen bg-surface selection:bg-primary/10">
       {/* Dynamic Background Glow */}
-      <div className={`fixed inset-0 bg-linear-to-b ${getCategoryGradient(app.category)} opacity-30 pointer-events-none`} />
+      <div className={`fixed inset-0 bg-linear-to-b ${getCategoryGradient(app.category)} opacity-40 pointer-events-none`} />
       
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 pb-24">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24">
         {/* Navigation */}
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => router.back()}
-          className="group flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all mb-10 text-sm font-medium"
+          className="group flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all mb-8 text-sm font-bold"
         >
-          <div className="p-2 rounded-full group-hover:bg-primary/10 transition-colors">
+          <div className="p-2.5 rounded-full liquid-glass group-hover:scale-110 transition-transform">
             <ArrowLeft size={18} />
           </div>
           Back to Store
         </motion.button>
 
         {/* Hero Section */}
-        <div className="flex flex-col md:flex-row gap-10 items-center md:items-start mb-16">
+        <div className="flex flex-col md:flex-row gap-12 items-center md:items-start mb-16">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative group"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative"
           >
-            <div className="absolute inset-0 bg-primary/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-[2.5rem] bg-surface-lowest flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-outline-variant/30 overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-white/40 to-transparent pointer-events-none" />
-              {app.icon_url ? (
-                <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
-              ) : (
-                getCategoryIcon(app.category)
-              )}
+            <div className="absolute inset-0 bg-primary/30 blur-[100px] opacity-40" />
+            <div className="relative w-44 h-44 md:w-56 md:h-56 rounded-[3rem] liquid-glass flex items-center justify-center shadow-2xl border-white/40 overflow-hidden p-1">
+              <div className="absolute inset-0 bg-linear-to-br from-white/30 to-transparent pointer-events-none" />
+              <div className="w-full h-full rounded-[2.8rem] overflow-hidden">
+                {app.icon_url ? (
+                  <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-surface-low">
+                    {getCategoryIcon(app.category)}
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
 
@@ -258,25 +262,25 @@ function AppDetailContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex-1 text-center md:text-left space-y-6 w-full"
+            className="flex-1 text-center md:text-left space-y-8 w-full"
           >
-            <div className="space-y-2">
-              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface">
+            <div className="space-y-3">
+              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-on-surface">
                 {app.name}
               </h1>
-              <p className="text-lg md:text-xl text-primary font-semibold tracking-wide flex items-center justify-center md:justify-start gap-2">
-                <User size={18} className="opacity-70" />
+              <p className="text-xl md:text-2xl text-primary font-bold tracking-wide flex items-center justify-center md:justify-start gap-3">
+                <User size={22} className="text-primary/60" />
                 {app.developer}
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-6">
               <Button
                 size="lg"
-                className={`h-14 px-10 text-lg font-bold rounded-[1.25rem] transition-all duration-500 shadow-xl shadow-primary/20 active:scale-95 ${
+                className={`h-16 px-12 text-xl font-black rounded-3xl transition-all duration-500 shadow-2xl active:scale-95 ${
                   !app.file_path 
-                    ? "bg-surface-low text-on-surface-variant border-2 border-outline-variant hover:border-primary/30" 
-                    : "hover:shadow-2xl hover:shadow-primary/40"
+                    ? "bg-white/40 text-on-surface-variant border-2 border-white/50 backdrop-blur-xl" 
+                    : "hover:shadow-primary/40 hover:-translate-y-1"
                 }`}
                 onClick={() => {
                   if (!app.file_path) {
@@ -292,11 +296,11 @@ function AppDetailContent() {
                 disabled={downloading}
               >
                 {downloading ? (
-                  <Loader2 className="animate-spin mr-3" size={24} />
+                  <Loader2 className="animate-spin mr-3" size={26} />
                 ) : !app.file_path ? (
-                  <Bell size={22} className="mr-3" />
+                  <Bell size={24} className="mr-3" />
                 ) : (
-                  <Download size={22} className="mr-3" />
+                  <Download size={24} className="mr-3" />
                 )}
                 {downloading
                   ? "Processing..."
@@ -307,84 +311,84 @@ function AppDetailContent() {
                   : `$${app.price}`}
               </Button>
               
-              <div className="flex flex-col items-center md:items-start">
-                <div className="flex items-center gap-1.5 px-4 py-2 bg-surface-lowest rounded-full border border-outline-variant shadow-sm">
-                  <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-on-surface">{avgRating ?? "New"}</span>
-                  <span className="text-xs text-on-surface-variant font-medium">({reviews.length})</span>
+              <div className="flex flex-col items-center md:items-start gap-2">
+                <div className="flex items-center gap-2 px-6 py-3 liquid-glass shadow-lg border-white/50">
+                  <Star size={20} className="fill-yellow-400 text-yellow-400" />
+                  <span className="font-black text-xl text-on-surface">{avgRating ?? "New"}</span>
+                  <span className="text-sm text-on-surface-variant font-bold">({reviews.length})</span>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-green-600 mt-2 flex items-center gap-1 opacity-80">
-                  <ShieldCheck size={12} /> Verified Safe
+                <p className="text-xs uppercase tracking-[0.2em] font-black text-green-600 flex items-center gap-2 px-2">
+                  <ShieldCheck size={14} /> Safe & Verified
                 </p>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Metadata Pills */}
+        {/* Metadata Grid */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16"
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16"
         >
-          <div className="bg-surface-lowest p-4 rounded-3xl border border-outline-variant/30 shadow-sm flex flex-col items-center justify-center gap-1 text-center group hover:border-primary/20 transition-all">
-            <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold opacity-60">Category</span>
-            <span className="text-sm font-bold text-on-surface">{app.category}</span>
+          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
+            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Category</span>
+            <span className="text-base font-black text-on-surface">{app.category}</span>
           </div>
-          <div className="bg-surface-lowest p-4 rounded-3xl border border-outline-variant/30 shadow-sm flex flex-col items-center justify-center gap-1 text-center group hover:border-primary/20 transition-all">
-            <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold opacity-60">Version</span>
-            <span className="text-sm font-bold text-on-surface">{app.version}</span>
+          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
+            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Version</span>
+            <span className="text-base font-black text-on-surface">{app.version}</span>
           </div>
-          <div className="bg-surface-lowest p-4 rounded-3xl border border-outline-variant/30 shadow-sm flex flex-col items-center justify-center gap-1 text-center group hover:border-primary/20 transition-all">
-            <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold opacity-60">Updated</span>
-            <span className="text-sm font-bold text-on-surface">{new Date(app.created_at).toLocaleDateString()}</span>
+          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
+            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Updated</span>
+            <span className="text-base font-black text-on-surface">{new Date(app.created_at).toLocaleDateString()}</span>
           </div>
-          <div className="bg-surface-lowest p-4 rounded-3xl border border-outline-variant/30 shadow-sm flex flex-col items-center justify-center gap-1 text-center group hover:border-primary/20 transition-all">
-            <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold opacity-60">Safety</span>
-            <span className="text-xs font-bold text-green-600 flex items-center gap-1">
-              <ShieldCheck size={14} /> Encrypted
+          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
+            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Security</span>
+            <span className="text-sm font-black text-green-600 flex items-center gap-1.5">
+              <ShieldCheck size={16} /> End-to-End
             </span>
           </div>
         </motion.div>
 
         {/* Content Tabs / Body */}
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid md:grid-cols-3 gap-16">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-2 space-y-12"
+            className="md:col-span-2 space-y-16"
           >
-            <section>
-              <h2 className="text-2xl font-bold text-on-surface mb-6 flex items-center gap-3">
-                <Info size={24} className="text-primary" />
+            <section className="liquid-glass p-10 border-white/30 shadow-2xl">
+              <h2 className="text-3xl font-black text-on-surface mb-8 flex items-center gap-3">
+                <Info size={32} className="text-primary" />
                 About this {app.category === "Games" ? "Game" : "App"}
               </h2>
-              <p className="text-lg text-on-surface-variant leading-relaxed font-medium opacity-90 whitespace-pre-wrap">
+              <p className="text-xl text-on-surface-variant leading-relaxed font-bold opacity-90 whitespace-pre-wrap">
                 {app.description}
               </p>
             </section>
 
-            <section className="pt-12 border-t border-outline-variant/50">
-              <h2 className="text-2xl font-bold text-on-surface mb-8 flex items-center justify-between">
+            <section>
+              <h2 className="text-3xl font-black text-on-surface mb-10 flex items-center justify-between">
                 <span>Ratings & Reviews</span>
                 {avgRating && (
-                  <div className="flex items-center gap-2 text-primary">
-                    <Star size={24} className="fill-current" />
-                    <span className="text-3xl font-black">{avgRating}</span>
+                  <div className="flex items-center gap-3 text-primary bg-primary/10 px-5 py-2 rounded-2xl border border-primary/20 shadow-inner">
+                    <Star size={28} className="fill-current" />
+                    <span className="text-4xl font-black">{avgRating}</span>
                   </div>
                 )}
               </h2>
 
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <AnimatePresence>
                   {reviews.length === 0 ? (
-                    <div className="p-12 text-center bg-surface-lowest rounded-[2.5rem] border-2 border-dashed border-outline-variant/50">
-                      <Star size={48} className="mx-auto mb-4 text-on-surface-variant opacity-20" />
-                      <h3 className="text-lg font-bold text-on-surface mb-2">No reviews yet</h3>
-                      <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed">
-                        Be the first to share your thoughts and help others discover this {app.category?.toLowerCase()}.
+                    <div className="p-20 text-center liquid-glass border-dashed border-white/40">
+                      <Star size={64} className="mx-auto mb-6 text-primary/20" />
+                      <h3 className="text-2xl font-black text-on-surface mb-3">No reviews yet</h3>
+                      <p className="text-on-surface-variant max-w-sm mx-auto text-lg font-bold leading-relaxed">
+                        Be the first to share your experience and help others discover this {app.category?.toLowerCase()}.
                       </p>
                     </div>
                   ) : (
@@ -394,16 +398,16 @@ function AppDetailContent() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-surface-lowest p-6 rounded-[2rem] border border-outline-variant shadow-sm hover:shadow-md transition-all active:scale-[0.99]"
+                        className="liquid-glass p-8 border-white/30 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all"
                       >
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl liquid-glass flex items-center justify-center text-primary font-black text-xl border-white/50 shadow-inner">
                               {review.user_id}
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-on-surface">User #{review.user_id}</p>
-                                <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">
+                                <p className="text-lg font-black text-on-surface">User #{review.user_id}</p>
+                                <p className="text-[11px] text-on-surface-variant font-black uppercase tracking-[0.2em] opacity-50">
                                     {new Date(review.created_at).toLocaleDateString()}
                                 </p>
                             </div>
@@ -411,7 +415,7 @@ function AppDetailContent() {
                           <StarRating value={review.rating} />
                         </div>
                         {review.comment && (
-                          <p className="text-on-surface-variant text-base leading-relaxed font-medium">
+                          <p className="text-on-surface-variant text-lg leading-relaxed font-bold">
                             {review.comment}
                           </p>
                         )}
