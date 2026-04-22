@@ -33,8 +33,8 @@ export default function ChatPage() {
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [recipientProfile, setRecipientProfile] = useState<{avatar_url?: string | null} | null>(null);
-  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -134,82 +134,103 @@ export default function ChatPage() {
   }, [messages]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFileToUpload(file);
-    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
-      setFilePreview(URL.createObjectURL(file));
-    } else {
-      setFilePreview(null);
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+    
+    setFilesToUpload(prev => [...prev, ...selectedFiles]);
+    
+    selectedFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setFilesToUpload(prev => prev.filter((_, i) => i !== index));
+    setFilePreviews(prev => prev.filter((_, i) => i !== index));
+    if (filesToUpload.length === 1 && fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
-  const removeFile = () => {
-    setFileToUpload(null);
-    setFilePreview(null);
+  const clearAllFiles = () => {
+    setFilesToUpload([]);
+    setFilePreviews([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() && !fileToUpload) return;
+    if (!newMessage.trim() && filesToUpload.length === 0) return;
     setSending(true);
-    let finalMediaUrl = null;
-    let finalMediaType = null;
 
-    if (fileToUpload) {
-      if (fileToUpload.size > 500 * 1024 * 1024) {
-        toast.error("File is too large. Max 500MB.");
-        setSending(false);
-        return;
-      }
-      setUploading(true);
-      const formData = new FormData();
-      formData.append("file", fileToUpload);
-      try {
-        const res = await api.post(`/social/messages/${username}/upload`, formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-        finalMediaUrl = res.data.media_url;
-        finalMediaType = res.data.media_type;
-      } catch (err) {
-        console.error("Upload error:", err);
-        toast.error("Failed to upload file. Check your connection.");
-        setSending(false);
-        setUploading(false);
-        return;
-      }
-      setUploading(false);
-    }
-
-    const content = newMessage.trim() || (fileToUpload ? "Sent an attachment" : "");
+    const textContent = newMessage.trim();
     setNewMessage("");
-    removeFile();
+    const files = [...filesToUpload];
+    clearAllFiles();
 
     try {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          to: username,
-          content,
-          media_url: finalMediaUrl,
-          media_type: finalMediaType
-        }));
+      if (files.length === 0) {
+        // Just text message
+        await emitMessage(textContent, null, null);
       } else {
-        const res = await api.post(`/social/messages/${username}`, { 
-          content,
-          media_url: finalMediaUrl,
-          media_type: finalMediaType
-        });
-        setMessages(prev => [...prev, {
-          ...res.data,
-          sender_id: currentUserId!,
-          receiver_id: 0,
-          is_read: false
-        }]);
+        // Send files one by one
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (file.size > 500 * 1024 * 1024) {
+            toast.error(`File ${file.name} is too large. Max 500MB.`);
+            continue;
+          }
+
+          setUploading(true);
+          const formData = new FormData();
+          formData.append("file", file);
+          
+          try {
+            const res = await api.post(`/social/messages/${username}/upload`, formData, {
+              headers: { "Content-Type": "multipart/form-data" }
+            });
+            
+            // For the first file, attach the text message if any
+            const msgContent = (i === 0 && textContent) ? textContent : "";
+            await emitMessage(msgContent, res.data.media_url, res.data.media_type);
+          } catch (err) {
+            console.error("Upload error:", err);
+            toast.error(`Failed to upload ${file.name}`);
+          }
+        }
+        setUploading(false);
       }
     } catch {
       toast.error("Failed to send message.");
     } finally {
       setSending(false);
+      setUploading(false);
+    }
+  };
+
+  const emitMessage = async (content: string, media_url: string | null, media_type: string | null) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        to: username,
+        content,
+        media_url,
+        media_type
+      }));
+    } else {
+      const res = await api.post(`/social/messages/${username}`, { 
+        content,
+        media_url,
+        media_type
+      });
+      setMessages(prev => [...prev, {
+        ...res.data,
+        sender_id: currentUserId!,
+        receiver_id: 0,
+        is_read: false
+      }]);
     }
   };
 
@@ -223,10 +244,17 @@ export default function ChatPage() {
     return new Date(date).toLocaleDateString();
   };
 
-  const resolveMediaUrl = (url: string | null | undefined) => {
+  const resolveMediaUrl = (url: string | null | undefined, forDownload = false) => {
     if (!url) return "";
-    if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
-    return `${API_BASE}${url}`;
+    let finalUrl = url;
+    if (!(url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:"))) {
+      finalUrl = `${API_BASE}${url}`;
+    }
+    
+    if (forDownload && finalUrl.includes("cloudinary.com")) {
+      return finalUrl.replace("/upload/", "/upload/fl_attachment/");
+    }
+    return finalUrl;
   };
 
   return (
@@ -299,7 +327,7 @@ export default function ChatPage() {
                         />
                         <div className="p-2 border-t border-white/10 flex justify-end w-full">
                           <a 
-                            href={resolveMediaUrl(msg.media_url)} 
+                            href={resolveMediaUrl(msg.media_url, true)} 
                             download 
                             target="_blank" 
                             rel="noopener noreferrer"
@@ -315,7 +343,7 @@ export default function ChatPage() {
                         <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-80 object-cover rounded-2xl" />
                         <div className="p-2 flex justify-end">
                           <a 
-                            href={resolveMediaUrl(msg.media_url)} 
+                            href={resolveMediaUrl(msg.media_url, true)} 
                             download 
                             target="_blank" 
                             rel="noopener noreferrer"
@@ -326,7 +354,7 @@ export default function ChatPage() {
                         </div>
                       </div>
                     ) : (
-                      <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl w-full ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
+                      <a href={resolveMediaUrl(msg.media_url, true)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl w-full ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
                         <FileText size={20} />
                         <span className="text-sm font-bold truncate flex-1">Download File</span>
                         <Download size={16} />
@@ -362,33 +390,32 @@ export default function ChatPage() {
       <div className="px-4 py-4 border-t border-outline-variant/30 bg-surface/80 backdrop-blur-md pb-8">
         <div className="max-w-4xl mx-auto flex flex-col gap-3">
           
-          {fileToUpload && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface-low border border-outline-variant w-fit relative animate-in fade-in slide-in-from-bottom-2">
-              <button onClick={removeFile} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white hover:scale-110 transition-transform z-10">
-                <X size={12} />
-              </button>
-              {filePreview ? (
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/10">
-                  {fileToUpload.type.startsWith("video/") ? (
-                    <video src={filePreview} className="w-full h-full object-cover" />
+          {filesToUpload.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+              {filesToUpload.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-2 pr-4 rounded-2xl bg-surface-low border border-outline-variant relative group">
+                  <button onClick={() => removeFile(idx)} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white hover:scale-110 transition-transform z-10">
+                    <X size={10} />
+                  </button>
+                  {filePreviews[idx] ? (
+                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/10">
+                      {file.type.startsWith("video/") ? (
+                        <video src={filePreviews[idx]} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={filePreviews[idx]} alt="preview" className="w-full h-full object-cover" />
+                      )}
+                    </div>
                   ) : (
-                    <img src={filePreview} alt="preview" className="w-full h-full object-cover" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                      <FileText size={18} />
+                    </div>
                   )}
+                  <div className="max-w-[100px]">
+                    <p className="text-[10px] font-bold text-on-surface truncate">{file.name}</p>
+                    <p className="text-[8px] text-on-surface-variant">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <FileText size={24} />
-                </div>
-              )}
-              <div className="max-w-[150px]">
-                <p className="text-xs font-bold text-on-surface truncate">{fileToUpload.name}</p>
-                <p className="text-[10px] text-on-surface-variant">{(fileToUpload.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              {uploading && (
-                <div className="absolute inset-0 bg-surface-low/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                  <Loader2 size={16} className="text-primary animate-spin" />
-                </div>
-              )}
+              ))}
             </div>
           )}
 
@@ -403,7 +430,7 @@ export default function ChatPage() {
                 className="w-full pl-5 pr-12 py-3.5 rounded-3xl bg-surface-low border border-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-inner disabled:opacity-50"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
                  <button onClick={() => fileInputRef.current?.click()} disabled={sending} className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
                     <ImageIcon size={18} />
                  </button>
@@ -411,7 +438,7 @@ export default function ChatPage() {
             </div>
             <button
               onClick={handleSend}
-              disabled={sending || (!newMessage.trim() && !fileToUpload)}
+              disabled={sending || (!newMessage.trim() && filesToUpload.length === 0)}
               className="w-12 h-12 flex-shrink-0 rounded-2xl bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
             >
               {sending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
