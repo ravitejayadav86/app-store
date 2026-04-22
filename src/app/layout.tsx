@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
+import { Copilot } from "@/components/Copilot";
 import { Toaster } from "sonner";
 import Providers from "@/components/Providers";
 
@@ -84,6 +85,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <BottomNav />
+          <Copilot />
           <Toaster position="bottom-right" theme="dark" richColors />
         </Providers>
       </body>

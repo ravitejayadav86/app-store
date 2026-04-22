@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from sqlalchemy import text, inspect
 from database import engine, Base
-from routes import auth, apps, users, admin, reviews, notifications, community, social
+from routes import auth, apps, users, admin, reviews, notifications, community, social, copilot
 from security import limiter, add_security_headers
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -140,6 +140,7 @@ app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(community.router)
 app.include_router(social.router)
+app.include_router(copilot.router)
 
 @app.get("/health")
 def health():
