@@ -202,12 +202,22 @@ def download_file(
     if not app or not app.file_path:
         raise HTTPException(404, "No file uploaded for this app.")
     
+    # If free app and logged in, record a "purchase" to track downloads
+    if current_user and app.price == 0:
+        existing = db.query(models.Purchase).filter(
+            models.Purchase.user_id == current_user.id,
+            models.Purchase.app_id == app.id
+        ).first()
+        if not existing:
+            purchase = models.Purchase(user_id=current_user.id, app_id=app.id)
+            db.add(purchase)
+            db.commit()
+
     # Broadcast to telemetry in background
     username = current_user.username if current_user else "Someone"
     background_tasks.add_task(telemetry.notify_download, app.name, username)
 
     # Redirect to file URL
-    # If it's a local path (starts with /uploads), we ensure it stays on the same domain
     url = app.file_path
     return RedirectResponse(url=url)
 

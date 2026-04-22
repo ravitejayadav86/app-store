@@ -117,21 +117,23 @@ function AppDetailContent() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        const res = await api.get(`/apps/${params.id}`);
-        setApp(res.data);
-        fetchReviews(res.data.id);
-      } catch {
-        toast.error("App not found");
-        router.push("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (params.id) fetchApp();
+  const fetchApp = useCallback(async () => {
+    if (!params.id) return;
+    try {
+      const res = await api.get(`/apps/${params.id}`);
+      setApp(res.data);
+      fetchReviews(res.data.id);
+    } catch {
+      toast.error("App not found");
+      router.push("/");
+    } finally {
+      setLoading(false);
+    }
   }, [params.id, router, fetchReviews]);
+
+  useEffect(() => {
+    fetchApp();
+  }, [fetchApp]);
 
   const handleDownload = async () => {
     if (!app) return;
@@ -176,6 +178,8 @@ function AppDetailContent() {
       link.remove();
       
       toast.success("Download started!");
+      // Refresh app data to show updated download count
+      setTimeout(fetchApp, 2000);
     } catch (err: unknown) {
       toast.error("Download failed.");
     } finally {
@@ -192,7 +196,7 @@ function AppDetailContent() {
       toast.success("Review submitted!");
       setMyRating(0);
       setMyComment("");
-      fetchReviews(app.id);
+      fetchApp(); // Refresh everything
     } catch (err: unknown) {
       const error = err as ApiError;
       toast.error(error.response?.data?.detail || "Failed to submit review. Please sign in first.");
