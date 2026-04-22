@@ -16,6 +16,7 @@ interface App {
   price: number;
   created_at: string;
   file_path?: string | null;
+  icon_url?: string | null;
 }
 
 export default function DiscoverPage() {
@@ -102,8 +103,12 @@ export default function DiscoverPage() {
                 >
                   <Link href={`/apps/${app.id}`}>
                     <GlassCard className="flex flex-col gap-6 h-full hover:bg-surface-low transition-colors group">
-                      <div className={`w-16 h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white group-hover:scale-110 transition-transform`}>
-                        <Star size={28} />
+                      <div className={`w-16 h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white group-hover:scale-110 transition-transform overflow-hidden`}>
+                        {app.icon_url ? (
+                          <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Star size={28} />
+                        )}
                       </div>
                       <div>
                         <h3 className="text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>

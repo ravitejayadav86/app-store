@@ -66,17 +66,29 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token && !session) { 
+    const hasSession = !!session?.user;
+
+    if (!token && !hasSession) { 
       const timer = setTimeout(() => {
         if (!localStorage.getItem("token") && !session) router.push("/login");
-      }, 2000); // Give it a moment to sync if it's currently doing so
+      }, 3000);
       return () => clearTimeout(timer);
     }
-    if (session || token) fetchProfile();
+
+    // If we have a token, or if we have a session AND the token is already there, fetch immediately
+    if (token) {
+      fetchProfile();
+    } else if (hasSession) {
+      // If we have a session but no token yet, wait for the sync event
+      // TokenSync component in Providers.tsx will handle the exchange
+      console.log("Session detected, waiting for token sync...");
+    }
 
     const handleSync = () => {
+      console.log("Auth synced event received, fetching profile...");
       fetchProfile();
     };
+
     window.addEventListener("auth-synced", handleSync);
     return () => window.removeEventListener("auth-synced", handleSync);
   }, [session?.user?.email, router]);
@@ -163,14 +175,21 @@ useEffect(() => {
     setDetailsLoading(true);
     try {
       if (tab === "Followers") {
+        if (!profile?.username) return;
         const res = await api.get(`/social/followers/${profile?.username}`);
         setFollowers(res.data);
       } else if (tab === "Following") {
+        if (!profile?.username) return;
         const res = await api.get(`/social/following/${profile?.username}`);
         setFollowing(res.data);
       } else if (tab === "Reviews") {
         const res = await api.get("/reviews/me");
         setMyReviews(res.data);
+      } else if (tab === "Installed") {
+        const res = await api.get("/users/me/purchases");
+        setPurchasedApps(res.data);
+      } else if (tab === "Published") {
+        await fetchMyApps();
       }
     } catch {
       toast.error(`Failed to fetch ${tab.toLowerCase()}`);

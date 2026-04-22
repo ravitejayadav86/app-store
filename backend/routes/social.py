@@ -105,12 +105,12 @@ def get_profile(
         "installs_count": installs_count,
         "reviews_count": reviews_count,
         "is_following": is_following,
-        "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "created_at": a.created_at} for a in apps],
+        "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "icon_url": a.icon_url, "screenshot_urls": a.screenshot_urls, "created_at": a.created_at} for a in apps],
         "posts": posts
     }
 
 @router.post("/follow/{username}")
-def toggle_follow(
+async def toggle_follow(
     username: str,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -193,7 +193,7 @@ def get_followers(username: str, db: Session = Depends(get_db)):
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.follower_id).first()
         if u:
-            result.append({"id": u.id, "username": u.username, "bio": u.bio})
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url})
     return result
 
 @router.get("/following/{username}")
@@ -206,12 +206,12 @@ def get_following(username: str, db: Session = Depends(get_db)):
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.following_id).first()
         if u:
-            result.append({"id": u.id, "username": u.username, "bio": u.bio})
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url})
     return result
 
 # -- Messages --
 @router.post("/messages/{username}/read")
-def mark_read(
+async def mark_read(
     username: str,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -237,7 +237,7 @@ def mark_read(
     return {"status": "ok"}
 
 @router.post("/messages/{username}")
-def send_message(
+async def send_message(
     username: str,
     msg: schemas.MessageCreate,
     db: Session = Depends(get_db),

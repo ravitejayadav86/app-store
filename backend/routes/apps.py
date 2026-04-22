@@ -66,7 +66,7 @@ def submit_app(
         version=app.version,
         developer=current_user.username,
         is_active=True,
-        is_approved=True,
+        is_approved=True if app.external_url else False,
         file_path=app.external_url
     )
     db.add(db_app)
@@ -125,6 +125,9 @@ def upload_file(
             )
             shot_urls.append(shot_result["secure_url"])
         app.screenshot_urls = json.dumps(shot_urls)
+    
+    # Mark as approved once files are uploaded
+    app.is_approved = True
 
     db.commit()
     db.refresh(app)
@@ -152,6 +155,43 @@ def download_file(
 
     # Redirect to Cloudinary URL directly
     return RedirectResponse(url=app.file_path)
+
+@router.post("/{app_id}/nudge")
+async def nudge_publisher(
+    app_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    app = db.query(models.App).filter(models.App.id == app_id).first()
+    if not app:
+        raise HTTPException(404, "App not found")
+    
+    # Find the developer
+    developer = db.query(models.User).filter(models.User.username == app.developer).first()
+    if not developer:
+        raise HTTPException(404, "Developer not found")
+
+    # Check if a nudge was already sent recently (optional, skipping for simplicity)
+    
+    # Create notification for developer
+    notif = models.Notification(
+        user_id=developer.id,
+        title="App Nudge!",
+        message=f"Users are interested in '{app.name}'! Please upload the app files to make it available for download."
+    )
+    db.add(notif)
+    db.commit()
+    
+    # Real-time notification if developer is online
+    from realtime import manager
+    import asyncio
+    asyncio.create_task(manager.send_to_user(developer.id, {
+        "type": "NOTIFICATION",
+        "title": notif.title,
+        "message": notif.message
+    }))
+
+    return {"message": "Nudge sent to publisher!"}
 
 @router.post("/{app_id}/grant")
 def grant_access(

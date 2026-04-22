@@ -114,7 +114,14 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    fetchProfile();
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchProfile();
+    }
+    
+    const handleSync = () => fetchProfile();
+    window.addEventListener("auth-synced", handleSync);
+    return () => window.removeEventListener("auth-synced", handleSync);
   }, [session]);
 
   const fetchProfile = async () => {

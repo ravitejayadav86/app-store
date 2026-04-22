@@ -47,6 +47,8 @@ class AppBase(BaseModel):
     category: str
     version: str = "1.0.0"
     external_url: Optional[str] = None
+    icon_url: Optional[str] = None
+    screenshot_urls: Optional[str] = None
 
 class AppCreate(AppBase):
     pass # No developer field here, it's inferred from Auth token
@@ -57,6 +59,8 @@ class AppOut(AppBase):
     is_active: bool
     is_approved: bool
     file_path: Optional[str] = None
+    icon_url: Optional[str] = None
+    screenshot_urls: Optional[str] = None
     created_at: datetime
     class Config:
         from_attributes = True

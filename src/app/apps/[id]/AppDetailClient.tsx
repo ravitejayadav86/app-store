@@ -23,6 +23,8 @@ interface AppData {
   version: string;
   created_at: string;
   file_path: string | null;
+  icon_url?: string | null;
+  screenshot_urls?: string | null;
 }
 
 interface Review {
@@ -130,24 +132,27 @@ function AppDetailContent() {
     if (!app) return;
 
     if (!app.file_path) {
+      // Trigger a real nudge in the backend
+      try {
+        await api.post(`/apps/${app.id}/nudge`);
+      } catch (err) {
+        console.error("Failed to send nudge", err);
+      }
+
       toast.custom((id) => (
-        <div className="bg-surface-low border border-outline-variant p-5 rounded-[2rem] shadow-2xl flex flex-col gap-4 max-w-sm animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600">
-              <Clock size={28} />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-on-surface text-base">Coming Soon</h4>
-              <p className="text-sm text-on-surface-variant leading-relaxed mt-1 opacity-80">
-                "{app.name}" hasn't released a file yet. We've sent a nudge to the publisher!
-              </p>
-            </div>
+        <div className="flex items-center gap-3 p-4 bg-primary text-on-primary rounded-2xl shadow-2xl shadow-primary/20 border border-primary/20 animate-in fade-in slide-in-from-bottom-5">
+          <CloudUpload className="animate-bounce shrink-0" size={24} />
+          <div className="flex-1">
+            <p className="text-sm font-bold tracking-tight">Coming Soon!</p>
+            <p className="text-[11px] opacity-90 leading-tight mt-0.5">
+              "{app.name}" hasn't released a file yet. We've sent a real nudge to the publisher!
+            </p>
           </div>
-          <Button size="sm" variant="secondary" className="w-full h-10 text-sm font-bold rounded-xl" onClick={() => toast.dismiss(id)}>
-            Understood
-          </Button>
+          <button onClick={() => toast.dismiss(id)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={16} />
+          </button>
         </div>
-      ), { duration: 6000 });
+      ), { duration: 5000 });
       return;
     }
 
@@ -238,7 +243,11 @@ function AppDetailContent() {
             <div className="absolute inset-0 bg-primary/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-[2.5rem] bg-surface-lowest flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-outline-variant/30 overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-br from-white/40 to-transparent pointer-events-none" />
-              {getCategoryIcon(app.category)}
+              {app.icon_url ? (
+                <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+              ) : (
+                getCategoryIcon(app.category)
+              )}
             </div>
           </motion.div>
 
@@ -417,6 +426,36 @@ function AppDetailContent() {
             transition={{ delay: 0.4 }}
             className="space-y-8"
           >
+            <div className="bg-surface-lowest p-8 rounded-[2.5rem] border border-outline-variant/30 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Info size={40} />
+              </div>
+              <h4 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+                About this app
+              </h4>
+              <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
+                {app.description || "No description provided by the developer."}
+              </p>
+            </div>
+
+            {app.screenshot_urls && JSON.parse(app.screenshot_urls).length > 0 && (
+              <div className="space-y-6">
+                <h4 className="text-xl font-bold text-on-surface flex items-center gap-2">
+                  Screenshots
+                </h4>
+                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
+                  {JSON.parse(app.screenshot_urls).map((url: string, i: number) => (
+                    <motion.div
+                      key={i}
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      className="shrink-0 w-[240px] md:w-[320px] aspect-video rounded-2xl overflow-hidden bg-surface-low border border-outline-variant shadow-lg"
+                    >
+                      <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="bg-surface-lowest p-8 rounded-[2.5rem] border border-outline-variant shadow-xl sticky top-32">
               <h3 className="text-xl font-bold text-on-surface mb-6">Write a Review</h3>
               <form onSubmit={handleSubmitReview} className="space-y-6">

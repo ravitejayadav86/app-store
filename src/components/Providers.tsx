@@ -21,6 +21,7 @@ function TokenSync() {
       if (existingToken) {
         synced.current = true;
         window.dispatchEvent(new Event("tokenReady"));
+        window.dispatchEvent(new Event("auth-synced"));
         return;
       }
       try {
@@ -30,7 +31,9 @@ function TokenSync() {
         });
         localStorage.setItem("token", res.data.access_token);
         synced.current = true;
+        // Dispatch both events for maximum compatibility
         window.dispatchEvent(new Event("tokenReady"));
+        window.dispatchEvent(new Event("auth-synced"));
       } catch (err) {
         console.error("Failed to sync OAuth token", err);
         // Mark as synced anyway to prevent infinite retry loops in this component
