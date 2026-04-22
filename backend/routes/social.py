@@ -6,8 +6,17 @@ from database import get_db
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict, List
 import json
+import os
+import cloudinary
+import cloudinary.uploader
 
 from realtime import manager
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 
 router = APIRouter(prefix="/social", tags=["social"])
 
