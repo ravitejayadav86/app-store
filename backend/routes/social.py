@@ -333,9 +333,14 @@ def upload_chat_file(
         
     try:
         # Check file size for large upload strategy
-        file.file.seek(0, os.SEEK_END)
-        file_size = file.file.tell()
-        file.file.seek(0)
+        try:
+            file.file.seek(0, os.SEEK_END)
+            file_size = file.file.tell()
+            file.file.seek(0)
+            print(f"Uploading file: {filename} ({file_size} bytes)")
+        except Exception as e:
+            print(f"Error checking file size: {e}")
+            file_size = 0
         
         upload_params = {
             "resource_type": res_type,
@@ -346,38 +351,48 @@ def upload_chat_file(
             "flags": "attachment" if res_type == "raw" else None
         }
 
-        if file_size > 20 * 1024 * 1024: # Use chunked upload for > 20MB
-            result = cloudinary.uploader.upload_large(
-                file.file,
-                chunk_size=6000000, # 6MB chunks
-                **upload_params
-            )
-        else:
-            result = cloudinary.uploader.upload(
-                file.file,
-                **upload_params
-            )
-        
-        return {
-            "media_url": result["secure_url"],
-            "media_type": res_type
-        }
-    except Exception as e:
-        print(f"Cloudinary upload failed: {e}")
-        # Fallback to local storage
-        import shutil
-        import os
-        os.makedirs("uploads/chat", exist_ok=True)
-        safe_name = sanitize_id(filename)
-        local_path = f"uploads/chat/msg_{current_user.id}_{receiver.id}_{safe_name}"
-        file.file.seek(0)
-        with open(local_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        try:
+            if file_size > 20 * 1024 * 1024: # Use chunked upload for > 20MB
+                print(f"Using upload_large for {filename}")
+                result = cloudinary.uploader.upload_large(
+                    file.file,
+                    chunk_size=6000000, # 6MB chunks
+                    **upload_params
+                )
+            else:
+                result = cloudinary.uploader.upload(
+                    file.file,
+                    **upload_params
+                )
             
-        return {
-            "media_url": f"/{local_path}",
-            "media_type": res_type
-        }
+            print(f"Cloudinary upload success: {result.get('secure_url')}")
+            return {
+                "media_url": result["secure_url"],
+                "media_type": res_type
+            }
+        except Exception as cloud_err:
+            print(f"Cloudinary upload failed: {cloud_err}")
+            # Fallback to local storage
+            import shutil
+            import os
+            os.makedirs("uploads/chat", exist_ok=True)
+            safe_name = sanitize_id(filename)
+            # Add timestamp to avoid collisions
+            local_name = f"msg_{current_user.id}_{int(time.time())}_{safe_name}"
+            local_path = f"uploads/chat/{local_name}"
+            
+            file.file.seek(0)
+            with open(local_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            
+            print(f"Fallback to local storage success: {local_path}")
+            return {
+                "media_url": f"/{local_path}",
+                "media_type": res_type
+            }
+    except Exception as final_err:
+        print(f"Critical upload error: {final_err}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(final_err)}")
 
 @router.get("/messages/{username}")
 def get_messages(
