@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import {
   ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2,
   Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info,
-  Sparkles, Database, Cloud, Briefcase
+  Sparkles, Database, Cloud, Briefcase, CloudUpload, X
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
