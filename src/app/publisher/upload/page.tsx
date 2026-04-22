@@ -426,6 +426,36 @@ function UploadFormContent() {
                 </div>
 
                 <div className="space-y-3">
+                  <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App Icon</label>
+                  <div 
+                    onClick={() => iconInputRef.current?.click()}
+                    className="w-24 h-24 rounded-3xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden bg-surface-low relative group"
+                  >
+                    {iconPreview ? (
+                      <>
+                        <img src={iconPreview} alt="Icon Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ImageIcon size={20} className="text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon size={24} className="text-on-surface-variant" />
+                        <span className="text-[10px] font-bold mt-1 uppercase opacity-50">Upload</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    ref={iconInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleIconChange}
+                    className="hidden"
+                  />
+                  <p className="text-[10px] text-on-surface-variant px-1 italic">Square icon (recommended: 512x512)</p>
+                </div>
+
+                <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Screenshots (up to 5)</label>
                   <div className="flex flex-wrap gap-3">
                     {screenshotPreviews.map((src, i) => (
