@@ -157,6 +157,11 @@ export default function ChatPage() {
     let finalMediaType = null;
 
     if (fileToUpload) {
+      if (fileToUpload.size > 25 * 1024 * 1024) {
+        toast.error("File is too large. Max 25MB for high quality.");
+        setSending(false);
+        return;
+      }
       setUploading(true);
       const formData = new FormData();
       formData.append("file", fileToUpload);
@@ -166,8 +171,9 @@ export default function ChatPage() {
         });
         finalMediaUrl = res.data.media_url;
         finalMediaType = res.data.media_type;
-      } catch {
-        toast.error("Failed to upload file");
+      } catch (err) {
+        console.error("Upload error:", err);
+        toast.error("Failed to upload file. Check your connection.");
         setSending(false);
         setUploading(false);
         return;
@@ -281,11 +287,34 @@ export default function ChatPage() {
                   : "bg-surface-low text-on-surface rounded-3xl rounded-bl-sm border border-outline-variant/30"
               }`}>
                 {msg.media_url && (
-                  <div className="mb-2 rounded-2xl overflow-hidden mt-1">
+                  <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative">
                     {msg.media_type === "image" ? (
-                      <img src={resolveMediaUrl(msg.media_url)} alt="attachment" className="w-full h-auto max-h-60 object-cover" />
+                      <>
+                        <img src={resolveMediaUrl(msg.media_url)} alt="attachment" className="w-full h-auto max-h-80 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300" onClick={() => window.open(resolveMediaUrl(msg.media_url), '_blank')} />
+                        <a 
+                          href={resolveMediaUrl(msg.media_url)} 
+                          download 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="absolute top-2 right-2 p-2 rounded-xl bg-black/50 text-white opacity-0 group-hover/media:opacity-100 transition-opacity hover:bg-black/70 backdrop-blur-md"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download size={16} />
+                        </a>
+                      </>
                     ) : msg.media_type === "video" ? (
-                      <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-60 object-cover rounded-2xl" />
+                      <div className="relative group/vid">
+                        <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-80 object-cover rounded-2xl" />
+                        <a 
+                          href={resolveMediaUrl(msg.media_url)} 
+                          download 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="absolute top-2 right-12 p-2 rounded-xl bg-black/50 text-white opacity-0 group-hover/vid:opacity-100 transition-opacity hover:bg-black/70 backdrop-blur-md"
+                        >
+                          <Download size={16} />
+                        </a>
+                      </div>
                     ) : (
                       <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
                         <FileText size={20} />

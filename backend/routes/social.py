@@ -336,7 +336,10 @@ def upload_chat_file(
             file.file,
             resource_type=res_type,
             folder=f"pandastore/chat/{current_user.username}",
-            public_id=f"msg_{sanitize_id(filename)}"
+            public_id=f"msg_{sanitize_id(filename)}",
+            quality="auto",
+            fetch_format="auto",
+            flags="attachment" if res_type == "raw" else None
         )
         
         return {
