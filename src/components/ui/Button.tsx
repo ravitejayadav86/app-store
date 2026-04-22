@@ -9,16 +9,17 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "tertiary";
+  variant?: "primary" | "secondary" | "tertiary" | "glass";
   size?: "sm" | "md" | "lg";
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const variants = {
-      primary: "bg-linear-to-br from-[var(--primary)] to-[var(--primary-dim)] text-on-primary shadow-sm",
-      secondary: "bg-surface-low text-primary hover:bg-surface-lowest",
-      tertiary: "bg-transparent text-primary hover:underline",
+      primary: "bg-linear-to-br from-[var(--primary)] to-[var(--primary-dim)] text-on-primary shadow-lg shadow-primary/20",
+      secondary: "liquid-glass text-primary hover:bg-white/60",
+      tertiary: "bg-transparent text-primary hover:bg-primary/5",
+      glass: "liquid-glass-pill text-on-surface",
     };
 
     const sizes = {

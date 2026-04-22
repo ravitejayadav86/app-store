@@ -55,58 +55,65 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at top left, #f7f6fb 0%, #e8eaf6 40%, #f3e5f5 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent pull-to-refresh and bounce scroll on iOS/Android */
   overscroll-behavior: none;
-  /* Remove tap highlight flash on mobile */
   -webkit-tap-highlight-color: transparent;
-  /* Prevent text selection flash on touch */
   -webkit-touch-callout: none;
-}
-
-/* Prevent layout shift from scrollbar appearing/disappearing */
-* {
-  box-sizing: border-box;
-}
-
-/* Smooth focus rings for accessibility */
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* Liquid Glassmorphism Utility - Soft, Organic, Premium */
 .glass {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(30px) saturate(210%);
-  -webkit-backdrop-filter: blur(30px) saturate(210%);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(35px) saturate(220%);
+  -webkit-backdrop-filter: blur(35px) saturate(220%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
   box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    0 15px 45px rgba(0, 0, 0, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-xl);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-pill {
+  @extend .liquid-glass;
   border-radius: 9999px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .liquid-glass:hover {
-  background: rgba(255, 255, 255, 0.55);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.65);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 
-    0 20px 50px rgba(0, 0, 0, 0.12),
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+    0 25px 60px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+
+/* Global Card Liquid Glass style */
+.card-glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-xl);
+  transition: all 0.3s ease;
+}
+
+.card-glass:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 /* Custom Premium Scrollbar for Windows/Chrome */

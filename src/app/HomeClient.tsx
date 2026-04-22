@@ -86,15 +86,15 @@ export default function Home() {
       </section>
 
       {/* Categories Chips */}
-      <section className="px-4 md:px-8 overflow-x-auto no-scrollbar">
+      <section className="px-4 md:px-8 overflow-x-auto no-scrollbar py-4">
         <div className="flex gap-4 max-w-7xl mx-auto">
           {categories.map((cat, i) => (
             <motion.button
               key={cat}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 + i * 0.05 }}
-              className="px-6 py-2 rounded-full glass border border-outline-variant text-sm font-medium hover:text-primary transition-all whitespace-nowrap"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.05, type: "spring", damping: 20 }}
+              className="px-8 py-3 liquid-glass text-sm font-bold hover:text-primary transition-all whitespace-nowrap"
             >
               {cat}
             </motion.button>
@@ -107,15 +107,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-on-surface mb-2">Essential Toolkit</h2>
-              <p className="text-on-surface-variant">Selected by our curators for your best work.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-on-surface mb-2 flex items-center gap-3">
+                <Sparkles className="text-primary" size={28} />
+                Essential Toolkit
+              </h2>
+              <p className="text-on-surface-variant font-medium">Selected by our curators for your best work.</p>
             </div>
-            <Link href="/categories" className="text-primary font-medium flex items-center gap-2 hover:underline">
-              Browse All <ArrowRight size={16} />
+            <Link href="/categories" className="text-primary font-bold flex items-center gap-2 group">
+              Browse All <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {apps.map((app, index) => (
               <motion.div
                 key={app.id}
@@ -124,8 +127,8 @@ export default function Home() {
                 transition={{ delay: 0.8 + index * 0.1 }}
               >
                 <Link href={`/apps/${app.id}`}>
-                  <GlassCard className="flex flex-col gap-6 h-full hover:bg-surface-low transition-colors group">
-                    <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-3xl shadow-inner overflow-hidden">
+                  <GlassCard className="flex flex-col gap-6 h-full transition-all group p-8">
+                    <div className="w-20 h-20 rounded-[2rem] liquid-glass flex items-center justify-center text-3xl shadow-xl overflow-hidden text-primary">
                       {app.icon_url ? (
                         <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                       ) : (
@@ -133,11 +136,11 @@ export default function Home() {
                       )}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">{app.name}</h3>
-                      <p className="text-sm text-on-surface-variant">{app.category}</p>
+                      <h3 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors">{app.name}</h3>
+                      <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">{app.category}</span>
                     </div>
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                    <div className="flex items-center justify-between mt-6">
+                      <div className="flex items-center gap-1 text-xs font-bold text-primary">
                         <span className="bg-primary/10 px-2 py-0.5 rounded uppercase">Dynamic</span>
                       </div>
                       <Button size="sm" aria-label={`Get ${app.name}`}>Get</Button>

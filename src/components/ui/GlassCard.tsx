@@ -16,11 +16,10 @@ interface GlassCardProps {
 export const GlassCard: React.FC<GlassCardProps> = ({ children, className, animate = true }) => {
   return (
     <motion.div
-      whileHover={animate ? { y: -5, boxShadow: "0 30px 50px -5px rgba(45, 46, 51, 0.06)" } : {}}
+      whileHover={animate ? { y: -8, scale: 1.02 } : {}}
       className={cn(
-        "relative overflow-hidden rounded-xl p-6 transition-all duration-300",
-        "bg-surface-lowest border border-outline-variant",
-        "hover:border-primary/20",
+        "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-500",
+        "card-glass",
         className
       )}
     >
