@@ -218,282 +218,240 @@ function AppDetailContent() {
   if (!app) return null;
 
   return (
-    <div className="min-h-screen bg-surface selection:bg-primary/10">
-      {/* Dynamic Background Glow */}
-      <div className={`fixed inset-0 bg-linear-to-b ${getCategoryGradient(app.category)} opacity-40 pointer-events-none`} />
+    <div className="min-h-screen bg-surface selection:bg-primary/10 pb-32">
+      {/* Background decoration */}
+      <div className={`fixed inset-0 bg-linear-to-b ${getCategoryGradient(app.category)} opacity-30 pointer-events-none`} />
       
-      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24">
-        {/* Navigation */}
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
+      <div className="relative z-10 max-w-4xl mx-auto px-5 pt-20">
+        {/* Back Button */}
+        <button
           onClick={() => router.back()}
-          className="group flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all mb-8 text-sm font-bold"
+          className="mb-8 p-3 rounded-full bg-surface-lowest/50 backdrop-blur-xl border border-white/20 hover:scale-110 transition-transform active:scale-95"
         >
-          <div className="p-2.5 rounded-full liquid-glass group-hover:scale-110 transition-transform">
-            <ArrowLeft size={18} />
-          </div>
-          Back to Store
-        </motion.button>
+          <ArrowLeft size={20} className="text-on-surface" />
+        </button>
 
-        {/* Hero Section */}
-        <div className="flex flex-col md:flex-row gap-12 items-center md:items-start mb-16">
+        {/* Play Store Style Header */}
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start mb-10">
+          {/* App Icon */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative"
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden liquid-glass border-white/40 shadow-2xl shrink-0"
           >
-            <div className="absolute inset-0 bg-primary/30 blur-[100px] opacity-40" />
-            <div className="relative w-44 h-44 md:w-56 md:h-56 rounded-[3rem] liquid-glass flex items-center justify-center shadow-2xl border-white/40 overflow-hidden p-1">
-              <div className="absolute inset-0 bg-linear-to-br from-white/30 to-transparent pointer-events-none" />
-              <div className="w-full h-full rounded-[2.8rem] overflow-hidden">
-                {app.icon_url ? (
-                  <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-surface-low">
-                    {getCategoryIcon(app.category)}
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex-1 text-center md:text-left space-y-8 w-full"
-          >
-            <div className="space-y-3">
-              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-on-surface">
-                {app.name}
-              </h1>
-              <p className="text-xl md:text-2xl text-primary font-bold tracking-wide flex items-center justify-center md:justify-start gap-3">
-                <User size={22} className="text-primary/60" />
-                {app.developer}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-6">
-              <Button
-                size="lg"
-                className={`h-16 px-12 text-xl font-black rounded-3xl transition-all duration-500 shadow-2xl active:scale-95 ${
-                  !app.file_path 
-                    ? "bg-white/40 text-on-surface-variant border-2 border-white/50 backdrop-blur-xl" 
-                    : "hover:shadow-primary/40 hover:-translate-y-1"
-                }`}
-                onClick={() => {
-                  if (!app.file_path) {
-                    handleDownload();
-                    return;
-                  }
-                  if (app.price > 0) {
-                    router.push(`/checkout?appId=${app.id}`);
-                  } else {
-                    handleDownload();
-                  }
-                }}
-                disabled={downloading}
-              >
-                {downloading ? (
-                  <Loader2 className="animate-spin mr-3" size={26} />
-                ) : !app.file_path ? (
-                  <Bell size={24} className="mr-3" />
-                ) : (
-                  <Download size={24} className="mr-3" />
-                )}
-                {downloading
-                  ? "Processing..."
-                  : !app.file_path
-                  ? "Notify Me"
-                  : app.price === 0
-                  ? "Get for Free"
-                  : `$${app.price}`}
-              </Button>
-              
-              <div className="flex flex-col items-center md:items-start gap-2">
-                <div className="flex items-center gap-2 px-6 py-3 liquid-glass shadow-lg border-white/50">
-                  <Star size={20} className="fill-yellow-400 text-yellow-400" />
-                  <span className="font-black text-xl text-on-surface">{avgRating ?? "New"}</span>
-                  <span className="text-sm text-on-surface-variant font-bold">({reviews.length})</span>
-                </div>
-                <p className="text-xs uppercase tracking-[0.2em] font-black text-green-600 flex items-center gap-2 px-2">
-                  <ShieldCheck size={14} /> Safe & Verified
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Metadata Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16"
-        >
-          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
-            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Category</span>
-            <span className="text-base font-black text-on-surface">{app.category}</span>
-          </div>
-          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
-            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Version</span>
-            <span className="text-base font-black text-on-surface">{app.version}</span>
-          </div>
-          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
-            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Updated</span>
-            <span className="text-base font-black text-on-surface">{new Date(app.created_at).toLocaleDateString()}</span>
-          </div>
-          <div className="liquid-glass p-6 flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-1 transition-all border-white/40">
-            <span className="text-[11px] uppercase tracking-widest text-on-surface-variant font-black opacity-50">Security</span>
-            <span className="text-sm font-black text-green-600 flex items-center gap-1.5">
-              <ShieldCheck size={16} /> End-to-End
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Content Tabs / Body */}
-        <div className="grid md:grid-cols-3 gap-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="md:col-span-2 space-y-16"
-          >
-            <section className="liquid-glass p-10 border-white/30 shadow-2xl">
-              <h2 className="text-3xl font-black text-on-surface mb-8 flex items-center gap-3">
-                <Info size={32} className="text-primary" />
-                About this {app.category === "Games" ? "Game" : "App"}
-              </h2>
-              <p className="text-xl text-on-surface-variant leading-relaxed font-bold opacity-90 whitespace-pre-wrap">
-                {app.description}
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-3xl font-black text-on-surface mb-10 flex items-center justify-between">
-                <span>Ratings & Reviews</span>
-                {avgRating && (
-                  <div className="flex items-center gap-3 text-primary bg-primary/10 px-5 py-2 rounded-2xl border border-primary/20 shadow-inner">
-                    <Star size={28} className="fill-current" />
-                    <span className="text-4xl font-black">{avgRating}</span>
-                  </div>
-                )}
-              </h2>
-
-              <div className="space-y-8">
-                <AnimatePresence>
-                  {reviews.length === 0 ? (
-                    <div className="p-20 text-center liquid-glass border-dashed border-white/40">
-                      <Star size={64} className="mx-auto mb-6 text-primary/20" />
-                      <h3 className="text-2xl font-black text-on-surface mb-3">No reviews yet</h3>
-                      <p className="text-on-surface-variant max-w-sm mx-auto text-lg font-bold leading-relaxed">
-                        Be the first to share your experience and help others discover this {app.category?.toLowerCase()}.
-                      </p>
-                    </div>
-                  ) : (
-                    reviews.map((review, i) => (
-                      <motion.div
-                        key={review.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="liquid-glass p-8 border-white/30 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl liquid-glass flex items-center justify-center text-primary font-black text-xl border-white/50 shadow-inner">
-                              {review.user_id}
-                            </div>
-                            <div>
-                                <p className="text-lg font-black text-on-surface">User #{review.user_id}</p>
-                                <p className="text-[11px] text-on-surface-variant font-black uppercase tracking-[0.2em] opacity-50">
-                                    {new Date(review.created_at).toLocaleDateString()}
-                                </p>
-                            </div>
-                          </div>
-                          <StarRating value={review.rating} />
-                        </div>
-                        {review.comment && (
-                          <p className="text-on-surface-variant text-lg leading-relaxed font-bold">
-                            {review.comment}
-                          </p>
-                        )}
-                      </motion.div>
-                    ))
-                  )}
-                </AnimatePresence>
-              </div>
-            </section>
-          </motion.div>
-
-          <motion.aside 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-8"
-          >
-            <div className="bg-surface-lowest p-8 rounded-[2.5rem] border border-outline-variant/30 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Info size={40} />
-              </div>
-              <h4 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
-                About this app
-              </h4>
-              <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
-                {app.description || "No description provided by the developer."}
-              </p>
-            </div>
-
-            {app.screenshot_urls && JSON.parse(app.screenshot_urls).length > 0 && (
-              <div className="space-y-6">
-                <h4 className="text-xl font-bold text-on-surface flex items-center gap-2">
-                  Screenshots
-                </h4>
-                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
-                  {JSON.parse(app.screenshot_urls).map((url: string, i: number) => (
-                    <motion.div
-                      key={i}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      className="shrink-0 w-[240px] md:w-[320px] aspect-video rounded-2xl overflow-hidden bg-surface-low border border-outline-variant shadow-lg"
-                    >
-                      <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
-                    </motion.div>
-                  ))}
-                </div>
+            {app.icon_url ? (
+              <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-surface-low text-primary">
+                {getCategoryIcon(app.category)}
               </div>
             )}
-            <div className="bg-surface-lowest p-8 rounded-[2.5rem] border border-outline-variant shadow-xl sticky top-32">
-              <h3 className="text-xl font-bold text-on-surface mb-6">Write a Review</h3>
-              <form onSubmit={handleSubmitReview} className="space-y-6">
-                <div className="flex flex-col items-center gap-4 py-4 bg-surface-low rounded-3xl">
-                  <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Tap to Rate</span>
-                  <StarRating value={myRating} onChange={setMyRating} />
-                </div>
-                <textarea
-                  value={myComment}
-                  onChange={(e) => setMyComment(e.target.value)}
-                  placeholder="Tell us what you think..."
-                  rows={4}
-                  className="w-full px-5 py-4 rounded-3xl bg-surface-low border border-transparent focus:bg-surface-lowest focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all font-medium text-sm resize-none outline-none"
-                />
-                <Button 
-                  type="submit" 
-                  disabled={submittingReview || myRating === 0} 
-                  className="w-full h-14 rounded-2xl flex items-center justify-center gap-3 text-base shadow-lg shadow-primary/20"
-                >
-                  {submittingReview ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-                  {submittingReview ? "Posting..." : "Submit Review"}
-                </Button>
-              </form>
-            </div>
-          </motion.aside>
+          </motion.div>
+
+          {/* App Info */}
+          <div className="flex-1 space-y-2">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-on-surface leading-tight">
+              {app.name}
+            </h1>
+            <p className="text-lg font-bold text-primary opacity-90">
+              {app.developer}
+            </p>
+            <p className="text-sm font-bold text-on-surface-variant opacity-60 flex items-center gap-2">
+              {app.category} • Contains ads
+            </p>
+          </div>
         </div>
+
+        {/* Quick Stats Bar (Play Store Style) */}
+        <div className="flex overflow-x-auto no-scrollbar gap-8 pb-8 mb-8 border-b border-white/10">
+          <div className="flex flex-col items-center min-w-[80px] shrink-0">
+            <div className="flex items-center gap-1 font-black text-on-surface mb-1 text-lg">
+              {avgRating ?? "0.0"} <Star size={14} className="fill-current text-primary" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Reviews</span>
+          </div>
+          <div className="w-px h-8 bg-white/10 self-center" />
+          <div className="flex flex-col items-center min-w-[80px] shrink-0">
+            <div className="font-black text-on-surface mb-1 text-lg">
+              5K+
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Downloads</span>
+          </div>
+          <div className="w-px h-8 bg-white/10 self-center" />
+          <div className="flex flex-col items-center min-w-[80px] shrink-0">
+            <div className="p-1 rounded-sm border border-on-surface/20 text-[10px] font-black mb-1">
+              3+
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Rated for 3+</span>
+          </div>
+          <div className="w-px h-8 bg-white/10 self-center" />
+          <div className="flex flex-col items-center min-w-[80px] shrink-0">
+             <div className="font-black text-on-surface mb-1 text-lg">
+                Small
+             </div>
+             <span className="text-[10px] font-black uppercase tracking-widest opacity-40">App Size</span>
+          </div>
+        </div>
+
+        {/* Main Action Button */}
+        <Button
+          size="lg"
+          onClick={() => {
+            if (!app.file_path) {
+              handleDownload();
+              return;
+            }
+            if (app.price > 0) {
+              router.push(`/checkout?appId=${app.id}`);
+            } else {
+              handleDownload();
+            }
+          }}
+          disabled={downloading}
+          className="w-full h-14 sm:h-12 rounded-xl sm:rounded-full bg-primary text-on-primary font-black text-lg mb-12 shadow-xl shadow-primary/20 active:scale-95 transition-all"
+        >
+          {downloading ? (
+            <Loader2 className="animate-spin mr-3" size={20} />
+          ) : !app.file_path ? (
+            <Bell size={20} className="mr-3" />
+          ) : (
+            <Download size={20} className="mr-3" />
+          )}
+          {downloading
+            ? "Installing..."
+            : !app.file_path
+            ? "Notify Me"
+            : app.price === 0
+            ? "Install"
+            : `Buy for $${app.price}`}
+        </Button>
+
+        {/* Screenshots Section */}
+        {app.screenshot_urls && JSON.parse(app.screenshot_urls).length > 0 && (
+          <div className="mb-12">
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+              {JSON.parse(app.screenshot_urls).map((url: string, i: number) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="shrink-0 w-44 sm:w-64 aspect-[9/16] rounded-2xl overflow-hidden liquid-glass border-white/20 shadow-lg"
+                >
+                  <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* About Section */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-black text-on-surface">About this {app.category === "Games" ? "game" : "app"}</h2>
+            <button className="text-primary font-bold text-sm"><ArrowLeft size={16} className="rotate-180 inline ml-1" /></button>
+          </div>
+          <p className="text-on-surface-variant leading-relaxed line-clamp-3 font-medium opacity-80">
+            {app.description || "Explore this amazing addition to our store. Carefully crafted for the best user experience."}
+          </p>
+          
+          <div className="mt-6 flex flex-wrap gap-2">
+            <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-black text-on-surface-variant">#TopChoice</span>
+            <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-black text-on-surface-variant">#{app.category}</span>
+          </div>
+        </section>
+
+        {/* Ratings Section */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-black text-on-surface">Ratings and reviews</h2>
+            <button className="text-primary font-bold text-sm"><ArrowLeft size={16} className="rotate-180 inline ml-1" /></button>
+          </div>
+          
+          <div className="flex items-center gap-10 mb-8">
+            <div className="text-center">
+              <div className="text-5xl font-black text-on-surface mb-2">{avgRating ?? "0.0"}</div>
+              <StarRating value={Number(avgRating) || 0} />
+              <div className="text-[11px] font-black opacity-40 mt-2 uppercase tracking-widest">{reviews.length} reviews</div>
+            </div>
+            
+            <div className="flex-1 space-y-2">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <div key={star} className="flex items-center gap-4">
+                  <span className="text-xs font-black opacity-60 w-2">{star}</span>
+                  <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(reviews.filter(r => r.rating === star).length / (reviews.length || 1)) * 100}%` }}
+                      className="h-full bg-primary rounded-full" 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {reviews.slice(0, 3).map((review, i) => (
+              <div key={review.id} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                      {review.user_id}
+                    </div>
+                    <span className="text-sm font-black text-on-surface">User #{review.user_id}</span>
+                  </div>
+                  <StarRating value={review.rating} />
+                </div>
+                <p className="text-sm text-on-surface-variant font-medium opacity-80 leading-relaxed">
+                  {review.comment}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Write Review Section */}
+        <section className="p-8 rounded-[2rem] liquid-glass border-white/20 shadow-2xl">
+          <h3 className="text-xl font-black text-on-surface mb-6">Rate this {app.category === "Games" ? "game" : "app"}</h3>
+          <form onSubmit={handleSubmitReview} className="space-y-6">
+            <div className="flex flex-col items-center gap-4 py-4">
+              <StarRating value={myRating} onChange={setMyRating} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Tap your rating</span>
+            </div>
+            <textarea
+              value={myComment}
+              onChange={(e) => setMyComment(e.target.value)}
+              placeholder="Describe your experience (optional)"
+              rows={4}
+              className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-primary/50 transition-all font-medium text-sm outline-none resize-none"
+            />
+            <Button 
+              type="submit" 
+              disabled={submittingReview || myRating === 0} 
+              className="w-full h-12 rounded-xl font-black"
+            >
+              {submittingReview ? <Loader2 className="animate-spin" size={20} /> : "Post Review"}
+            </Button>
+          </form>
+        </section>
       </div>
     </div>
   );
 }
 
+
+export default function AppDetails() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={48} />
+      </div>
+    }>
+      <AppDetailContent />
+    </Suspense>
+  );
+}
 
 export default function AppDetails() {
   return (
