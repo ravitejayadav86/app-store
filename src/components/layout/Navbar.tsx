@@ -77,22 +77,22 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                         {/* Categories - Desktop */}
                         <div className="hidden md:flex items-center gap-6">
                             {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => {
-                                const href = `/${item.toLowerCase()}`;
-                                const isActive = pathname === href;
+                                const href = `/${item.toLowerCase() === 'discover' ? '' : item.toLowerCase()}`;
+                                const isActive = pathname === href || (href !== "/" && pathname?.startsWith(href));
                                 return (
                                     <Link
                                         key={item}
                                         href={href}
-                                        className={`relative text-sm font-bold transition-all px-2 py-1 ${
-                                            isActive ? "text-primary" : "text-on-surface-variant hover:text-primary"
+                                        className={`relative text-sm font-bold transition-all px-5 py-2 rounded-full ${
+                                            isActive ? "text-primary" : "text-on-surface-variant hover:text-primary hover:bg-primary/5"
                                         } tracking-tight`}
                                     >
-                                        {item}
+                                        <span className="relative z-10">{item}</span>
                                         {isActive && (
                                             <motion.div
-                                                layoutId="nav-active"
-                                                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
-                                                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                                layoutId="desktop-nav-active"
+                                                className="absolute inset-0 bg-primary/10 rounded-full border border-primary/20 shadow-sm"
+                                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                             />
                                         )}
                                     </Link>
