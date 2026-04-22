@@ -21,7 +21,8 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (status === "authenticated") {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (status === "authenticated" || token) {
       router.push("/");
     }
   }, [status, router]);
@@ -50,7 +51,12 @@ export default function LoginPage() {
 
       localStorage.setItem("token", res.data.access_token);
       toast.success("Welcome back!");
-      router.push("/");
+      // Dispatch event for any components listening
+      window.dispatchEvent(new Event("auth-synced"));
+      window.dispatchEvent(new Event("tokenReady"));
+      
+      // Use full reload to ensure all state is updated (Navbar, etc.)
+      window.location.href = "/";
     } catch (err: any) {
       toast.error(err.response?.data?.detail || "Login failed. Check your credentials.");
     } finally {
