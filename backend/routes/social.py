@@ -312,24 +312,26 @@ def upload_chat_file(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     import cloudinary.uploader
-    from backend.routes.apps import sanitize_id
+    import re
+    def sanitize_id(filename: str) -> str:
+        return re.sub(r'[^a-zA-Z0-9.\-_]', '_', filename)
     
     receiver = db.query(models.User).filter(models.User.username == username).first()
     if not receiver:
         raise HTTPException(404, "User not found")
         
-    try:
-        # Determine resource type based on file extension or mime type
-        content_type = file.content_type or ""
-        filename = file.filename or "file"
+    # Determine resource type based on file extension or mime type
+    content_type = file.content_type or ""
+    filename = file.filename or "file"
+    
+    if content_type.startswith("image/"):
+        res_type = "image"
+    elif content_type.startswith("video/"):
+        res_type = "video"
+    else:
+        res_type = "raw"
         
-        if content_type.startswith("image/"):
-            res_type = "image"
-        elif content_type.startswith("video/"):
-            res_type = "video"
-        else:
-            res_type = "raw"
-            
+    try:
         result = cloudinary.uploader.upload(
             file.file,
             resource_type=res_type,
@@ -342,7 +344,21 @@ def upload_chat_file(
             "media_type": res_type
         }
     except Exception as e:
-        raise HTTPException(500, f"Upload failed: {str(e)}")
+        print(f"Cloudinary upload failed: {e}")
+        # Fallback to local storage
+        import shutil
+        import os
+        os.makedirs("uploads/chat", exist_ok=True)
+        safe_name = sanitize_id(filename)
+        local_path = f"uploads/chat/msg_{current_user.id}_{receiver.id}_{safe_name}"
+        file.file.seek(0)
+        with open(local_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {
+            "media_url": f"/{local_path}",
+            "media_type": res_type
+        }
 
 @router.get("/messages/{username}")
 def get_messages(
