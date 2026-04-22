@@ -47,20 +47,20 @@ export default function Home() {
       {/* Hero Section */}
       <section className="px-4 md:px-8">
         <div
-          className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl"
+          className="relative h-[500px] md:h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-12 text-on-primary flex flex-col justify-end gap-4 md:gap-6 shadow-2xl"
         >
           {/* Decorative background elements */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40"
+            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/10 rounded-full blur-[80px] md:blur-[100px] -mr-20 md:-mr-40 -mt-20 md:-mt-40"
           />
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-            className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 rounded-full blur-[80px] -ml-20 -mb-20"
+            className="absolute bottom-0 left-0 w-[200px] md:w-[300px] h-[200px] md:h-[300px] bg-white/5 rounded-full blur-[60px] md:blur-[80px] -ml-10 md:-ml-20 -mb-10 md:-mb-20"
           />
 
           <div className="relative z-10 max-w-2xl">
@@ -68,18 +68,18 @@ export default function Home() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
+              className="flex items-center gap-2 mb-3 md:mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md border border-white/20"
             >
-              <Star size={14} className="fill-current" />
+              <Star size={12} className="fill-current md:w-3.5 md:h-3.5" />
               <span>Editors&apos; Choice</span>
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">Create Without Boundaries.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-8 leading-relaxed">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-3 md:mb-6">Create Without Boundaries.</h1>
+            <p className="text-sm md:text-xl text-on-primary/80 mb-6 md:mb-8 leading-relaxed">
               Explore a curated selection of tools designed to elevate your professional workflow and creative potential.
             </p>
-            <div className="flex gap-4">
-              <Button size="lg" className="bg-white text-primary">Get App of the Day</Button>
-              <Button variant="secondary" size="lg" className="bg-white/10 text-white border-white/20">Learn More</Button>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <Button size="lg" className="bg-white text-primary w-full sm:w-auto">Get App of the Day</Button>
+              <Button variant="secondary" size="lg" className="bg-white/10 text-white border-white/20 w-full sm:w-auto">Learn More</Button>
             </div>
           </div>
         </div>

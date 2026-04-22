@@ -3,13 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, Grid, Music, Book, User } from "lucide-react";
+import { Gamepad2, Grid, Music, Book, User, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 const NAV_ITEMS = [
   { name: "Games", icon: <Gamepad2 size={24} />, href: "/games" },
-  { name: "Apps", icon: <Grid size={24} />, href: "/discover" }, // Changed to /discover or /apps as per project structure
-  { name: "Music", icon: <Music size={24} />, href: "/music" },
+  { name: "Apps", icon: <Grid size={24} />, href: "/discover" },
+  { name: "Hub", icon: <Users size={24} />, href: "/community" },
   { name: "Books", icon: <Book size={24} />, href: "/books" },
   { name: "You", icon: <User size={24} />, href: "/profile" },
 ];

@@ -138,93 +138,19 @@ export const Navbar = () => {
                             {/* Notification Bell */}
                             {session && <NotificationBell />}
 
-                            {/* Settings icon */}
-                            <Link href="/settings" className="p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
+                            {/* Settings icon - hidden on mobile */}
+                            <Link href="/settings" className="hidden md:flex p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
                                 <Settings size={18} />
                             </Link>
 
                             {/* Profile */}
-                            <Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
+                            <Link href="/profile" className="hidden md:flex w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
                                 <User size={18} className="group-hover:text-primary transition-colors" />
                             </Link>
-
-                            <button
-                                className="md:hidden p-2 text-on-surface-variant"
-                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                aria-label="Toggle menu"
-                            >
-                                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                            </button>
                         </div>
                     </>
                 )}
             </div>
-
-            {/* Mobile Menu Dropdown */}
-            <AnimatePresence>
-                {mobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -12, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -12, scale: 0.97 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-[calc(100%+0.5rem)] left-4 right-4 p-5 glass rounded-2xl border border-outline-variant flex flex-col gap-4 md:hidden shadow-xl"
-                    >
-                        {["Categories", "Community", "Support"].map((item) => (
-                            <Link
-                                key={item}
-                                href={`/${item.toLowerCase()}`}
-                                className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {item}
-                            </Link>
-                        ))}
-
-                        {session && (
-                            <Link
-                                href="/messages"
-                                className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight flex items-center gap-2"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                <MessageCircle size={16} /> Messages
-                            </Link>
-                        )}
-
-                        <Link
-                            href="/settings"
-                            className="text-base font-bold text-on-surface border-b border-outline-variant/30 pb-3 hover:text-primary transition-colors tracking-tight flex items-center gap-2"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            <Settings size={16} /> Settings
-                        </Link>
-
-                        <div className="flex flex-col gap-3 mt-2 sm:hidden">
-                            {session && (
-                                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                                    <Button variant="tertiary" className="w-full justify-center py-5 text-red-500 hover:bg-red-500/10">
-                                        <ShieldAlert size={18} className="mr-2" />
-                                        Admin Panel
-                                    </Button>
-                                </Link>
-                            )}
-
-                            {!session && (
-                                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                                    <Button variant="tertiary" className="w-full justify-center py-5">
-                                        <User size={18} className="mr-2" />
-                                        Sign In
-                                    </Button>
-                                </Link>
-                            )}
-
-                            <Link href="/publisher" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                                <Button className="w-full justify-center py-5">Publisher Portal</Button>
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </nav>
     );
 };

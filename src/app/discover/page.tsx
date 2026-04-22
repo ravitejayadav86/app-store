@@ -63,25 +63,30 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col gap-20 pb-20">
       <section className="px-4 md:px-8">
-        <div className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
-            transition={{ duration: 1.5, ease: "easeOut" }} 
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40" 
+        <div className="relative h-[500px] md:h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-12 text-on-primary flex flex-col justify-end gap-4 md:gap-6 shadow-2xl">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/10 rounded-full blur-[80px] md:blur-[100px] -mr-20 md:-mr-40 -mt-20 md:-mt-40"
           />
           <div className="relative z-10 max-w-2xl">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 mb-3 md:mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md border border-white/20"
             >
-              <Compass size={14} />
-              <span>Real-time Discovery</span>
+              <Star size={12} className="fill-current md:w-3.5 md:h-3.5" />
+              <span>Discover</span>
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-white">Find Your Next Favorite.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Authenticated apps trending right now across our developer community.</p>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-3 md:mb-6">Find Your Next App.</h1>
+            <p className="text-sm md:text-xl text-on-primary/80 mb-6 md:mb-8 leading-relaxed">
+              Explore thousands of apps built by our amazing community of developers.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <Button size="lg" className="bg-white text-primary w-full sm:w-auto">Browse Categories</Button>
+            </div>
           </div>
         </div>
       </section>

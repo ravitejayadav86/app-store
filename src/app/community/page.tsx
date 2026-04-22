@@ -200,23 +200,23 @@ export default function CommunityPage() {
   return (
     <div className="flex flex-col gap-12 pb-20">
       <section className="px-4 md:px-8">
-        <div className="relative h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end shadow-2xl">
+        <div className="relative h-[300px] md:h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-12 text-on-primary flex flex-col justify-end shadow-2xl">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1.5 }}
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40"
+            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/10 rounded-full blur-[80px] md:blur-[100px] -mr-20 md:-mr-40 -mt-20 md:-mt-40"
           />
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20">
-              <Users size={14} />
+            <div className="flex items-center gap-2 mb-3 md:mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md border border-white/20">
+              <Users size={12} className="md:w-3.5 md:h-3.5" />
               <span>Community</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2">The Hub.</h1>
-            <p className="text-lg text-on-primary/80 mb-6">Share, connect, and discuss with PandaStore users.</p>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-2">The Hub.</h1>
+            <p className="text-sm md:text-lg text-on-primary/80 mb-4 md:mb-6">Share, connect, and discuss with PandaStore users.</p>
             <Button 
               variant="secondary" 
-              className="bg-white/10 text-white border-white/20"
+              className="bg-white/10 text-white border-white/20 w-full sm:w-auto"
               onClick={() => {
                 document.getElementById('user-search')?.scrollIntoView({ behavior: 'smooth' });
                 searchInputRef.current?.focus();
