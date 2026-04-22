@@ -332,15 +332,31 @@ def upload_chat_file(
         res_type = "raw"
         
     try:
-        result = cloudinary.uploader.upload(
-            file.file,
-            resource_type=res_type,
-            folder=f"pandastore/chat/{current_user.username}",
-            public_id=f"msg_{sanitize_id(filename)}",
-            quality="auto",
-            fetch_format="auto",
-            flags="attachment" if res_type == "raw" else None
-        )
+        # Check file size for large upload strategy
+        file.file.seek(0, os.SEEK_END)
+        file_size = file.file.tell()
+        file.file.seek(0)
+        
+        upload_params = {
+            "resource_type": res_type,
+            "folder": f"pandastore/chat/{current_user.username}",
+            "public_id": f"msg_{sanitize_id(filename)}",
+            "quality": "auto",
+            "fetch_format": "auto",
+            "flags": "attachment" if res_type == "raw" else None
+        }
+
+        if file_size > 20 * 1024 * 1024: # Use chunked upload for > 20MB
+            result = cloudinary.uploader.upload_large(
+                file.file,
+                chunk_size=6000000, # 6MB chunks
+                **upload_params
+            )
+        else:
+            result = cloudinary.uploader.upload(
+                file.file,
+                **upload_params
+            )
         
         return {
             "media_url": result["secure_url"],

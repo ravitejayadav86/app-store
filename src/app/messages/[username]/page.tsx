@@ -157,8 +157,8 @@ export default function ChatPage() {
     let finalMediaType = null;
 
     if (fileToUpload) {
-      if (fileToUpload.size > 25 * 1024 * 1024) {
-        toast.error("File is too large. Max 25MB for high quality.");
+      if (fileToUpload.size > 500 * 1024 * 1024) {
+        toast.error("File is too large. Max 500MB.");
         setSending(false);
         return;
       }
