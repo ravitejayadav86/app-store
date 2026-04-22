@@ -217,6 +217,12 @@ export default function ChatPage() {
     return new Date(date).toLocaleDateString();
   };
 
+  const resolveMediaUrl = (url: string | null | undefined) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+    return `${API_BASE}${url}`;
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] mt-20">
       {/* Header */}
@@ -227,7 +233,7 @@ export default function ChatPage() {
         <Link href={`/users/${username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1">
           <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary/20 to-transparent flex items-center justify-center font-bold text-primary text-sm overflow-hidden shadow-inner border border-primary/5">
             {recipientProfile?.avatar_url 
-              ? <img src={recipientProfile.avatar_url} alt={username as string} className="w-full h-full object-cover" />
+              ? <img src={resolveMediaUrl(recipientProfile.avatar_url)} alt={username as string} className="w-full h-full object-cover" />
               : (username as string)?.[0]?.toUpperCase()}
           </div>
           <div>
@@ -264,7 +270,7 @@ export default function ChatPage() {
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 overflow-hidden mb-1 border border-primary/5">
                   {showAvatar ? (
                     msg.sender_avatar_url 
-                      ? <img src={msg.sender_avatar_url} alt={msg.sender_username} className="w-full h-full object-cover" />
+                      ? <img src={resolveMediaUrl(msg.sender_avatar_url)} alt={msg.sender_username} className="w-full h-full object-cover" />
                       : msg.sender_username?.[0]?.toUpperCase()
                   ) : null}
                 </div>
@@ -277,11 +283,11 @@ export default function ChatPage() {
                 {msg.media_url && (
                   <div className="mb-2 rounded-2xl overflow-hidden mt-1">
                     {msg.media_type === "image" ? (
-                      <img src={msg.media_url} alt="attachment" className="w-full h-auto max-h-60 object-cover" />
+                      <img src={resolveMediaUrl(msg.media_url)} alt="attachment" className="w-full h-auto max-h-60 object-cover" />
                     ) : msg.media_type === "video" ? (
-                      <video src={msg.media_url} controls className="w-full h-auto max-h-60 object-cover rounded-2xl" />
+                      <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-60 object-cover rounded-2xl" />
                     ) : (
-                      <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
+                      <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
                         <FileText size={20} />
                         <span className="text-sm font-bold truncate flex-1">Download File</span>
                         <Download size={16} />
