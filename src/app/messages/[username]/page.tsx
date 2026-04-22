@@ -291,29 +291,33 @@ export default function ChatPage() {
                     {msg.media_type === "image" ? (
                       <>
                         <img src={resolveMediaUrl(msg.media_url)} alt="attachment" className="w-full h-auto max-h-80 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300" onClick={() => window.open(resolveMediaUrl(msg.media_url), '_blank')} />
-                        <a 
-                          href={resolveMediaUrl(msg.media_url)} 
-                          download 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="absolute top-2 right-2 p-2 rounded-xl bg-black/50 text-white opacity-0 group-hover/media:opacity-100 transition-opacity hover:bg-black/70 backdrop-blur-md"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Download size={16} />
-                        </a>
+                        <div className="p-2 border-t border-white/10 flex justify-end">
+                          <a 
+                            href={resolveMediaUrl(msg.media_url)} 
+                            download 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isMe ? "bg-white/10 hover:bg-white/20 text-white" : "bg-primary/10 hover:bg-primary/20 text-primary"}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Download size={12} /> Download
+                          </a>
+                        </div>
                       </>
                     ) : msg.media_type === "video" ? (
-                      <div className="relative group/vid">
+                      <div className="relative group/vid flex flex-col">
                         <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-80 object-cover rounded-2xl" />
-                        <a 
-                          href={resolveMediaUrl(msg.media_url)} 
-                          download 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="absolute top-2 right-12 p-2 rounded-xl bg-black/50 text-white opacity-0 group-hover/vid:opacity-100 transition-opacity hover:bg-black/70 backdrop-blur-md"
-                        >
-                          <Download size={16} />
-                        </a>
+                        <div className="p-2 flex justify-end">
+                          <a 
+                            href={resolveMediaUrl(msg.media_url)} 
+                            download 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isMe ? "bg-white/10 hover:bg-white/20 text-white" : "bg-primary/10 hover:bg-primary/20 text-primary"}`}
+                          >
+                            <Download size={12} /> Download
+                          </a>
+                        </div>
                       </div>
                     ) : (
                       <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>

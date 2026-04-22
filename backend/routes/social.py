@@ -473,7 +473,9 @@ async def websocket_endpoint(
                 message = models.Message(
                     sender_id=user_id,
                     receiver_id=receiver.id,
-                    content=msg_data.get("content", "")
+                    content=msg_data.get("content", ""),
+                    media_url=msg_data.get("media_url"),
+                    media_type=msg_data.get("media_type")
                 )
                 db.add(message)
                 db.commit()
@@ -484,6 +486,8 @@ async def websocket_endpoint(
                     "sender_id": user_id,
                     "receiver_id": receiver.id,
                     "content": message.content,
+                    "media_url": message.media_url,
+                    "media_type": message.media_type,
                     "created_at": message.created_at.isoformat(),
                     "sender_username": sender.username if sender else "Unknown",
                     "sender_avatar_url": sender.avatar_url if sender else None,
