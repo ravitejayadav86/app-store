@@ -158,20 +158,23 @@ function AppDetailContent() {
 
     setDownloading(true);
     try {
-      const res = await api.get(`/apps/${app.id}/download`, { responseType: "blob" });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      // Use native browser navigation to bypass CORS issues on redirects
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
+      const downloadUrl = `${baseUrl}/apps/${app.id}/download`;
+      
       const link = document.createElement("a");
-      link.href = url;
+      link.href = downloadUrl;
+      link.target = "_blank";
       link.setAttribute("download", app.name);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      
       toast.success("Download started!");
     } catch (err: unknown) {
-      const error = err as ApiError;
-      toast.error(error.response?.data?.detail || "Download failed.");
+      toast.error("Download failed.");
     } finally {
-      setDownloading(false);
+      setTimeout(() => setDownloading(false), 1000);
     }
   };
 
