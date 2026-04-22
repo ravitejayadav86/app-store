@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Bell, CheckCheck, X } from "lucide-react";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRealtime } from "@/hooks/useRealtime";
 
@@ -19,6 +20,7 @@ interface ApiError {
 }
 
 export function NotificationBell() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -105,6 +107,27 @@ export function NotificationBell() {
     setUnread(0);
   };
 
+  const handleNotificationClick = (n: Notification) => {
+    if (!n.is_read) {
+      markRead(n.id);
+    }
+
+    // Route to user profile if message contains "@username"
+    const match = n.message.match(/@([\w\-\.]+)/);
+    if (match && match[1]) {
+      router.push(`/profile/${match[1]}`);
+      setOpen(false);
+      return;
+    }
+
+    // Route to publisher dashboard for app nudges
+    if (n.title === "App Nudge!") {
+      router.push("/publisher");
+      setOpen(false);
+      return;
+    }
+  };
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -158,7 +181,7 @@ export function NotificationBell() {
                 notifications.map((n) => (
                   <button
                     key={n.id}
-                    onClick={() => !n.is_read && markRead(n.id)}
+                    onClick={() => handleNotificationClick(n)}
                     className={`w-full text-left px-4 py-3 border-b border-outline-variant/30 hover:bg-surface-low transition-colors ${
                       n.is_read ? "opacity-60" : ""
                     }`}
