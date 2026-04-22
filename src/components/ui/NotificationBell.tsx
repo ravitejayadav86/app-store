@@ -115,7 +115,7 @@ export function NotificationBell() {
     // Route to user profile if message contains "@username"
     const match = n.message.match(/@([\w\-\.]+)/);
     if (match && match[1]) {
-      router.push(`/profile/${match[1]}`);
+      router.push(`/users/${match[1]}`);
       setOpen(false);
       return;
     }
