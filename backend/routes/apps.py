@@ -94,10 +94,8 @@ def upload_file(
     if file:
         safe_name = sanitize_id(file.filename)
         result = cloudinary.uploader.upload(
-    file.file,
-    resource_type="auto",
-    format="",
-    allowed_formats=None,
+            file.file,
+            resource_type="raw",
             folder="pandastore",
             public_id=f"app_{app_id}_{safe_name}"
         )
