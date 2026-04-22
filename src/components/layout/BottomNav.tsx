@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, Grid, Music, Book, User, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import { Gamepad2, Grid, Music, Book, User, Users, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_ITEMS = [
   { name: "Games", icon: <Gamepad2 size={24} />, href: "/games" },
@@ -12,14 +12,23 @@ const NAV_ITEMS = [
   { name: "Hub", icon: <Users size={24} />, href: "/community" },
   { name: "Books", icon: <Book size={24} />, href: "/books" },
   { name: "You", icon: <User size={24} />, href: "/profile" },
+  { name: "Settings", icon: <Settings size={24} />, href: "/settings" },
 ];
 
-export const BottomNav = () => {
+export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 bg-surface/80 backdrop-blur-2xl border-t border-outline-variant z-50">
-      <div className="flex justify-around items-center pt-2 pb-safe px-4">
+    <AnimatePresence>
+      {!isHidden && (
+        <motion.nav 
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          className="md:hidden fixed bottom-0 inset-x-0 bg-surface/80 backdrop-blur-2xl border-t border-outline-variant z-50"
+        >
+      <div className="grid grid-cols-6 items-center pt-2 pb-safe px-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
           
@@ -28,7 +37,7 @@ export const BottomNav = () => {
               key={item.name}
               href={item.href}
               aria-label={item.name}
-              className={`relative flex flex-col items-center gap-1 w-16 py-2 transition-colors duration-300 ${
+              className={`relative flex flex-col items-center gap-1 w-full py-2 transition-colors duration-300 ${
                 isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
@@ -67,6 +76,8 @@ export const BottomNav = () => {
           padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 8px);
         }
       `}</style>
-    </nav>
+        </motion.nav>
+      )}
+    </AnimatePresence>
   );
 };

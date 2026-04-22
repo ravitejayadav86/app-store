@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
+import { UILayoutWrapper } from "@/components/layout/UILayoutWrapper";
 import { Copilot } from "@/components/Copilot";
 import { Toaster } from "sonner";
 import Providers from "@/components/Providers";
@@ -84,12 +83,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden">
         <Providers>
-          <Navbar />
-          <main className="flex-grow pt-24 pb-24 md:pb-0 font-inter">
+          <UILayoutWrapper>
             {children}
-          </main>
+          </UILayoutWrapper>
           <Footer />
-          <BottomNav />
           <Copilot />
           <Toaster position="bottom-right" theme="dark" richColors />
         </Providers>

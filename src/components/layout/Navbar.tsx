@@ -9,7 +9,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const Navbar = () => {
+export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     const { data: session } = useSession();
     const pathname = usePathname();
     const [searchOpen, setSearchOpen] = useState(false);
@@ -27,7 +27,15 @@ export const Navbar = () => {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4">
+        <AnimatePresence>
+            {!isHidden && (
+                <motion.nav 
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -100, opacity: 0 }}
+                    transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                    className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4"
+                >
             <div className="glass w-full max-w-7xl rounded-pill flex items-center justify-between px-6 py-3 border border-outline-variant">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
@@ -151,6 +159,8 @@ export const Navbar = () => {
                     </>
                 )}
             </div>
-        </nav>
+                </motion.nav>
+            )}
+        </AnimatePresence>
     );
 };
