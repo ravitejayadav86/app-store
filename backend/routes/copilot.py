@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from backend.database import get_db
-from backend import models
+from database import get_db
+import models
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/copilot", tags=["Copilot"])
