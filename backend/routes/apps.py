@@ -124,8 +124,12 @@ def upload_file(
             shot_urls.append(shot_result["secure_url"])
         app.screenshot_urls = json.dumps(shot_urls)
     
+    if not app.file_path and not app.external_url and not file and not icon and not screenshots:
+        raise HTTPException(400, "No files or valid links provided for this app.")
+        
     # Mark as approved once files are uploaded
-    app.is_approved = True
+    if app.file_path or app.external_url:
+        app.is_approved = True
 
     db.commit()
     db.refresh(app)
