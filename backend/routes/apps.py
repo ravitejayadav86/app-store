@@ -93,13 +93,24 @@ def upload_file(
     # 1. Upload App File (if provided)
     if file:
         safe_name = sanitize_id(file.filename)
-        result = cloudinary.uploader.upload(
-            file.file,
-            resource_type="raw",
-            folder="pandastore",
-            public_id=f"app_{app_id}_{safe_name}"
-        )
-        app.file_path = result["secure_url"]
+        try:
+            result = cloudinary.uploader.upload(
+                file.file,
+                resource_type="auto",
+                folder="pandastore",
+                public_id=f"app_{app_id}_{safe_name}"
+            )
+            app.file_path = result["secure_url"]
+        except Exception as e:
+            # Fallback to local storage if Cloudinary fails (e.g. large APKs > 10MB)
+            import shutil
+            import os
+            os.makedirs("uploads", exist_ok=True)
+            local_path = f"uploads/app_{app_id}_{safe_name}"
+            file.file.seek(0)
+            with open(local_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            app.file_path = f"/{local_path}"
 
     # 2. Upload Icon (if provided)
     if icon:
