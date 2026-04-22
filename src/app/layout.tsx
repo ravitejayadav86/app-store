@@ -66,6 +66,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#6750A4",
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 0.5,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export const preferredRegion = "bom1";
