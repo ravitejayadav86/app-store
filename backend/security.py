@@ -9,8 +9,18 @@ import re
 import os
 from dotenv import load_dotenv
 
+import redis
+
 load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "memory://")
+
+if REDIS_URL.startswith("redis"):
+    try:
+        r = redis.Redis.from_url(REDIS_URL, socket_connect_timeout=1)
+        r.ping()
+    except Exception as e:
+        print(f"Redis unavailable for rate limiter, falling back to memory: {e}")
+        REDIS_URL = "memory://"
 
 # Rate limiter with Redis backend support for horizontal scaling
 limiter = Limiter(
