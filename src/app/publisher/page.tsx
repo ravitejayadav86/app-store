@@ -19,6 +19,7 @@ interface AppItem {
   version: string;
   category: string;
   file_path: string | null;
+  icon_url: string | null;
 }
 
 interface ApiError {
@@ -272,8 +273,12 @@ export default function PublisherPage() {
                   <GlassCard className="flex flex-col transition-all overflow-hidden relative group">
                     <div className="flex justify-between items-center z-10 relative">
                       <div className="flex items-center gap-6">
-                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform`}>
-                          {app.name[0]}
+                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>
+                          {app.icon_url ? (
+                            <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                          ) : (
+                            app.name[0]
+                          )}
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
@@ -281,6 +286,11 @@ export default function PublisherPage() {
                             {!app.file_path && (
                               <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 text-[10px] font-bold uppercase tracking-widest rounded-full border border-orange-500/20">
                                 Missing File
+                              </span>
+                            )}
+                            {!app.icon_url && (
+                              <span className="px-2 py-0.5 bg-blue-500/10 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
+                                Missing Icon
                               </span>
                             )}
                           </h3>
@@ -292,10 +302,10 @@ export default function PublisherPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        {!app.file_path && (
+                        {(!app.file_path || !app.icon_url) && (
                           <Link href={`/publisher/upload?id=${app.id}&name=${encodeURIComponent(app.name)}`}>
                             <button className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">
-                              <Upload size={14} /> Finish Upload
+                              <Upload size={14} /> {!app.file_path ? "Finish Upload" : "Add Icon"}
                             </button>
                           </Link>
                         )}
