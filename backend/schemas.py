@@ -62,6 +62,11 @@ class AppOut(AppBase):
     icon_url: Optional[str] = None
     screenshot_urls: Optional[str] = None
     created_at: datetime
+    rating: float = 0.0
+    reviews_count: int = 0
+    downloads_count: int = 0
+    maturity_rating: str = "3+"
+    file_size: str = "Varies"
     class Config:
         from_attributes = True
 

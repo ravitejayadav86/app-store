@@ -20,19 +20,59 @@ router = APIRouter(prefix="/apps", tags=["apps"])
 
 from fastapi_cache.decorator import cache
 
+def attach_stats(app: models.App, db: Session):
+    reviews = db.query(models.Review).filter(models.Review.app_id == app.id).all()
+    downloads = db.query(models.Purchase).filter(models.Purchase.app_id == app.id).count()
+    
+    avg_rating = 0.0
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
+    
+    # Infer maturity from category or name
+    maturity = "3+"
+    if app.category.lower() in ["games", "social"]:
+        maturity = "12+" if any(x in app.name.lower() or x in (app.description or "").lower() for x in ["battle", "fight", "war"]) else "7+"
+    
+    # Simple size mapping
+    file_size = "Small" if app.category.lower() in ["productivity", "utilities"] else "Standard"
+    if app.category.lower() == "games": file_size = "Large"
+
+    return {
+        "id": app.id,
+        "name": app.name,
+        "description": app.description,
+        "price": app.price,
+        "category": app.category,
+        "version": app.version,
+        "developer": app.developer,
+        "is_active": app.is_active,
+        "is_approved": app.is_approved,
+        "file_path": app.file_path,
+        "icon_url": app.icon_url,
+        "screenshot_urls": app.screenshot_urls,
+        "created_at": app.created_at,
+        "rating": round(avg_rating, 1),
+        "reviews_count": len(reviews),
+        "downloads_count": downloads,
+        "maturity_rating": maturity,
+        "file_size": file_size
+    }
+
 @router.get("/", response_model=List[schemas.AppOut])
 def get_apps(db: Session = Depends(get_db)):
-    return db.query(models.App).filter(
+    apps = db.query(models.App).filter(
         models.App.is_approved == True,
         models.App.is_active == True
     ).all()
+    return [attach_stats(app, db) for app in apps]
 
 @router.get("/me", response_model=List[schemas.AppOut])
 def get_my_apps(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    return db.query(models.App).filter(models.App.developer == current_user.username).all()
+    apps = db.query(models.App).filter(models.App.developer == current_user.username).all()
+    return [attach_stats(app, db) for app in apps]
 
 @router.get("/analytics")
 def get_analytics(
@@ -237,7 +277,7 @@ def get_app(app_id: int, db: Session = Depends(get_db)):
     ).first()
     if not app:
         raise HTTPException(404, "App not found or has been removed")
-    return app
+    return attach_stats(app, db)
 
 @router.delete("/{app_id}")
 def delete_app(

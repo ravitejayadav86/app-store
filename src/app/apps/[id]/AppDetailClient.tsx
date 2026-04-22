@@ -25,6 +25,11 @@ interface AppData {
   file_path: string | null;
   icon_url?: string | null;
   screenshot_urls?: string | null;
+  rating: number;
+  reviews_count: number;
+  downloads_count: number;
+  maturity_rating: string;
+  file_size: string;
 }
 
 interface Review {
@@ -266,28 +271,28 @@ function AppDetailContent() {
         <div className="flex overflow-x-auto no-scrollbar gap-8 pb-8 mb-8 border-b border-white/10">
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
             <div className="flex items-center gap-1 font-black text-on-surface mb-1 text-lg">
-              {avgRating ?? "0.0"} <Star size={14} className="fill-current text-primary" />
+              {app.rating || "0.0"} <Star size={14} className="fill-current text-primary" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Reviews</span>
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{app.reviews_count} reviews</span>
           </div>
           <div className="w-px h-8 bg-white/10 self-center" />
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
             <div className="font-black text-on-surface mb-1 text-lg">
-              5K+
+              {app.downloads_count >= 1000 ? `${(app.downloads_count / 1000).toFixed(1)}K+` : app.downloads_count}
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Downloads</span>
           </div>
           <div className="w-px h-8 bg-white/10 self-center" />
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
             <div className="p-1 rounded-sm border border-on-surface/20 text-[10px] font-black mb-1">
-              3+
+              {app.maturity_rating}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Rated for 3+</span>
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Rated for {app.maturity_rating}</span>
           </div>
           <div className="w-px h-8 bg-white/10 self-center" />
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
              <div className="font-black text-on-surface mb-1 text-lg">
-                Small
+                {app.file_size}
              </div>
              <span className="text-[10px] font-black uppercase tracking-widest opacity-40">App Size</span>
           </div>
