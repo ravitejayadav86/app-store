@@ -24,11 +24,39 @@ def search_users(q: str, db: Session = Depends(get_db)):
     if len(query) < 2:
         return []
         
-    users = db.query(models.User).filter(
+    # Tier 1: Exact Match
+    exact_users = db.query(models.User).filter(
+        (models.User.username.ilike(query)) |
+        (models.User.full_name.ilike(query))
+    ).all()
+    
+    # Tier 2: Prefix Match
+    prefix_users = db.query(models.User).filter(
+        (models.User.username.ilike(f"{query}%")) |
+        (models.User.full_name.ilike(f"{query}%"))
+    ).all()
+    
+    # Tier 3: Contains Match (including bio)
+    contains_users = db.query(models.User).filter(
         (models.User.username.ilike(f"%{query}%")) |
-        (models.User.full_name.ilike(f"%{query}%"))
-    ).limit(10).all()
-    return [{"id": u.id, "username": u.username, "full_name": u.full_name, "bio": u.bio, "is_private": u.is_private, "avatar_url": u.avatar_url} for u in users]
+        (models.User.full_name.ilike(f"%{query}%")) |
+        (models.User.bio.ilike(f"%{query}%"))
+    ).all()
+    
+    seen = set()
+    result_users = []
+    
+    for group in [exact_users, prefix_users, contains_users]:
+        for u in group:
+            if u.id not in seen:
+                seen.add(u.id)
+                result_users.append(u)
+            if len(result_users) >= 15:
+                break
+        if len(result_users) >= 15:
+            break
+            
+    return [{"id": u.id, "username": u.username, "full_name": u.full_name, "bio": u.bio, "is_private": u.is_private, "avatar_url": u.avatar_url} for u in result_users]
 
 @router.get("/profile/{username}")
 def get_profile(

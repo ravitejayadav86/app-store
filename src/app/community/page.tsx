@@ -45,6 +45,7 @@ export default function CommunityPage() {
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<any[]>([]);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   // Real-time Integration
@@ -71,18 +72,27 @@ export default function CommunityPage() {
     toast.info(data.title, { description: data.message });
   });
 
-  const searchUsers = async (q: string) => {
+  const searchUsers = (q: string) => {
     setUserSearch(q);
-    if (q.length < 2) { setUserResults([]); return; }
-    setIsSearching(true);
-    try {
-      const res = await api.get(`/social/search?q=${q}`);
-      setUserResults(res.data);
-    } catch {
-      toast.error("Failed to search users");
-    } finally {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    
+    if (q.length < 2) { 
+      setUserResults([]); 
       setIsSearching(false);
+      return; 
     }
+    
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await api.get(`/social/search?q=${q}`);
+        setUserResults(res.data);
+      } catch {
+        toast.error("Failed to search users");
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
   };
 
   const fetchPosts = useCallback(async () => {
