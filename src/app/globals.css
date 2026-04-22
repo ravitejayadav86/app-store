@@ -80,12 +80,33 @@ body {
   border-radius: 4px;
 }
 
-/* Glassmorphism Utility - 70% opacity + 20px blur */
+/* Liquid Glassmorphism Utility - Soft, Organic, Premium */
 .glass {
-  background: rgba(247, 246, 251, 0.7);
+  background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(30px) saturate(210%);
+  -webkit-backdrop-filter: blur(30px) saturate(210%);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-glass:hover {
+  background: rgba(255, 255, 255, 0.55);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
 }
 
 /* Custom Premium Scrollbar for Windows/Chrome */

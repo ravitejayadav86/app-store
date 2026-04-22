@@ -260,7 +260,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] mt-20">
       {/* Header */}
-      <div className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md sticky top-0 z-20">
+      <div className="mx-4 my-3 px-4 py-3 liquid-glass flex items-center gap-4 sticky top-24 z-20 border border-white/20">
         <button onClick={() => router.back()} className="text-on-surface-variant hover:text-primary transition-colors">
           <ArrowLeft size={20} />
         </button>
@@ -309,10 +309,10 @@ export default function ChatPage() {
                   ) : null}
                 </div>
               )}
-              <div className={`max-w-[80%] px-4 py-2.5 shadow-sm ${
+              <div className={`max-w-[80%] px-4 py-2.5 shadow-sm glass ${
                 isMe
-                  ? "bg-primary text-on-primary rounded-3xl rounded-br-sm"
-                  : "bg-surface-low text-on-surface rounded-3xl rounded-bl-sm border border-outline-variant/30"
+                  ? "bg-primary/90 text-on-primary rounded-3xl rounded-br-sm border-white/20"
+                  : "bg-white/60 text-on-surface rounded-3xl rounded-bl-sm border-white/30"
               }`}>
                 {msg.media_url && (
                   <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative bg-black/5 min-h-[120px] flex items-center justify-center">
@@ -387,8 +387,8 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-4 border-t border-outline-variant/30 bg-surface/80 backdrop-blur-md pb-8">
-        <div className="max-w-4xl mx-auto flex flex-col gap-3">
+      <div className="px-4 py-4 sticky bottom-8 z-20">
+        <div className="max-w-4xl mx-auto flex flex-col gap-3 liquid-glass p-4 border border-white/20">
           
           {filesToUpload.length > 0 && (
             <div className="flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-bottom-2">

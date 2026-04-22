@@ -36,7 +36,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     transition={{ type: "spring", damping: 30, stiffness: 300 }}
                     className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4"
                 >
-            <div className="glass w-full max-w-7xl rounded-pill flex items-center justify-between px-6 py-3 border border-outline-variant">
+            <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-6 py-2.5 border border-white/20">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
                     <div className="relative w-10 h-10 overflow-hidden">

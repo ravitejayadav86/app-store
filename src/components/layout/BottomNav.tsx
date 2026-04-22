@@ -26,7 +26,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="md:hidden fixed bottom-0 inset-x-0 bg-surface/80 backdrop-blur-2xl border-t border-outline-variant z-50"
+          className="md:hidden fixed bottom-6 inset-x-4 liquid-glass z-50 border border-white/20"
         >
       <div className="grid grid-cols-6 items-center pt-2 pb-safe px-2">
         {NAV_ITEMS.map((item) => {
