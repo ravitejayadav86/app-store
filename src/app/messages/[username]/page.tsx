@@ -287,11 +287,17 @@ export default function ChatPage() {
                   : "bg-surface-low text-on-surface rounded-3xl rounded-bl-sm border border-outline-variant/30"
               }`}>
                 {msg.media_url && (
-                  <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative">
+                  <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative bg-black/5 min-h-[120px] flex items-center justify-center">
                     {msg.media_type === "image" ? (
                       <>
-                        <img src={resolveMediaUrl(msg.media_url)} alt="attachment" className="w-full h-auto max-h-80 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300" onClick={() => window.open(resolveMediaUrl(msg.media_url), '_blank')} />
-                        <div className="p-2 border-t border-white/10 flex justify-end">
+                        <img 
+                          src={resolveMediaUrl(msg.media_url)} 
+                          alt="attachment" 
+                          className="w-full h-auto max-h-80 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300" 
+                          onClick={() => window.open(resolveMediaUrl(msg.media_url), '_blank')}
+                          onLoad={(e) => (e.currentTarget.parentElement!.style.minHeight = '0')}
+                        />
+                        <div className="p-2 border-t border-white/10 flex justify-end w-full">
                           <a 
                             href={resolveMediaUrl(msg.media_url)} 
                             download 
@@ -305,7 +311,7 @@ export default function ChatPage() {
                         </div>
                       </>
                     ) : msg.media_type === "video" ? (
-                      <div className="relative group/vid flex flex-col">
+                      <div className="relative group/vid flex flex-col w-full">
                         <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-80 object-cover rounded-2xl" />
                         <div className="p-2 flex justify-end">
                           <a 
@@ -320,7 +326,7 @@ export default function ChatPage() {
                         </div>
                       </div>
                     ) : (
-                      <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
+                      <a href={resolveMediaUrl(msg.media_url)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl w-full ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
                         <FileText size={20} />
                         <span className="text-sm font-bold truncate flex-1">Download File</span>
                         <Download size={16} />
@@ -328,7 +334,7 @@ export default function ChatPage() {
                     )}
                   </div>
                 )}
-                {msg.content && msg.content !== "Sent an attachment" && (
+                {msg.content && (
                   <p className="leading-relaxed text-sm whitespace-pre-wrap">{msg.content}</p>
                 )}
                 <div className={`flex items-center gap-1.5 mt-1.5 ${isMe ? "justify-end" : "justify-start"}`}>
