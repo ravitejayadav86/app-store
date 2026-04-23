@@ -68,9 +68,6 @@ export default function CommunityPage() {
     }));
   });
 
-  onEvent("NOTIFICATION", (data) => {
-    toast.info(data.title, { description: data.message });
-  });
 
   const searchUsers = (q: string) => {
     setUserSearch(q);

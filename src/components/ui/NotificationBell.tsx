@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRealtime } from "@/hooks/useRealtime";
+import { toast } from "sonner";
 
 interface Notification {
   id: number;
@@ -45,6 +46,13 @@ export function NotificationBell() {
     };
     setNotifications(prev => [newNotif, ...prev]);
     setUnread(prev => prev + 1);
+    
+    // Show instant toast notification globally
+    toast.info(data.title, { 
+      description: data.message,
+      duration: 5000,
+      position: "top-right"
+    });
   });
 
   const fetchNotifications = useCallback(async () => {
