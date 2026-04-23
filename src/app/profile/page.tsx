@@ -207,17 +207,25 @@ export default function ProfilePage() {
             </div>
             
             <div className="flex-1 flex justify-around text-center">
-              <Link href="/profile/publisher" className="flex flex-col items-center">
-                <p className="font-bold text-sm">{liveStats.published}</p>
-                <p className="text-xs text-gray-500">Publisher</p>
-              </Link>
               <Link href="/profile/followers" className="flex flex-col items-center">
                 <p className="font-bold text-sm">{liveStats.followers}</p>
-                <p className="text-xs text-gray-500">Followers</p>
+                <p className="text-[10px] text-gray-400 font-medium">Followers</p>
               </Link>
               <Link href="/profile/following" className="flex flex-col items-center">
                 <p className="font-bold text-sm">{liveStats.following}</p>
-                <p className="text-xs text-gray-500">Following</p>
+                <p className="text-[10px] text-gray-400 font-medium">Following</p>
+              </Link>
+              <Link href="/profile/installed" className="flex flex-col items-center">
+                <p className="font-bold text-sm">{liveStats.installs}</p>
+                <p className="text-[10px] text-gray-400 font-medium">Installed</p>
+              </Link>
+              <Link href="/profile/publisher" className="flex flex-col items-center">
+                <p className="font-bold text-sm">{liveStats.published}</p>
+                <p className="text-[10px] text-gray-400 font-medium">Published</p>
+              </Link>
+              <Link href="/profile/reviews" className="flex flex-col items-center">
+                <p className="font-bold text-sm">{liveStats.reviews}</p>
+                <p className="text-[10px] text-gray-400 font-medium">Reviews</p>
               </Link>
             </div>
           </div>
@@ -336,13 +344,13 @@ export default function ProfilePage() {
           {/* Stats Grid - Desktop */}
           <div className="grid grid-cols-5 gap-4">
             {[
-              { label: "Followers", value: liveStats.followers, icon: User },
-              { label: "Following", value: liveStats.following, icon: Users },
-              { label: "Installed", value: liveStats.installs, icon: Download },
-              { label: "Published", value: liveStats.published, icon: Package },
-              { label: "Reviews", value: liveStats.reviews, icon: Star },
+              { label: "Followers", value: liveStats.followers, icon: User, href: "/profile/followers" },
+              { label: "Following", value: liveStats.following, icon: Users, href: "/profile/following" },
+              { label: "Installed", value: liveStats.installs, icon: Download, href: "/profile/installed" },
+              { label: "Published", value: liveStats.published, icon: Package, href: "/profile/publisher" },
+              { label: "Reviews", value: liveStats.reviews, icon: Star, href: "/profile/reviews" },
             ].map((stat, i) => (
-              <GlassCard key={i} className="p-4 text-center hover:bg-white/80 transition-all cursor-pointer" onClick={() => setActiveTab(stat.label)}>
+              <GlassCard key={i} className="p-4 text-center hover:bg-white/80 transition-all cursor-pointer" onClick={() => router.push(stat.href)}>
                 <div className="w-10 h-10 rounded-2xl mx-auto mb-2 bg-primary/10 text-primary flex items-center justify-center"><stat.icon size={20} /></div>
                 <p className="text-2xl font-black">{stat.value}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">{stat.label}</p>
