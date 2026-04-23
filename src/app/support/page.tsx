@@ -27,6 +27,7 @@ export default function SupportPage() {
   const [feedback, setFeedback] = useState("");
   const [sending, setSending] = useState(false);
   const [openGuide, setOpenGuide] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
     { title: "Billing & Payments", icon: <CreditCard className="text-blue-500" /> },
@@ -53,6 +54,11 @@ export default function SupportPage() {
       content: "Use the 'Community' tab to share posts, like others' content, and follow your favorite developers. It's the best way to stay updated on new releases."
     }
   ];
+
+  const filteredGuideSteps = guideSteps.filter(step => 
+    step.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    step.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +101,11 @@ export default function SupportPage() {
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-on-primary/50" />
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value && openGuide === null) setOpenGuide(0); // auto-open first result
+                }}
                 placeholder="Search for articles, guides..."
                 className="w-full pl-16 pr-8 py-4 md:py-5 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-base md:text-lg shadow-2xl"
               />
@@ -116,7 +127,11 @@ export default function SupportPage() {
                <h2 className="text-3xl font-bold text-gray-900">Panda Guide</h2>
             </div>
             <div className="grid gap-4">
-              {guideSteps.map((step, i) => (
+              {filteredGuideSteps.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No articles found matching "{searchQuery}"
+                </div>
+              ) : filteredGuideSteps.map((step, i) => (
                 <GlassCard key={i} className="p-0 overflow-hidden border-gray-100">
                   <button 
                     onClick={() => setOpenGuide(openGuide === i ? null : i)}
