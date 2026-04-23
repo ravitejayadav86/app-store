@@ -30,6 +30,8 @@ try:
                 ("safe_browsing", "BOOLEAN DEFAULT TRUE"),
                 ("auto_update", "TEXT DEFAULT 'Over Wi-Fi only'"),
                 ("download_pref", "TEXT DEFAULT 'Ask every time'"),
+                ("billing_address", "TEXT"),
+                ("payment_method", "TEXT"),
             ]:
                 if col not in columns:
                     try:
