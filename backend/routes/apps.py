@@ -5,7 +5,12 @@ from typing import List, Optional
 import models, schemas, auth
 from database import get_db
 from routes import telemetry
-import os, cloudinary, cloudinary.uploader, json, re
+import os, cloudinary, cloudinary.uploader, json, re, logging
+import shutil
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def sanitize_id(filename: str) -> str:
     return re.sub(r'[^a-zA-Z0-9.\-_]', '_', filename)
@@ -136,10 +141,11 @@ def upload_file(
     app_id: int,
     file: UploadFile = File(None),
     icon: Optional[UploadFile] = File(None),
-    screenshots: List[UploadFile] = File([]),
+    screenshots: List[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    logger.info(f"Upload request for app_id {app_id} by user {current_user.username}")
     app = db.query(models.App).filter(
         models.App.id == app_id,
         models.App.developer == current_user.username
@@ -150,21 +156,25 @@ def upload_file(
     # 1. Upload App File (if provided)
     if file:
         safe_name = sanitize_id(file.filename)
+        logger.info(f"Uploading app file: {safe_name}")
         try:
+            file.file.seek(0)
             # Use upload_large for app files to handle bigger APKs/ZIPs more reliably
+            # Use resource_type="raw" to avoid Cloudinary auto-detection issues for binaries
             result = cloudinary.uploader.upload_large(
                 file.file,
-                resource_type="auto",
+                resource_type="raw",
                 folder="pandastore",
                 public_id=f"app_{app_id}_{safe_name}"
             )
             app.file_path = result["secure_url"]
+            logger.info(f"Cloudinary upload successful: {app.file_path}")
         except Exception as e:
+            logger.error(f"Cloudinary upload failed for app_{app_id}: {str(e)}")
             # Fallback to local storage if Cloudinary fails (e.g. large APKs > 10MB)
-            import shutil
-            import os
             os.makedirs("uploads", exist_ok=True)
             local_path = f"uploads/app_{app_id}_{safe_name}"
+            logger.info(f"Falling back to local storage: {local_path}")
             file.file.seek(0)
             with open(local_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
@@ -172,6 +182,8 @@ def upload_file(
 
     # 2. Upload Icon (if provided)
     if icon:
+        logger.info(f"Uploading icon for app_{app_id}")
+        icon.file.seek(0)
         icon_result = cloudinary.uploader.upload(
             icon.file,
             resource_type="image",
@@ -179,11 +191,16 @@ def upload_file(
             public_id=f"icon_{app_id}"
         )
         app.icon_url = icon_result["secure_url"]
+        logger.info(f"Icon upload successful: {app.icon_url}")
 
     # 3. Upload Screenshots (if provided)
     if screenshots:
+        logger.info(f"Uploading {len(screenshots)} screenshots for app_{app_id}")
         shot_urls = []
         for i, shot in enumerate(screenshots):
+            if not shot or not shot.filename:
+                continue
+            shot.file.seek(0)
             shot_result = cloudinary.uploader.upload(
                 shot.file,
                 resource_type="image",
@@ -191,7 +208,9 @@ def upload_file(
                 public_id=f"shot_{i}_{sanitize_id(shot.filename)}"
             )
             shot_urls.append(shot_result["secure_url"])
-        app.screenshot_urls = json.dumps(shot_urls)
+        if shot_urls:
+            app.screenshot_urls = json.dumps(shot_urls)
+            logger.info(f"Screenshots uploaded: {len(shot_urls)} files")
     
     if not app.file_path and not app.external_url and not file and not icon and not screenshots:
         raise HTTPException(400, "No files or valid links provided for this app.")
