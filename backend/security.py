@@ -9,12 +9,15 @@ import re
 import os
 from dotenv import load_dotenv
 
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
 
 load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "memory://")
 
-if REDIS_URL.startswith("redis"):
+if redis and REDIS_URL.startswith("redis"):
     try:
         r = redis.Redis.from_url(REDIS_URL, socket_connect_timeout=1)
         r.ping()
