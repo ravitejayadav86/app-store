@@ -39,12 +39,12 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
             <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-6 py-2.5 border border-white/20">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="relative w-10 h-10 overflow-hidden rounded-full border border-white/10">
+                    <div className="relative w-10 h-10 overflow-hidden">
                         <Image
-                            src="/paw-logo.png"
+                            src="/panda-logo.png"
                             alt="Panda Store Logo"
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             priority
                             sizes="40px"
                         />

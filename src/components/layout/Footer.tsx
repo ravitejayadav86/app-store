@@ -23,12 +23,12 @@ export const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-3 mb-8">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-white/10">
+              <div className="relative w-12 h-12">
                 <Image
-                  src="/paw-logo.png"
+                  src="/panda-logo.png"
                   alt="Panda Store Logo"
                   fill
-                  className="object-cover filter drop-shadow-lg"
+                  className="object-contain filter drop-shadow-lg"
                 />
               </div>
               <span className="font-black text-2xl tracking-tighter text-on-surface">PandaStore</span>

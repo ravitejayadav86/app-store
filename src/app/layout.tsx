@@ -36,7 +36,7 @@ export const metadata: Metadata = {
       "Discover and publish apps, games, music, and books — all free on PandaStore.",
     images: [
       {
-        url: "/paw-logo.png",
+        url: "/panda-logo.png",
         width: 512,
         height: 512,
         alt: "PandaStore Logo",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PandaStore | Discover Apps, Games, Music & Books",
     description: "Discover and publish apps, games, music, and books on PandaStore.",
-    images: ["/paw-logo.png"],
+    images: ["/panda-logo.png"],
     creator: "@pandastore",
   },
   robots: {

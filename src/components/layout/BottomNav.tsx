@@ -26,7 +26,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="md:hidden fixed bottom-0 inset-x-0 bg-black/80 backdrop-blur-xl z-50 border-t border-white/10"
+          className="md:hidden fixed bottom-0 inset-x-0 liquid-glass z-50 border-t border-white/30 !rounded-none"
         >
       <div className="grid grid-cols-6 items-center pt-1 pb-safe px-1">
         {NAV_ITEMS.map((item) => {
@@ -37,8 +37,8 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
               key={item.name}
               href={item.href}
               aria-label={item.name}
-              className={`relative flex flex-col items-center gap-0.5 w-full py-1.5 transition-colors duration-300 ${
-                isActive ? "text-primary" : "text-white/40 hover:text-white"
+              className={`relative flex flex-col items-center gap-0.5 w-full py-1 transition-colors duration-300 ${
+                isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
               <div className="relative group">
@@ -46,24 +46,24 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
                   initial={false}
                   animate={{
                     scale: isActive ? 1 : 0.85,
-                    backgroundColor: isActive ? "rgba(255, 255, 255, 0.1)" : "transparent",
-                    color: isActive ? "#fff" : "inherit",
+                    backgroundColor: isActive ? "var(--primary-container)" : "transparent",
+                    color: isActive ? "var(--on-primary)" : "inherit",
                   }}
                   className="px-4 py-1 rounded-full flex items-center justify-center transition-all"
                 >
-                  {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
+                  {item.icon}
                 </motion.div>
                 
                 {isActive && (
                   <motion.div
                     layoutId="bubble"
-                    className="absolute inset-0 bg-white/5 rounded-full -z-10"
+                    className="absolute inset-0 bg-primary/10 rounded-full -z-10"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
               </div>
               
-              <span className={`text-[9px] font-bold uppercase tracking-tight transition-transform duration-300 ${isActive ? "scale-105" : "scale-100 opacity-60"}`}>
+              <span className={`text-[9px] font-bold uppercase tracking-tighter transition-transform duration-300 ${isActive ? "scale-105" : "scale-100 opacity-60"}`}>
                 {item.name}
               </span>
             </Link>
@@ -73,7 +73,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
       
       <style jsx global>{`
         .pb-safe {
-          padding-bottom: calc(env(safe-area-inset-bottom, 8px) + 4px);
+          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
         }
       `}</style>
         </motion.nav>
