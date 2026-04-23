@@ -281,6 +281,39 @@ def get_following(username: str, db: Session = Depends(get_db)):
             result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
     return result
 
+@router.post("/support/feedback")
+def send_support_feedback(
+    data: schemas.MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Send feedback to all admins."""
+    admins = db.query(models.User).filter(models.User.is_admin == True).all()
+    if not admins:
+        # Fallback: if no admin is marked, notify the developer or just log it
+        return {"message": "Feedback received. Our team will review it."}
+
+    for admin in admins:
+        # Create persistent notification
+        notif = models.Notification(
+            user_id=admin.id,
+            title=f"Support Feedback from @{current_user.username}",
+            message=data.content
+        )
+        db.add(notif)
+        
+        # Real-time WebSocket notification
+        import asyncio
+        asyncio.create_task(manager.send_to_user(admin.id, {
+            "type": "NOTIFICATION",
+            "title": "New Support Feedback",
+            "message": f"@{current_user.username}: {data.content[:50]}...",
+            "from": current_user.username
+        }))
+
+    db.commit()
+    return {"message": "Thank you! Your feedback has been sent to our admin team."}
+
 # -- Messages --
 @router.post("/messages/{username}/read")
 async def mark_read(
