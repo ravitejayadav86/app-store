@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle } from "lucide-react";
+import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { useRouter, usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
@@ -155,10 +155,64 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             <Link href="/profile" className="flex w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group ml-1" aria-label="View profile">
                                 <User size={16} className="md:size-[18px] group-hover:text-primary transition-colors" />
                             </Link>
+
+                            {/* Mobile Menu Toggle */}
+                            <button 
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="lg:hidden p-2 ml-1 text-on-surface-variant hover:text-primary transition-colors"
+                                aria-label="Toggle menu"
+                            >
+                                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
                         </div>
                     </>
                 )}
             </div>
+            {/* Mobile Drawer */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className="absolute top-full left-4 right-4 mt-3 liquid-glass p-6 lg:hidden flex flex-col gap-3 shadow-2xl border border-white/50 z-[60]"
+                    >
+                        <div className="grid grid-cols-2 gap-2 mb-4">
+                            {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
+                                <Link 
+                                    key={item} 
+                                    href={`/${item.toLowerCase() === 'discover' ? '' : item.toLowerCase()}`}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center justify-center p-4 rounded-2xl bg-surface-low border border-outline-variant/10 text-sm font-black text-on-surface hover:bg-primary/5 hover:text-primary transition-all"
+                                >
+                                    {item}
+                                </Link>
+                            ))}
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <Link href="/publisher" onClick={() => setMobileMenuOpen(false)}>
+                                <Button className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Publisher Hub</Button>
+                            </Link>
+                            {session ? (
+                                <button 
+                                    onClick={() => {
+                                        localStorage.removeItem("token");
+                                        signOut({ callbackUrl: "/" });
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className="w-full py-4 text-red-500 font-black text-xs uppercase tracking-widest border border-red-200 rounded-2xl hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <LogOut size={16} /> Sign Out
+                                </button>
+                            ) : (
+                                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button variant="tertiary" className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Sign In</Button>
+                                </Link>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
                 </motion.nav>
             )}
         </AnimatePresence>

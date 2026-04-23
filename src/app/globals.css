@@ -64,6 +64,20 @@ body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --radius-xl: 1rem;
+  }
+  html {
+    font-size: 14px;
+  }
+  .liquid-glass {
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
 }
 
 /* Liquid Glassmorphism Utility - Soft, Organic, Premium */

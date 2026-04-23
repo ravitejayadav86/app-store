@@ -10,6 +10,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -129,10 +130,16 @@ export default function RegisterPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <button className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm">
+             <button 
+               onClick={() => signIn("github", { callbackUrl: "/" })}
+               className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
+             >
                 <Code size={20} /> Github
              </button>
-             <button className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm">
+             <button 
+               onClick={() => signIn("google", { callbackUrl: "/" })}
+               className="flex items-center justify-center gap-3 py-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all font-bold text-sm"
+             >
                 <div className="w-5 h-5 bg-on-surface-variant rounded-full" /> Google
              </button>
           </div>
