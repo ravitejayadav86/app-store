@@ -1,8 +1,8 @@
-backend/
+# backend/ removed to allow Vercel deployment
 .venv/
 venv/
 scratch/
 docker-compose.yml
 nginx.conf
-requirements.txt
+# requirements.txt removed to allow Vercel deployment
 dockerfile
