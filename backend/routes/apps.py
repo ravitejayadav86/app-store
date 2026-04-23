@@ -159,11 +159,12 @@ def upload_file(
         logger.info(f"Uploading app file: {safe_name}")
         try:
             file.file.seek(0)
-            # Use upload_large for app files to handle bigger APKs/ZIPs more reliably
-            # Use resource_type="raw" to avoid Cloudinary auto-detection issues for binaries
+            logger.info(f"Attempting Cloudinary upload_large for {safe_name}")
+            # Reverting to resource_type="auto" as it's generally safer for diverse file types
+            # unless we are sure it's a raw file. Cloudinary free tier has lower limits for "raw".
             result = cloudinary.uploader.upload_large(
                 file.file,
-                resource_type="raw",
+                resource_type="auto",
                 folder="pandastore",
                 public_id=f"app_{app_id}_{safe_name}"
             )
@@ -171,14 +172,18 @@ def upload_file(
             logger.info(f"Cloudinary upload successful: {app.file_path}")
         except Exception as e:
             logger.error(f"Cloudinary upload failed for app_{app_id}: {str(e)}")
-            # Fallback to local storage if Cloudinary fails (e.g. large APKs > 10MB)
+            # Fallback to local storage if Cloudinary fails (e.g. large APKs > 10MB or timeout)
             os.makedirs("uploads", exist_ok=True)
             local_path = f"uploads/app_{app_id}_{safe_name}"
             logger.info(f"Falling back to local storage: {local_path}")
-            file.file.seek(0)
-            with open(local_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-            app.file_path = f"/{local_path}"
+            try:
+                file.file.seek(0)
+                with open(local_path, "wb") as buffer:
+                    shutil.copyfileobj(file.file, buffer)
+                app.file_path = f"/{local_path}"
+                logger.info(f"Local fallback successful: {app.file_path}")
+            except Exception as le:
+                logger.error(f"Local fallback failed too: {str(le)}")
 
     # 2. Upload Icon (if provided)
     if icon:
@@ -198,16 +203,20 @@ def upload_file(
         logger.info(f"Uploading {len(screenshots)} screenshots for app_{app_id}")
         shot_urls = []
         for i, shot in enumerate(screenshots):
-            if not shot or not shot.filename:
+            if not shot or not hasattr(shot, 'filename') or not shot.filename:
                 continue
-            shot.file.seek(0)
-            shot_result = cloudinary.uploader.upload(
-                shot.file,
-                resource_type="image",
-                folder=f"pandastore/screenshots/{app_id}",
-                public_id=f"shot_{i}_{sanitize_id(shot.filename)}"
-            )
-            shot_urls.append(shot_result["secure_url"])
+            try:
+                shot.file.seek(0)
+                shot_result = cloudinary.uploader.upload(
+                    shot.file,
+                    resource_type="image",
+                    folder=f"pandastore/screenshots/{app_id}",
+                    public_id=f"shot_{i}_{sanitize_id(shot.filename)}"
+                )
+                shot_urls.append(shot_result["secure_url"])
+            except Exception as se:
+                logger.error(f"Screenshot {i} failed to upload: {str(se)}")
+                continue
         if shot_urls:
             app.screenshot_urls = json.dumps(shot_urls)
             logger.info(f"Screenshots uploaded: {len(shot_urls)} files")
