@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -206,18 +207,18 @@ export default function ProfilePage() {
             </div>
             
             <div className="flex-1 flex justify-around text-center">
-              <div>
+              <Link href="/profile/publisher" className="flex flex-col items-center">
                 <p className="font-bold text-sm">{liveStats.published}</p>
-                <p className="text-xs text-gray-500">Posts</p>
-              </div>
-              <div>
+                <p className="text-xs text-gray-500">Publisher</p>
+              </Link>
+              <Link href="/profile/followers" className="flex flex-col items-center">
                 <p className="font-bold text-sm">{liveStats.followers}</p>
                 <p className="text-xs text-gray-500">Followers</p>
-              </div>
-              <div>
+              </Link>
+              <Link href="/profile/following" className="flex flex-col items-center">
                 <p className="font-bold text-sm">{liveStats.following}</p>
                 <p className="text-xs text-gray-500">Following</p>
-              </div>
+              </Link>
             </div>
           </div>
 
