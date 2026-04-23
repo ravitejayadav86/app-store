@@ -151,7 +151,8 @@ def upload_file(
     if file:
         safe_name = sanitize_id(file.filename)
         try:
-            result = cloudinary.uploader.upload(
+            # Use upload_large for app files to handle bigger APKs/ZIPs more reliably
+            result = cloudinary.uploader.upload_large(
                 file.file,
                 resource_type="auto",
                 folder="pandastore",
