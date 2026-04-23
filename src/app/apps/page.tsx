@@ -15,12 +15,12 @@ interface App {
   version: string;
 }
 
-function getCategoryIcon(category: string) {
+function getCategoryIcon(category: string, size: number = 32) {
   switch (category?.toLowerCase()) {
-    case "games": return <Gamepad2 size={32} className="text-white" />;
-    case "music": return <Music size={32} className="text-white" />;
-    case "books": return <BookOpen size={32} className="text-white" />;
-    default: return <Code2 size={32} className="text-white" />;
+    case "games": return <Gamepad2 size={size} className="text-white" />;
+    case "music": return <Music size={size} className="text-white" />;
+    case "books": return <BookOpen size={size} className="text-white" />;
+    default: return <Code2 size={size} className="text-white" />;
   }
 }
 
@@ -116,7 +116,7 @@ export default function AppsPage() {
             >
               <div className="glass border border-outline-variant rounded-2xl p-4 hover:border-primary/30 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 flex flex-col gap-3 h-full">
                 <div className={`w-12 h-12 rounded-xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-sm shrink-0`}>
-                  {React.cloneElement(getCategoryIcon(app.category) as React.ReactElement, { size: 24 })}
+                  {getCategoryIcon(app.category, 24)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors truncate">{app.name}</h3>

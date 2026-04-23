@@ -10,7 +10,7 @@ function cn(...inputs: ClassValue[]) {
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "tertiary" | "glass";
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -23,6 +23,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
+      xs: "px-3 py-1 text-[10px] font-black tracking-widest uppercase",
       sm: "px-4 py-1.5 text-xs font-bold",
       md: "px-6 py-2.5 text-sm font-bold",
       lg: "px-8 py-3.5 text-base font-bold",
