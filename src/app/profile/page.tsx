@@ -172,8 +172,10 @@ export default function ProfilePage() {
       <div className="sm:hidden flex flex-col min-h-screen bg-white">
         {/* Mobile Header */}
         <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Shield size={18} className="text-black" />
+          <div className="flex items-center gap-2">
+            <div className="relative w-7 h-7">
+              <img src="/paw-logo.png" alt="Paw Logo" className="w-full h-full object-contain" />
+            </div>
             <h1 className="font-bold text-lg flex items-center gap-1">
               {profile?.username} <ChevronDown size={14} />
             </h1>
@@ -240,26 +242,6 @@ export default function ProfilePage() {
             <button className="px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
               <UserSquare2 size={18} />
             </button>
-          </div>
-
-          {/* Story Highlights (App Categories) */}
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {["Apps", "Games", "Music", "Books"].map((cat) => (
-              <div key={cat} className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className="w-14 h-14 rounded-full border border-gray-200 p-1">
-                  <div className="w-full h-full rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-                    <Sparkles size={20} />
-                  </div>
-                </div>
-                <p className="text-[10px] font-medium">{cat}</p>
-              </div>
-            ))}
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              <div className="w-14 h-14 rounded-full border border-gray-200 flex items-center justify-center">
-                <Plus size={20} className="text-gray-400" />
-              </div>
-              <p className="text-[10px] font-medium">New</p>
-            </div>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, X, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
+import { usePathname } from "next/navigation";
 
 interface Message {
   id: string;
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export const Copilot = () => {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -193,7 +195,7 @@ export const Copilot = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed right-4 md:right-6 w-14 h-14 bg-linear-to-br from-primary to-primary-dim text-white rounded-full shadow-xl flex items-center justify-center z-40 border border-white/20 transition-all ${
           isOpen ? 'bottom-24 md:bottom-24 opacity-0 pointer-events-none' : 'bottom-24 md:bottom-6 opacity-100'
-        }`}
+        } ${pathname === "/profile" ? "hidden md:flex" : "flex"}`}
       >
         <Sparkles size={24} />
       </motion.button>
