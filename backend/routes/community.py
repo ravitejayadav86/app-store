@@ -134,6 +134,7 @@ def add_reply(
         db.add(notif)
         db.commit()
         db.refresh(notif)
+        db.refresh(new_reply)
         asyncio.create_task(manager.send_to_user(post.user_id, {
             "type": "NOTIFICATION",
             "id": notif.id,
