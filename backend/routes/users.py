@@ -5,6 +5,12 @@ import models, schemas, auth
 from database import get_db
 import cloudinary
 import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name="deii8hxll",
+    api_key="976199473967583",
+    api_secret="hmjlrH1hSjKTOHQw4r5TElfdUNE"
+)
 import os
 from dotenv import load_dotenv
 
@@ -140,4 +146,4 @@ def verify_publisher(
         return {"message": "Success! You are now a verified publisher."}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
