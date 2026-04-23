@@ -33,14 +33,12 @@ api.interceptors.response.use(
       const isLoginPage = window.location.pathname === "/login";
       const hasToken = !!localStorage.getItem("token");
 
-      if (!isLoginPage && hasToken) {
-        // Only redirect if we thought we had a token but it's rejected
+      if (hasToken) {
         localStorage.removeItem("token");
-        // We use window.location for hard redirect, but let's try to pass a message
-        window.location.href = "/login?error=session_expired";
-      } else if (isLoginPage && hasToken) {
-        // Stuck on login with a bad token? Clear it.
-        localStorage.removeItem("token");
+        // Only redirect if not already on login page to prevent loops
+        if (!isLoginPage) {
+          window.location.href = "/login?error=session_expired";
+        }
       }
     }
     return Promise.reject(error);

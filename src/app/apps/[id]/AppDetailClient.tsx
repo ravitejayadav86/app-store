@@ -97,8 +97,9 @@ function StarRating({ value, onChange }: { value: number; onChange?: (v: number)
   );
 }
 
-function AppDetailContent() {
+function AppDetailContent({ id: propId }: { id?: string }) {
   const params = useParams();
+  const id = propId || params.id as string;
   const router = useRouter();
   const [app, setApp] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,9 +119,9 @@ function AppDetailContent() {
   }, []);
 
   const fetchApp = useCallback(async () => {
-    if (!params.id) return;
+    if (!id) return;
     try {
-      const res = await api.get(`/apps/${params.id}`);
+      const res = await api.get(`/apps/${id}`);
       setApp(res.data);
       fetchReviews(res.data.id);
     } catch {
@@ -129,7 +130,7 @@ function AppDetailContent() {
     } finally {
       setLoading(false);
     }
-  }, [params.id, router, fetchReviews]);
+  }, [id, router, fetchReviews]);
 
   useEffect(() => {
     fetchApp();
@@ -137,6 +138,14 @@ function AppDetailContent() {
 
   const handleDownload = async () => {
     if (!app) return;
+
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please sign in to download apps.");
+      router.push("/login");
+      return;
+    }
 
     if (!app.file_path) {
       // Trigger a real nudge in the backend
@@ -165,25 +174,22 @@ function AppDetailContent() {
 
     setDownloading(true);
     try {
-      // Use native browser navigation to bypass CORS issues on redirects
+      // Verify if the file is actually accessible via a HEAD request first
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
       const downloadUrl = `${baseUrl}/apps/${app.id}/download`;
       
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.target = "_blank";
-      link.setAttribute("download", app.name);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      // Use a hidden iframe or direct window location for the download
+      // to avoid typical CORS/AJAX download issues with large files
+      window.location.href = downloadUrl;
       
       toast.success("Download started!");
       // Refresh app data to show updated download count
-      setTimeout(fetchApp, 2000);
+      setTimeout(fetchApp, 3000);
     } catch (err: unknown) {
-      toast.error("Download failed.");
+      toast.error("Download failed. The file might be temporarily unavailable.");
+      console.error(err);
     } finally {
-      setTimeout(() => setDownloading(false), 1000);
+      setTimeout(() => setDownloading(false), 2000);
     }
   };
 
@@ -450,14 +456,14 @@ function AppDetailContent() {
 }
 
 
-export default function AppDetails() {
+export default function AppDetails({ id }: { id?: string }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={48} />
       </div>
     }>
-      <AppDetailContent />
+      <AppDetailContent id={id} />
     </Suspense>
   );
 }

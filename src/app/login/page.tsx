@@ -22,7 +22,11 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (status === "authenticated" || token) {
+    const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const hasError = urlParams?.get("error");
+
+    // Don't auto-redirect if we just arrived with an error (like session_expired)
+    if ((status === "authenticated" || token) && !hasError) {
       router.push("/");
     }
   }, [status, router]);
