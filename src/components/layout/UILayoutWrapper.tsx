@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "./Navbar";
 import { BottomNav } from "./BottomNav";
+import { usePathname } from "next/navigation";
 
 interface UILayoutWrapperProps {
   children: React.ReactNode;
@@ -10,6 +11,14 @@ interface UILayoutWrapperProps {
 
 export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
   const [uiHidden, setUiHidden] = useState(false);
+  const pathname = usePathname();
+
+  // Automatically hide UI on mobile for detail and profile pages
+  const isDetailPage = pathname?.startsWith("/apps/") || 
+                       pathname?.startsWith("/game/") || 
+                       pathname?.startsWith("/users/") ||
+                       pathname?.startsWith("/profile");
+  const effectiveHidden = uiHidden || isDetailPage;
 
   useEffect(() => {
     const handleDoubleClick = (e: MouseEvent) => {
@@ -34,11 +43,11 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
 
   return (
     <>
-      <Navbar isHidden={uiHidden} />
-      <main className={`flex-grow pt-24 pb-24 md:pb-0 transition-all duration-500 ${uiHidden ? "pt-0 pb-0" : "pt-24 pb-24"}`}>
+      <Navbar isHidden={effectiveHidden} />
+      <main className={`flex-grow transition-all duration-500 ${effectiveHidden ? "pt-0 pb-0" : "pt-24 pb-24 md:pb-0"}`}>
         {children}
       </main>
-      <BottomNav isHidden={uiHidden} />
+      <BottomNav isHidden={effectiveHidden} />
     </>
   );
 };
