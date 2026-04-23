@@ -22,7 +22,6 @@ cloudinary.config(
 
 router = APIRouter(prefix="/apps", tags=["apps"])
 
-from fastapi_cache.decorator import cache
 
 def attach_stats(app: models.App, db: Session):
     reviews = db.query(models.Review).filter(models.Review.app_id == app.id).all()
