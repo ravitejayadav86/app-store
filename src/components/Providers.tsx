@@ -36,6 +36,7 @@ function TokenSync() {
         window.dispatchEvent(new Event("auth-synced"));
       } catch (err) {
         console.error("Failed to sync OAuth token", err);
+        import('sonner').then(mod => mod.toast.error("Failed to connect your account to PandaStore. Please try again."));
         // Mark as synced anyway to prevent infinite retry loops in this component
         synced.current = true;
       }
