@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export const Footer = () => {
@@ -23,10 +23,15 @@ export const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-3 mb-8">
-              <div className="relative w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white shadow-2xl">
-                <Zap size={24} fill="currentColor" />
+              <div className="relative w-12 h-12">
+                <Image
+                  src="/panda-logo.png"
+                  alt="Panda Store Logo"
+                  fill
+                  className="object-contain filter drop-shadow-lg"
+                />
               </div>
-              <span className="font-black text-2xl tracking-tighter text-on-surface">NEXUS</span>
+              <span className="font-black text-2xl tracking-tighter text-on-surface">PandaStore</span>
             </div>
             <p className="text-base text-on-surface-variant leading-relaxed font-bold opacity-80 max-w-[240px]">
               The premium destination for the world's most beautiful and functional digital experiences.

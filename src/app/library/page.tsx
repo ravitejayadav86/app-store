@@ -74,36 +74,49 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="flex flex-col gap-10 pb-20">
+    <div className="flex flex-col gap-12 md:gap-20 pb-20">
       <section className="px-4 md:px-8">
-        <div className="relative h-[250px] md:h-[400px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-black p-8 md:p-12 text-white flex flex-col justify-end gap-3 shadow-2xl">
-          <div className="absolute inset-0 bg-linear-to-tr from-black via-black/80 to-primary/10" />
+        <div className="relative h-[300px] md:h-[450px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-indigo-950 p-8 md:p-16 text-white flex flex-col justify-end gap-6 shadow-2xl">
+          {/* Decorative background elements */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/10 rounded-full blur-[120px] -mr-40 -mt-40"
+          />
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut", delay: 0.3 }}
+            className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary-dim/20 rounded-full blur-[100px] -ml-20 -mb-20"
+          />
           
           <div className="relative z-10 max-w-2xl">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mb-2 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10"
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md border border-white/20"
             >
-              <Package size={12} />
-              <span>Asset Vault</span>
+              <Package size={14} />
+              <span className="uppercase tracking-widest text-[10px]">Your Workspace</span>
             </motion.div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none mb-1">Your Collection.</h1>
-            <p className="text-[11px] md:text-base text-gray-400 font-medium max-w-xs">Everything you&apos;ve curated, ready for your next project.</p>
+            <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-4 leading-none">Your Owned Collection.</h1>
+            <p className="text-lg md:text-xl text-white/70 max-w-lg">Everything you&apos;ve curated, ready for your next project.</p>
           </div>
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-12">
           <div className="flex gap-2 p-1.5 bg-surface-low/50 backdrop-blur-sm rounded-2xl w-full lg:w-fit border border-outline-variant overflow-x-auto no-scrollbar">
             {categories.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold tracking-tight transition-all whitespace-nowrap ${
                   activeTab === tab
-                    ? "bg-black text-white shadow-lg"
+                    ? "bg-surface-lowest text-primary shadow-sm ring-1 ring-black/5"
                     : "text-on-surface-variant hover:text-on-surface hover:bg-white/5"
                 }`}
               >
@@ -111,21 +124,22 @@ export default function LibraryPage() {
               </button>
             ))}
           </div>
-          <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
-            <div className="w-full sm:w-64 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={14} />
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-full sm:w-80 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Filter library..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-outline-variant/30 focus:outline-none focus:ring-4 focus:ring-primary/5 placeholder:text-gray-400 transition-all font-semibold text-[12px]"
+                placeholder="Find in your library..."
+                className="w-full pl-12 pr-4 py-3 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40 transition-all font-medium text-sm"
               />
             </div>
             <Link href="/library/updates" className="w-full sm:w-auto">
-              <Button variant="secondary" className="w-full flex items-center justify-center gap-2 px-6 h-10 rounded-xl group text-[11px] font-black uppercase tracking-widest">
-                <Activity size={14} className="text-primary group-hover:animate-pulse" />
-                <span>Signals</span>
+              <Button variant="secondary" className="w-full flex items-center justify-center gap-2 px-6 h-[46px] rounded-2xl group">
+                <Activity size={18} className="text-primary group-hover:animate-pulse" />
+                <span>Updates</span>
+                <ChevronRight size={14} className="opacity-0 group-hover:opacity-50 group-hover:translate-x-1 transition-all" />
               </Button>
             </Link>
           </div>
@@ -133,67 +147,74 @@ export default function LibraryPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="animate-spin text-primary" size={32} />
+            <Loader2 className="animate-spin text-primary" size={40} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-20 text-center bg-surface-low rounded-[2.5rem] border border-dashed border-outline-variant/20">
-            <Package size={32} className="mx-auto mb-3 text-on-surface-variant opacity-20" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-              {search ? `No matches for "${search}"` : "Vault Empty"}
+          <div className="py-20 text-center bg-surface-low rounded-3xl border border-dashed border-outline-variant">
+            <Package size={48} className="mx-auto mb-4 text-on-surface-variant opacity-30" />
+            <p className="text-on-surface-variant text-lg font-medium">
+              {search ? `No results for "${search}"` : "Your library is empty."}
             </p>
+            {!search && (
+              <Link href="/apps">
+                <Button className="mt-4">Browse the Store</Button>
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
             {filtered.map((purchase, index) => {
               const app = purchase.app;
-              const color = COLORS[app?.category?.toLowerCase()] || "bg-black";
+              const color = COLORS[app?.category?.toLowerCase()] || "bg-primary";
               return (
                 <motion.div
                   key={purchase.id}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.05 }}
                 >
-                  <div className="bg-white border border-outline-variant/10 rounded-[2rem] p-4 group hover:shadow-xl hover:border-primary/20 transition-all flex flex-col gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-[1.25rem] ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-500 shrink-0`}>
-                        {getCategoryIcon(app?.category)}
-                      </div>
-                      <div className="flex-grow min-w-0">
-                        <h3 className="text-sm font-black text-on-surface truncate group-hover:text-primary transition-colors tracking-tight">{app?.name}</h3>
-                        <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mt-0.5">
-                          {app?.category} • v{app?.version}
-                        </p>
+                  <GlassCard className="p-0 overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 h-full border-outline-variant/50 hover:border-primary/30">
+                    <div className="p-6">
+                      <div className="flex items-start gap-5">
+                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl ${color} flex items-center justify-center text-white shadow-xl shadow-inner group-hover:scale-105 transition-transform duration-500 shrink-0`}>
+                          {getCategoryIcon(app?.category)}
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <h3 className="text-xl font-bold text-on-surface truncate group-hover:text-primary transition-colors">{app?.name}</h3>
+                          <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold mt-1 opacity-60">
+                            {app?.category} • v{app?.version}
+                          </p>
+                          
+                          <div className="flex items-center gap-3 mt-4">
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                              <CheckCircle2 size={12} /> Owned
+                            </span>
+                            {!app?.file_path && (
+                              <span className="flex items-center gap-1.2 text-[10px] font-bold text-orange-500 bg-orange-500/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                <Clock size={12} /> Awaiting Upload
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                       <span className="flex items-center gap-1 text-[8px] font-black text-green-600 bg-green-500/5 px-2 py-0.5 rounded-full uppercase tracking-wider border border-green-500/10">
-                         <CheckCircle2 size={8} /> Authorized
-                       </span>
-                       {!app?.file_path && (
-                         <span className="flex items-center gap-1 text-[8px] font-black text-orange-500 bg-orange-500/5 px-2 py-0.5 rounded-full uppercase tracking-wider border border-orange-500/10">
-                           <Clock size={8} /> Pending Sync
-                         </span>
-                       )}
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-2">
-                      <Link href={`/apps/${app.id}`} className="flex-1">
-                        <Button variant="secondary" size="sm" className="w-full h-9 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                          Info
+                    <div className="px-6 py-4 bg-surface-low/30 border-t border-outline-variant/30 flex items-center justify-between">
+                      <Link href={`/apps/${app.id}`}>
+                        <Button variant="tertiary" size="sm" className="text-xs font-bold hover:gap-3 transition-all">
+                          Details <ChevronRight size={14} />
                         </Button>
                       </Link>
                       <Button 
                         size="sm" 
                         variant={app?.file_path ? "primary" : "secondary"} 
                         disabled={!app?.file_path}
-                        className="flex-1 h-9 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                        className="rounded-xl px-6 font-bold"
                       >
-                        {app?.file_path ? "Initialize" : "Waiting"}
+                        {app?.file_path ? "Open App" : "N/A"}
                       </Button>
                     </div>
-                  </div>
+                  </GlassCard>
                 </motion.div>
               );
             })}

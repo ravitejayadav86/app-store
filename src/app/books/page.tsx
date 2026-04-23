@@ -1,10 +1,12 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Star, Search, Bookmark } from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { BookOpen, Star, Loader2, Search } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
-import debounce from "lodash/debounce";
 
 interface BookApp {
   id: number;
@@ -14,12 +16,11 @@ interface BookApp {
   price: number;
   version: string;
   category: string;
-  icon_url?: string | null;
 }
 
 const COLORS = [
-  "bg-indigo-600", "bg-violet-600", "bg-purple-600",
-  "bg-blue-600", "bg-cyan-600", "bg-emerald-600",
+  "bg-blue-600", "bg-pink-600", "bg-purple-600",
+  "bg-orange-600", "bg-cyan-600", "bg-emerald-600",
 ];
 
 export default function BooksPage() {
@@ -27,120 +28,121 @@ export default function BooksPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const fetchBooks = useCallback(async (q: string) => {
-    setLoading(true);
-    try {
-      const res = await api.get("/apps/", { 
-        params: { category: "Books", q } 
-      });
-      setBooks(res.data);
-    } catch (error) {
-      console.error("Failed to fetch books:", error);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    api.get("/apps/")
+      .then((res) => {
+        const filtered = res.data.filter((app: BookApp) =>
+          app.category?.toLowerCase() === "books" ||
+          app.category?.toLowerCase() === "book"
+        );
+        setBooks(filtered);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const debouncedFetch = useCallback(
-    debounce((q: string) => fetchBooks(q), 500),
-    [fetchBooks]
+  const filtered = books.filter((b) =>
+    !search ||
+    b.name.toLowerCase().includes(search.toLowerCase()) ||
+    b.developer.toLowerCase().includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    if (search) {
-      debouncedFetch(search);
-    } else {
-      fetchBooks("");
-    }
-    return () => debouncedFetch.cancel();
-  }, [search, debouncedFetch, fetchBooks]);
-
   return (
-    <div className="flex flex-col gap-10 pb-32">
-      <section className="px-4 pt-12">
-        <div className="relative h-[250px] md:h-[350px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-black p-8 md:p-12 text-white flex flex-col justify-end gap-3 shadow-2xl">
-          <div className="absolute inset-0 bg-linear-to-tr from-black via-black/80 to-indigo-500/20" />
-          
-          <div className="relative z-10 max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mb-2 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10"
-            >
-              <Bookmark size={12} />
-              <span>Archive v3.0</span>
-            </motion.div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none mb-1">Mind Vault.</h1>
-            <p className="text-[11px] md:text-base text-gray-400 font-medium max-w-xs">Technical deep-dives and indie publications for the modern mind.</p>
+    <div className="flex flex-col gap-20 pb-20">
+      <section className="px-4 md:px-8">
+        <div className="relative h-[500px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 to-indigo-900 p-12 text-white flex flex-col justify-end gap-6 shadow-2xl">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] -mr-40 -mt-40"
+          />
+          <div className="relative z-10 max-w-2xl">
+            <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20">
+              <BookOpen size={14} />
+              <span>PandaStore Books</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">Read &amp; Evolve.</h1>
+            <p className="text-lg md:text-xl text-white/80 mb-2">
+              Discover e-books, guides, and publications published by the PandaStore community.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto w-full px-4">
-        <div className="relative group w-full mb-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search publications..."
-            className="w-full pl-10 pr-6 py-3 rounded-xl bg-white border border-outline-variant/20 outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 transition-all text-[12px] font-semibold"
-          />
+      <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-12">
+          <div className="flex items-center gap-3">
+            <BookOpen className="text-primary" />
+            <h2 className="text-3xl font-bold text-on-surface">Available Books</h2>
+          </div>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Find a publication..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6 px-2">
-          <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-indigo-500" />
-            <h2 className="text-lg font-black text-on-surface tracking-tighter">Vault Registry</h2>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={40} />
           </div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
-            {books.length} Nodes Indexed
-          </span>
-        </div>
-
-        {loading && books.length === 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="aspect-square rounded-[1.5rem] bg-gray-50 animate-pulse" />
-            ))}
-          </div>
-        ) : books.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {books.map((book, index) => (
+        ) : filtered.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filtered.map((book, index) => (
               <motion.div
                 key={book.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.1 }}
               >
                 <Link href={`/apps/${book.id}`}>
-                  <div className="group bg-white border border-outline-variant/10 rounded-[2rem] p-4 hover:shadow-xl hover:border-indigo-500/20 transition-all flex gap-4 h-full relative overflow-hidden">
-                    <div className={`w-16 h-24 rounded-lg ${COLORS[index % COLORS.length]} shadow-lg flex-shrink-0 relative overflow-hidden flex flex-col justify-end p-2 transform group-hover:rotate-2 group-hover:scale-105 transition-all duration-500`}>
-                      <div className="absolute top-0 right-0 p-1 opacity-20">
-                        <BookOpen size={16} />
+                  <GlassCard className="flex gap-6 h-full group cursor-pointer hover:bg-surface-low transition-all">
+                    <div className={`w-32 h-44 rounded-xl ${COLORS[index % COLORS.length]} flex-shrink-0 shadow-2xl relative overflow-hidden flex flex-col justify-end p-3 transform group-hover:-translate-y-2 group-hover:rotate-2 transition-all duration-500`}>
+                      <div className="absolute top-0 right-0 p-2 opacity-20">
+                        <BookOpen size={40} />
                       </div>
-                      <p className="text-[6px] font-black text-white uppercase tracking-widest opacity-50">NEXUS PUB</p>
-                      {book.icon_url && <img src={book.icon_url} className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40" />}
+                      <div className="w-full h-1 bg-white/20 mb-2 rounded-full" />
+                      <p className="text-[10px] font-bold text-white uppercase tracking-tighter opacity-70">PandaStore</p>
                     </div>
-                    
-                    <div className="flex flex-col justify-center flex-1 min-w-0">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-indigo-500 mb-1">v{book.version}</span>
-                      <h3 className="text-sm font-black text-on-surface leading-tight mb-0.5 group-hover:text-indigo-600 transition-colors truncate">{book.name}</h3>
-                      <p className="text-[10px] text-gray-400 font-bold truncate">by {book.developer}</p>
-                      <div className="flex items-center gap-1.5 mt-2">
-                        <Star size={8} className="text-yellow-500 fill-current" />
-                        <span className="text-[8px] font-black uppercase tracking-widest text-indigo-500">
-                          {book.price === 0 ? "Read Free" : `$${book.price}`}
+                    <div className="flex flex-col justify-between py-1">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{book.category}</span>
+                        <h3 className="text-xl font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors">{book.name}</h3>
+                        <p className="text-sm text-on-surface-variant font-medium">{book.developer}</p>
+                        <p className="text-xs text-on-surface-variant mt-2 line-clamp-2">{book.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-auto">
+                        <div className="flex items-center gap-1.5">
+                          <Star size={14} className="text-yellow-500 fill-current" />
+                          <span className="text-xs font-bold text-on-surface-variant">New</span>
+                        </div>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${book.price === 0 ? "bg-green-500/10 text-green-500" : "bg-primary/10 text-primary"}`}>
+                          {book.price === 0 ? "Free" : `$${book.price}`}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </GlassCard>
                 </Link>
               </motion.div>
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center bg-surface-low rounded-[2.5rem] border border-dashed border-outline-variant/20">
-             <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Vault Sealed</p>
+          <div className="py-20 text-center bg-surface-low rounded-3xl border border-dashed border-outline-variant">
+            <BookOpen size={48} className="mx-auto mb-4 text-on-surface-variant opacity-30" />
+            <p className="text-on-surface-variant text-lg">
+              {search ? `No books matching "${search}"` : "No books published yet."}
+            </p>
+            {!search && (
+              <Link href="/publisher/upload?category=Books&price=0">
+                <Button variant="secondary" className="mt-4">Publish a Book</Button>
+              </Link>
+            )}
           </div>
         )}
       </section>
