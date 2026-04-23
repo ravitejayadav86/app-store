@@ -47,12 +47,23 @@ def upload_app(app_name, file_path, icon_path=None, developer="raviteja"):
         # 1. Upload App File
         if file_path and os.path.exists(file_path):
             print(f"Uploading file: {file_path}")
+            import zipfile
+            temp_zip = file_path + ".zip"
+            is_apk = file_path.lower().endswith('.apk')
+            upload_path = file_path
+            
+            if is_apk:
+                print(f"Zipping APK for Cloudinary compatibility...")
+                with zipfile.ZipFile(temp_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    zipf.write(file_path, os.path.basename(file_path))
+                upload_path = temp_zip
+                
             try:
                 result = cloudinary.uploader.upload_large(
-                    file_path,
-                    resource_type="auto",
+                    upload_path,
+                    resource_type="raw",
                     folder="pandastore",
-                    public_id=f"app_{app.id}_{os.path.basename(file_path)}"
+                    public_id=f"app_{app.id}_{os.path.basename(file_path)}.zip"
                 )
                 app.file_path = result["secure_url"]
                 print(f"File uploaded to Cloudinary: {app.file_path}")
@@ -63,6 +74,9 @@ def upload_app(app_name, file_path, icon_path=None, developer="raviteja"):
                 shutil.copy2(file_path, dest)
                 app.file_path = f"/{dest}"
                 print(f"File stored locally: {app.file_path}")
+            finally:
+                if is_apk and os.path.exists(temp_zip):
+                    os.remove(temp_zip)
 
         # 2. Upload Icon
         if icon_path and os.path.exists(icon_path):
