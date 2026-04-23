@@ -225,15 +225,22 @@ def update_profile(
     db.commit()
     return {"message": "Profile updated"}
 
-@router.get("/followers/{username}")
-def get_followers(username: str, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if not user:
-        raise HTTPException(404, "User not found")
-    follows = db.query(models.Follow).filter(models.Follow.following_id == user.id, models.Follow.is_accepted == True).all()
+@router.get("/followers/me")
+def get_my_followers(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    follows = db.query(models.Follow).filter(models.Follow.following_id == current_user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.follower_id).first()
+        if u:
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
+    return result
+
+@router.get("/following/me")
+def get_my_following(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    follows = db.query(models.Follow).filter(models.Follow.follower_id == current_user.id, models.Follow.is_accepted == True).all()
+    result = []
+    for f in follows:
+        u = db.query(models.User).filter(models.User.id == f.following_id).first()
         if u:
             result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
     return result
@@ -248,9 +255,12 @@ def get_pending_requests(db: Session = Depends(get_db), current_user: models.Use
             result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
     return result
 
-@router.get("/followers/me")
-def get_my_followers(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    follows = db.query(models.Follow).filter(models.Follow.following_id == current_user.id, models.Follow.is_accepted == True).all()
+@router.get("/followers/{username}")
+def get_followers(username: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    follows = db.query(models.Follow).filter(models.Follow.following_id == user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.follower_id).first()
@@ -264,16 +274,6 @@ def get_following(username: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(404, "User not found")
     follows = db.query(models.Follow).filter(models.Follow.follower_id == user.id, models.Follow.is_accepted == True).all()
-    result = []
-    for f in follows:
-        u = db.query(models.User).filter(models.User.id == f.following_id).first()
-        if u:
-            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
-    return result
-
-@router.get("/following/me")
-def get_my_following(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    follows = db.query(models.Follow).filter(models.Follow.follower_id == current_user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.following_id).first()
