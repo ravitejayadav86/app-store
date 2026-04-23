@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -59,11 +59,28 @@ def attach_stats(app: models.App, db: Session):
     }
 
 @router.get("/", response_model=List[schemas.AppOut])
-def get_apps(db: Session = Depends(get_db)):
-    apps = db.query(models.App).filter(
+def get_apps(
+    category: Optional[str] = None,
+    q: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.App).filter(
         models.App.is_approved == True,
         models.App.is_active == True
-    ).all()
+    )
+    
+    if category and category.lower() != "all":
+        query = query.filter(models.App.category.ilike(category))
+        
+    if q:
+        search = f"%{q}%"
+        query = query.filter(
+            (models.App.name.ilike(search)) |
+            (models.App.description.ilike(search)) |
+            (models.App.developer.ilike(search))
+        )
+        
+    apps = query.all()
     return [attach_stats(app, db) for app in apps]
 
 @router.get("/me", response_model=List[schemas.AppOut])
@@ -195,6 +212,7 @@ def upload_file(
 def download_file(
     app_id: int,
     background_tasks: BackgroundTasks,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_optional_user)
 ):
@@ -219,6 +237,17 @@ def download_file(
 
     # Redirect to file URL
     url = app.file_path
+    
+    # If it's a local path, ensure it's absolute for the redirect
+    if url.startswith("/uploads/"):
+        local_path = url.lstrip("/")
+        if not os.path.exists(local_path):
+            raise HTTPException(404, f"The file for '{app.name}' is missing on the server. Please contact the developer to re-upload.")
+        
+        # Use the request's base URL to build an absolute redirect
+        base_url = str(request.base_url).rstrip("/")
+        url = f"{base_url}{url}"
+            
     return RedirectResponse(url=url)
 
 @router.post("/{app_id}/nudge")
