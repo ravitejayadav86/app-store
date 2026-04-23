@@ -166,16 +166,20 @@ async def toggle_follow(
     if existing:
         db.delete(existing)
         db.commit()
-        return {"following": False}
+        return {"following": False, "status": "unfollowed"}
     else:
-        follow = models.Follow(follower_id=current_user.id, following_id=user.id)
+        is_accepted = not user.is_private
+        follow = models.Follow(follower_id=current_user.id, following_id=user.id, is_accepted=is_accepted)
         db.add(follow)
         
         # Real-time Notification
+        title = "New Follower" if is_accepted else "Follow Request"
+        msg_text = f"@{current_user.username} started following you!" if is_accepted else f"@{current_user.username} sent you a follow request."
+        
         notif = models.Notification(
             user_id=user.id,
-            title="New Follower",
-            message=f"@{current_user.username} started following you!"
+            title=title,
+            message=msg_text
         )
         db.add(notif)
         db.commit()
@@ -191,7 +195,7 @@ async def toggle_follow(
             "created_at": notif.created_at.isoformat()
         }))
         
-        return {"following": True}
+        return {"following": is_accepted, "status": "following" if is_accepted else "requested"}
 
 @router.patch("/profile")
 def update_profile(
@@ -225,7 +229,7 @@ def get_followers(username: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(404, "User not found")
-    follows = db.query(models.Follow).filter(models.Follow.following_id == user.id).all()
+    follows = db.query(models.Follow).filter(models.Follow.following_id == user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.follower_id).first()
@@ -238,7 +242,7 @@ def get_following(username: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(404, "User not found")
-    follows = db.query(models.Follow).filter(models.Follow.follower_id == user.id).all()
+    follows = db.query(models.Follow).filter(models.Follow.follower_id == user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.following_id).first()
@@ -299,6 +303,45 @@ async def mark_read(
     
     return {"status": "ok"}
 
+@router.post("/follow/accept/{follower_id}")
+async def accept_follow_request(
+    follower_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    follow = db.query(models.Follow).filter(
+        models.Follow.follower_id == follower_id,
+        models.Follow.following_id == current_user.id,
+        models.Follow.is_accepted == False
+    ).first()
+    
+    if not follow:
+        raise HTTPException(404, "Follow request not found")
+    
+    follow.is_accepted = True
+    
+    # Notify follower
+    notif = models.Notification(
+        user_id=follower_id,
+        title="Request Accepted",
+        message=f"@{current_user.username} accepted your follow request!"
+    )
+    db.add(notif)
+    db.commit()
+    db.refresh(notif)
+    
+    # WebSocket
+    import asyncio
+    asyncio.create_task(manager.send_to_user(follower_id, {
+        "type": "NOTIFICATION",
+        "id": notif.id,
+        "title": notif.title,
+        "message": notif.message,
+        "created_at": notif.created_at.isoformat()
+    }))
+    
+    return {"status": "accepted"}
+
 @router.post("/messages/{username}")
 async def send_message(
     username: str,
@@ -332,10 +375,28 @@ async def send_message(
         "receiver_id": receiver.id,
         "is_read": False
     }
+
+    # Persistent Notification
+    notif = models.Notification(
+        user_id=receiver.id,
+        title="New Message",
+        message=f"@{current_user.username} sent you a message."
+    )
+    db.add(notif)
+    db.commit()
+    db.refresh(notif)
     
     # Notify via WebSocket if possible
     import asyncio
     asyncio.create_task(manager.send_to_user(receiver.id, payload))
+    # Also notify about the new notification entry
+    asyncio.create_task(manager.send_to_user(receiver.id, {
+        "type": "NOTIFICATION",
+        "id": notif.id,
+        "title": notif.title,
+        "message": notif.message,
+        "created_at": notif.created_at.isoformat()
+    }))
     
     return payload
 
