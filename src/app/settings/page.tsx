@@ -8,7 +8,7 @@ import {
   Moon, Sun, Globe, Trash2, ChevronRight, Lock, Eye,
   Bell, Smartphone, Code, LogOut, Check, UserPlus, Sparkles,
   ArrowRight, GitFork, Briefcase, ShieldCheck, Mail, CreditCard,
-  User, Home, Info
+  User, Home, Info, HelpCircle, MessageCircle, BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
@@ -359,6 +359,35 @@ export default function SettingsPage() {
           />
         </>
       )
+    },
+    {
+      title: "Help & Support",
+      icon: <HelpCircle size={16} />,
+      color: "from-green-500 to-emerald-600",
+      rows: (
+        <>
+          <Link href="/support" className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0 group cursor-pointer">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+              <MessageCircle size={15} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-on-surface">Support Center</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Guides, FAQ and direct feedback</p>
+            </div>
+            <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <Link href="/support" className="flex items-center gap-4 py-4 border-b border-outline-variant/20 last:border-0 group cursor-pointer">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+              <BookOpen size={15} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-on-surface">Panda Guide</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Learn how to use Panda Store</p>
+            </div>
+            <ChevronRight size={14} className="text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </>
+      )
     }
   ];
 
@@ -370,6 +399,22 @@ export default function SettingsPage() {
       </motion.div>
 
       <div className="space-y-4">
+        {/* Mobile Support Link */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="sm:hidden mb-2">
+          <Link href="/support" className="flex items-center justify-between p-4 bg-primary text-on-primary rounded-[2rem] shadow-lg shadow-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <HelpCircle size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Need Help?</p>
+                <p className="text-[10px] opacity-80">Visit Support Center</p>
+              </div>
+            </div>
+            <ArrowRight size={18} />
+          </Link>
+        </motion.div>
+
         {dashboardSection}
 
         {/* Publisher Section */}

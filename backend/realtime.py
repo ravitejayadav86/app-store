@@ -24,7 +24,7 @@ class ConnectionManager:
         if user_id in self.active_connections:
             for ws in self.active_connections[user_id]:
                 try:
-                    await ws.send_text(json.dumps(message))
+                    await ws.send_text(json.dumps(message, default=str))
                 except:
                     pass
 
@@ -32,7 +32,7 @@ class ConnectionManager:
         for user_id in self.active_connections:
             for ws in self.active_connections[user_id]:
                 try:
-                    await ws.send_text(json.dumps(message))
+                    await ws.send_text(json.dumps(message, default=str))
                 except:
                     pass
 

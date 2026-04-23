@@ -122,8 +122,12 @@ export default function CommunityPage() {
       setPosts([res.data, ...posts]);
       setNewPost("");
       toast.success("Posted!");
-    } catch {
-      toast.error("Please sign in to post.");
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        toast.error("Please sign in to post.");
+      } else {
+        toast.error(err.response?.data?.detail || "Failed to post. Please try again.");
+      }
     } finally {
       setPosting(false);
     }
@@ -137,8 +141,12 @@ export default function CommunityPage() {
         liked_by_me: res.data.liked,
         likes_count: res.data.liked ? p.likes_count + 1 : p.likes_count - 1
       } : p));
-    } catch {
-      toast.error("Please sign in to like.");
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        toast.error("Please sign in to like.");
+      } else {
+        toast.error("Failed to like post.");
+      }
     }
   };
 
@@ -164,8 +172,12 @@ export default function CommunityPage() {
       } : p));
       setReplyText({ ...replyText, [postId]: "" });
       toast.success("Reply added!");
-    } catch {
-      toast.error("Please sign in to reply.");
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        toast.error("Please sign in to reply.");
+      } else {
+        toast.error(err.response?.data?.detail || "Failed to add reply.");
+      }
     }
   };
 
