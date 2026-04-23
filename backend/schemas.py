@@ -202,3 +202,12 @@ class UserStats(BaseModel):
     published: int
     followers: int
     following: int
+    class UserStats(BaseModel):
+    installs: int = 0
+    published: int = 0
+    reviews: int = 0
+    followers: int = 0
+    following: int = 0
+
+class MessageResponse(BaseModel):
+    message: str

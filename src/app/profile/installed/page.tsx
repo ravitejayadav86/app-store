@@ -26,9 +26,9 @@ export default function InstalledAppsPage() {
     fetchApps();
   }, []);
 
-  const filtered = apps.filter(app => 
-    app.name.toLowerCase().includes(search.toLowerCase()) ||
-    app.category.toLowerCase().includes(search.toLowerCase())
+  const filtered = apps.filter(purchase => 
+    purchase.app?.name.toLowerCase().includes(search.toLowerCase()) ||
+    purchase.app?.category.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -61,24 +61,28 @@ export default function InstalledAppsPage() {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length > 0 ? (
-          filtered.map((app) => (
-            <div key={app.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100" onClick={() => router.push(`/apps/${app.id}`)}>
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center border border-gray-200">
-                  {app.icon_url ? (
-                    <img src={app.icon_url} className="w-full h-full object-cover" />
-                  ) : (
-                    <Package size={24} className="text-gray-300" />
-                  )}
+          filtered.map((purchase) => {
+            const app = purchase.app;
+            if (!app) return null;
+            return (
+              <div key={purchase.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100" onClick={() => router.push(`/apps/${app.id}`)}>
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center border border-gray-200">
+                    {app.icon_url ? (
+                      <img src={app.icon_url} className="w-full h-full object-cover" />
+                    ) : (
+                      <Package size={24} className="text-gray-300" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">{app.name}</p>
+                    <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{app.category}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-sm">{app.name}</p>
-                  <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{app.category}</p>
-                </div>
+                <Button size="xs" variant="secondary" className="px-4">Open</Button>
               </div>
-              <Button size="xs" variant="secondary" className="px-4">Open</Button>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="py-20 text-center text-gray-400 text-sm">
             You haven't installed any apps yet.

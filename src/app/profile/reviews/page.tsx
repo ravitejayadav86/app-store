@@ -13,7 +13,7 @@ export default function MyReviewsPage() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await api.get("/users/me/reviews");
+        const res = await api.get("/reviews/me");
         setReviews(res.data);
       } catch (err) {
         console.error("Failed to fetch reviews", err);
