@@ -11,11 +11,13 @@ interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
   animate?: boolean;
+  onClick?: () => void;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ children, className, animate = true }) => {
+export const GlassCard: React.FC<GlassCardProps> = ({ children, className, animate = true, onClick }) => {
   return (
     <motion.div
+      onClick={onClick}
       whileHover={animate ? { y: -2, scale: 1.01 } : {}}
       className={cn(
         "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-500",
