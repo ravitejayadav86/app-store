@@ -16,7 +16,7 @@ interface GlassCardProps {
 export const GlassCard: React.FC<GlassCardProps> = ({ children, className, animate = true }) => {
   return (
     <motion.div
-      whileHover={animate ? { y: -8, scale: 1.02 } : {}}
+      whileHover={animate ? { y: -2, scale: 1.01 } : {}}
       className={cn(
         "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-500",
         "card-glass",

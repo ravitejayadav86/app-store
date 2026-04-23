@@ -40,12 +40,12 @@
   --radius-xl: var(--radius-xl);
   --radius-pill: var(--radius-pill);
   
-  --animate-float: float 6s ease-in-out infinite;
+  --animate-float: float 8s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-4px); }
 }
 
 html {
@@ -94,7 +94,7 @@ body {
 
 .liquid-glass:hover {
   background: rgba(255, 255, 255, 0.65);
-  transform: translateY(-4px) scale(1.01);
+  transform: translateY(-2px) scale(1.01);
   box-shadow: 
     0 25px 60px rgba(0, 0, 0, 0.1),
     inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
@@ -112,7 +112,7 @@ body {
 
 .card-glass:hover {
   background: rgba(255, 255, 255, 0.6);
-  transform: translateY(-5px);
+  transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
@@ -154,6 +154,6 @@ body {
 }
 
 .app-card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-3px) scale(1.01);
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }

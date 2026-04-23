@@ -2,13 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { User, Users, Mail, Calendar, Edit3, Save, X, Package, Download, Star, Shield, LogOut, Camera, ExternalLink, GitFork, Trash2 } from "lucide-react";
+import { 
+  User, Users, Mail, Calendar, Edit3, Save, X, Package, 
+  Download, Star, Shield, LogOut, Camera, ExternalLink, 
+  GitFork, Trash2, Plus, ChevronDown, Menu, AtSign, UserPlus, 
+  Share2, MessageCircle
+} from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { Button } from "@/components/ui/Button";
 
 interface UserProfile {
   id: number;
@@ -23,17 +27,6 @@ interface UserProfile {
   created_at: string;
   followers_count?: number;
   following_count?: number;
-}
-
-interface Repo {
-  id: number;
-  name: string;
-  description: string | null;
-  html_url: string;
-  stargazers_count: number;
-  forks_count: number;
-  language: string | null;
-  updated_at: string;
 }
 
 interface LiveStats {
@@ -53,77 +46,29 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ full_name: "", email: "", bio: "", is_private: false });
   const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0, followers: 0, following: 0 });
-  const [repos, setRepos] = useState<Repo[]>([]);
-  const [reposLoading, setReposLoading] = useState(false);
   const [myApps, setMyApps] = useState<any[]>([]);
-  const [myAppsLoading, setMyAppsLoading] = useState(false);
-  const [purchasedApps, setPurchasedApps] = useState<any[]>([]);
-  const [followers, setFollowers] = useState<any[]>([]);
-  const [following, setFollowing] = useState<any[]>([]);
-  const [myReviews, setMyReviews] = useState<any[]>([]);
-  const [detailsLoading, setDetailsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const hasSession = !!session?.user;
-
-    if (!token && !hasSession) { 
-      const timer = setTimeout(() => {
-        if (!localStorage.getItem("token") && !session) router.push("/login");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-
-    // If we have a token, or if we have a session AND the token is already there, fetch immediately
     if (token) {
       fetchProfile();
-    } else if (hasSession) {
-      // If we have a session but no token yet, wait for the sync event
-      // TokenSync component in Providers.tsx will handle the exchange
-      console.log("Session detected, waiting for token sync...");
+    } else if (session?.user) {
+      // Syncing handled by Providers.tsx
     }
 
-    const handleSync = () => {
-      console.log("Auth synced event received, fetching profile...");
-      fetchProfile();
-    };
-
+    const handleSync = () => fetchProfile();
     window.addEventListener("auth-synced", handleSync);
     return () => window.removeEventListener("auth-synced", handleSync);
   }, [session?.user?.email, router]);
 
-useEffect(() => {
-  const githubLogin = (session as any)?.login;
-  if (githubLogin) {
-    fetchGithubRepos(githubLogin);
-  }
-}, [(session as any)?.login]);
-
-  const fetchGithubRepos = async (username: string) => {
-    setReposLoading(true);
-    try {
-      const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`);
-      const data = await res.json();
-      if (Array.isArray(data)) setRepos(data);
-    } catch {
-      console.error("Failed to fetch repos");
-    } finally {
-      setReposLoading(false);
-    }
-  };
-
   const fetchProfile = async () => {
     try {
-      const [profileRes, purchasesRes, analyticsRes] = await Promise.allSettled([
+      const [profileRes] = await Promise.allSettled([
         api.get("/users/me"),
-        api.get("/users/me/purchases"),
-        api.get("/apps/analytics"),
       ]);
 
-      let username = "";
       if (profileRes.status === "fulfilled") {
-        username = profileRes.value.data.username;
         setProfile(profileRes.value.data);
         setFormData({ 
           full_name: profileRes.value.data.full_name || "", 
@@ -132,7 +77,6 @@ useEffect(() => {
           is_private: profileRes.value.data.is_private || false
         });
       } else if (session?.user) {
-        username = session.user.name || "";
         setProfile({ 
           id: 0, 
           username: session.user.name || "User", 
@@ -144,23 +88,13 @@ useEffect(() => {
           is_publisher: false, 
           created_at: new Date().toISOString() 
         });
-        setFormData({ full_name: session.user.name || "", email: session.user.email || "", bio: "", is_private: false });
       }
 
-      // Fetch consolidated stats
       try {
         const statsRes = await api.get("/users/me/stats");
         setLiveStats(statsRes.data);
       } catch (err) {
-        console.error("Failed to fetch consolidated stats", err);
-      }
-
-      // Fetch purchases
-      try {
-        const purchasesRes = await api.get("/users/me/purchases");
-        setPurchasedApps(purchasesRes.data);
-      } catch (err) {
-        console.error("Failed to fetch purchases", err);
+        console.error("Failed to fetch stats", err);
       }
     } finally {
       setLoading(false);
@@ -168,76 +102,30 @@ useEffect(() => {
     }
   };
 
-  const fetchDetails = async (tab: string) => {
-    setActiveTab(tab === activeTab ? null : tab);
-    if (tab === activeTab) return;
-
-    setDetailsLoading(true);
-    try {
-      if (tab === "Followers") {
-        if (!profile?.username) return;
-        const res = await api.get(`/social/followers/${profile?.username}`);
-        setFollowers(res.data);
-      } else if (tab === "Following") {
-        if (!profile?.username) return;
-        const res = await api.get(`/social/following/${profile?.username}`);
-        setFollowing(res.data);
-      } else if (tab === "Reviews") {
-        const res = await api.get("/reviews/me");
-        setMyReviews(res.data);
-      } else if (tab === "Installed") {
-        const res = await api.get("/users/me/purchases");
-        setPurchasedApps(res.data);
-      } else if (tab === "Published") {
-        await fetchMyApps();
-      }
-    } catch {
-      toast.error(`Failed to fetch ${tab.toLowerCase()}`);
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
-
-      const fetchMyApps = async () => {
-    setMyAppsLoading(true);
+  const fetchMyApps = async () => {
     try {
       const res = await api.get("/apps/me");
       setMyApps(res.data);
     } catch {
       console.error("Failed to fetch my apps");
-    } finally {
-      setMyAppsLoading(false);
-    }
-    };
-
-  const handleDeleteApp = async (appId: number, appName: string) => {
-    if (!confirm(`Are you sure you want to delete "${appName}"? This action cannot be undone.`)) return;
-    
-    try {
-      await api.delete(`/apps/${appId}`);
-      toast.success(`"${appName}" deleted successfully`);
-      fetchMyApps();
-      fetchProfile(); // Refresh stats
-    } catch {
-      toast.error("Failed to delete app");
     }
   };
-  
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append("file", file);
-  try {
-    const res = await api.post("/users/me/avatar", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
-    toast.success("Avatar updated!");
-    setProfile(prev => prev ? { ...prev, avatar_url: res.data.avatar_url } : prev);
-  } catch {
-    toast.error("Failed to upload avatar.");
-  }
-};
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await api.post("/users/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      toast.success("Avatar updated!");
+      setProfile(prev => prev ? { ...prev, avatar_url: res.data.avatar_url } : prev);
+    } catch {
+      toast.error("Failed to upload avatar.");
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -246,8 +134,11 @@ useEffect(() => {
       setProfile(res.data);
       setEditing(false);
       toast.success("Profile updated!");
-    } catch { toast.error("Failed to update profile."); }
-    finally { setSaving(false); }
+    } catch { 
+      toast.error("Failed to update profile."); 
+    } finally { 
+      setSaving(false); 
+    }
   };
 
   const handleLogout = () => {
@@ -256,447 +147,251 @@ useEffect(() => {
     toast.success("Logged out successfully.");
   };
 
-  const avatarLetter = profile?.full_name?.[0]?.toUpperCase() || profile?.username?.[0]?.toUpperCase() || "U";
-  const joinDate = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : "Recently";
-
-  const languageColors: Record<string, string> = {
-    TypeScript: "bg-blue-500",
-    JavaScript: "bg-yellow-400",
-    Python: "bg-green-500",
-    Rust: "bg-orange-500",
-    Go: "bg-cyan-500",
-    CSS: "bg-pink-500",
-    HTML: "bg-red-500",
-  };
-
   if (loading) return (
-    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-[calc(100vh-80px)] px-4 py-12 relative overflow-hidden bg-surface">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[150px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#000000] text-white selection:bg-white/20">
+      {/* Top Navigation Bar */}
+      <nav className="flex items-center justify-between px-4 py-3 sticky top-0 bg-black/80 backdrop-blur-md z-50">
+        <div className="flex items-center gap-6">
+          <button className="hover:opacity-60 transition-opacity">
+            <Plus size={24} />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-1 cursor-pointer hover:opacity-60 transition-opacity">
+          <span className="font-bold text-[17px] tracking-tight truncate max-w-[150px]">
+            {profile?.username}
+          </span>
+          <ChevronDown size={16} className="mt-0.5" />
+          {profile?.is_private && <Shield size={12} className="ml-1 text-white/40" />}
+        </div>
 
-      <div className="max-w-4xl mx-auto relative z-10 space-y-6">
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <AtSign size={24} className="hover:opacity-60 transition-opacity cursor-pointer" />
+            <div className="absolute -top-1.5 -right-2 bg-[#ff3b30] text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-black min-w-[20px] text-center">
+              9+
+            </div>
+          </div>
+          <Menu size={28} className="hover:opacity-60 transition-opacity cursor-pointer" />
+        </div>
+      </nav>
 
-        {/* Profile Card */}
-        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-          <GlassCard className="p-8 relative overflow-hidden">
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-primary to-transparent opacity-50" />
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              <div className="relative group">
-                <div className="w-24 h-24 rounded-3xl bg-primary flex items-center justify-center text-on-primary text-4xl font-bold shadow-lg overflow-hidden">
-                {profile?.avatar_url
-                 ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                   : session?.user?.image
-                 ? <img src={session.user.image} alt="avatar" className="w-full h-full object-cover" />
-                  : avatarLetter}
-                </div>
-               <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                   <Camera size={14} className="text-on-primary" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-              </label>
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                {editing ? (
-                  <input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} className="text-2xl font-bold bg-transparent border-b-2 border-primary focus:outline-none text-on-surface w-full max-w-xs" placeholder="Your full name" />
+      {/* Profile Header */}
+      <div className="px-4 pt-6 pb-4">
+        <div className="flex items-center justify-between mb-6">
+          {/* Avatar Section */}
+          <div className="relative">
+            <div className="w-[86px] h-[86px] rounded-full overflow-hidden border border-white/10 p-0.5">
+              <div className="w-full h-full rounded-full overflow-hidden bg-[#1c1c1e] flex items-center justify-center">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <h1 className="text-3xl font-bold text-on-surface">{profile?.full_name || profile?.username}</h1>
-                )}
-                <p className="text-on-surface-variant font-medium mt-1">@{profile?.username}</p>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3">
-                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant"><Calendar size={14} /> Joined {joinDate}</span>
-                  {profile?.is_publisher && <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full"><Shield size={12} /> Publisher</span>}
-                  {profile?.is_active && <span className="text-xs font-bold uppercase tracking-widest text-green-600 bg-green-100 px-3 py-1 rounded-full">Active</span>}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {editing ? (
-                  <>
-                    <Button size="sm" onClick={handleSave} disabled={saving}><Save size={14} /> {saving ? "Saving..." : "Save"}</Button>
-                    <button onClick={() => setEditing(false)} className="p-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all"><X size={16} className="text-on-surface-variant" /></button>
-                  </>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={() => router.push(`/users/${profile?.username}`)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all text-sm font-bold text-primary"><ExternalLink size={14} /> Public Profile</button>
-                    <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-low transition-all text-sm font-bold text-on-surface"><Edit3 size={14} /> Edit</button>
-                  </div>
+                  <span className="text-3xl font-medium text-white/40">
+                    {profile?.username?.[0]?.toUpperCase()}
+                  </span>
                 )}
               </div>
             </div>
-          </GlassCard>
-        </motion.div>
+            <label className="absolute bottom-0 right-0 w-6 h-6 bg-[#0095f6] rounded-full flex items-center justify-center border-2 border-black cursor-pointer hover:scale-110 transition-transform">
+              <Plus size={14} className="text-white fill-current" strokeWidth={3} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            </label>
+            
+            {/* Note Bubble (like "Inspo needed...") */}
+            <div className="absolute -top-8 -left-2 bg-[#262626] px-3 py-1.5 rounded-2xl text-[11px] font-medium text-white/80 shadow-lg border border-white/5 whitespace-nowrap">
+              Inspo needed...
+              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#262626] rotate-45 border-r border-b border-white/5" />
+            </div>
+          </div>
 
-        {/* Interactive Stats Buttons */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }} className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {[
-            { label: "Followers", value: liveStats.followers, icon: User },
-            { label: "Following", value: liveStats.following, icon: Users },
-            { label: "Installed", value: liveStats.installs, icon: Download },
-            { label: "Published", value: liveStats.published, icon: Package },
-            { label: "Reviews", value: liveStats.reviews, icon: Star },
-          ].map((stat, i) => (
-            <button 
-              key={i} 
-              onClick={() => fetchDetails(stat.label)}
-              className={`group relative transition-all duration-300 ${activeTab === stat.label ? 'scale-105' : 'hover:scale-105'}`}
+          {/* Stats Grid */}
+          <div className="flex gap-8 mr-4">
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-lg leading-tight">{liveStats.published}</span>
+              <span className="text-[13px] text-white/80">posts</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-lg leading-tight">{liveStats.followers}</span>
+              <span className="text-[13px] text-white/80">followers</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-lg leading-tight">{liveStats.following}</span>
+              <span className="text-[13px] text-white/80">following</span>
+            </div>
+          </div>
+        </div>
+
+        {/* User Info & Bio */}
+        <div className="space-y-1 mb-6">
+          <h1 className="font-bold text-[15px] tracking-tight">@{profile?.username}</h1>
+          <div className="text-[14px] leading-snug whitespace-pre-wrap">
+            {profile?.bio || "No bio set. A panda of few words."}
+          </div>
+          
+          {/* External Handle / Link */}
+          <div className="flex items-center gap-2 pt-2">
+            <div className="bg-[#1c1c1e] px-3 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-[#262626] transition-colors">
+              <AtSign size={14} className="text-white/60" />
+              <span className="text-[13px] font-medium">{profile?.username}_yadav</span>
+            </div>
+            <button className="bg-[#1c1c1e] px-3 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-[#262626] transition-colors">
+              <Plus size={14} className="text-white/60" />
+              <span className="text-[13px] font-medium">Add</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 mb-8">
+          <button 
+            onClick={() => setEditing(true)}
+            className="flex-1 bg-[#262626] hover:bg-[#363636] text-white font-bold text-[14px] py-2 px-4 rounded-lg transition-colors"
+          >
+            Edit profile
+          </button>
+          <button className="flex-1 bg-[#262626] hover:bg-[#363636] text-white font-bold text-[14px] py-2 px-4 rounded-lg transition-colors">
+            Share profile
+          </button>
+          <button className="bg-[#262626] hover:bg-[#363636] text-white p-2 rounded-lg transition-colors">
+            <UserPlus size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs / Content Section */}
+      <div className="border-t border-white/10">
+        <div className="flex">
+          {["Posts", "Apps", "Reviews"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-3 text-sm font-bold transition-colors relative ${
+                activeTab === tab ? "text-white" : "text-white/40"
+              }`}
             >
-              <GlassCard className={`p-4 text-center transition-all h-full ${activeTab === stat.label ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:border-primary/30'}`}>
-                <stat.icon size={18} className={`mx-auto mb-2 transition-colors ${activeTab === stat.label ? 'text-primary' : 'text-primary/60 group-hover:text-primary'}`} />
-                <p className="text-xl font-bold text-on-surface">{stat.value}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">{stat.label}</p>
-                {activeTab === stat.label && (
-                   <motion.div layoutId="activeTabUnderline" className="absolute -bottom-1 left-4 right-4 h-0.5 bg-primary rounded-full" />
-                )}
-              </GlassCard>
+              {tab}
+              {activeTab === tab && (
+                <motion.div layoutId="tab-underline" className="absolute bottom-0 inset-x-0 h-[1.5px] bg-white" />
+              )}
             </button>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Detailed List View */}
-        <AnimatePresence mode="wait">
-          {activeTab && (
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, height: 0, y: -20 }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -20 }}
-              className="overflow-hidden"
-            >
-              <GlassCard className="p-8 border-primary/20 bg-primary/5">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                    {activeTab === "Followers" && <User size={16} />}
-                    {activeTab === "Following" && <Users size={16} />}
-                    {activeTab === "Installed" && <Download size={16} />}
-                    {activeTab === "Published" && <Package size={16} />}
-                    {activeTab === "Reviews" && <Star size={16} />}
-                    {activeTab} Detailed View
-                  </h3>
-                  <button onClick={() => setActiveTab(null)} className="p-1 hover:bg-primary/10 rounded-lg transition-colors">
-                    <X size={16} className="text-on-surface-variant" />
-                  </button>
-                </div>
-
-                {detailsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12 gap-4">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Hydrating data...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Followers / Following List */}
-                    {(activeTab === "Followers" || activeTab === "Following") && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {(activeTab === "Followers" ? followers : following).length === 0 ? (
-                          <div className="col-span-full py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
-                            No {activeTab.toLowerCase()} found.
-                          </div>
-                        ) : (
-                          (activeTab === "Followers" ? followers : following).map((u: any) => (
-                            <div key={u.id} className="flex items-center justify-between p-4 bg-surface/40 rounded-2xl border border-outline-variant hover:border-primary/30 transition-all group">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                  {u.avatar_url ? <img src={u.avatar_url} className="w-full h-full rounded-full object-cover" /> : u.username[0].toUpperCase()}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-sm text-on-surface">@{u.username}</p>
-                                  <p className="text-[10px] text-on-surface-variant line-clamp-1">{u.bio || "No bio set."}</p>
-                                </div>
-                              </div>
-                              <Button size="sm" variant="secondary" onClick={() => router.push(`/users/${u.username}`)}>
-                                Profile
-                              </Button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    {/* Installed Apps List */}
-                    {activeTab === "Installed" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {purchasedApps.length === 0 ? (
-                          <div className="col-span-full py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
-                            No apps installed yet.
-                          </div>
-                        ) : (
-                          purchasedApps.map((p: any) => (
-                            <div key={p.id} className="flex items-center gap-4 p-4 bg-surface/40 rounded-2xl border border-outline-variant hover:border-primary/30 transition-all cursor-pointer" onClick={() => router.push(`/apps/${p.app.id}`)}>
-                              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                                {p.app.name[0].toUpperCase()}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm text-on-surface truncate">{p.app.name}</p>
-                                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">{p.app.category} • v{p.app.version}</p>
-                              </div>
-                              {p.app.file_path && (
-                                <span className="bg-green-500/10 text-green-600 px-2 py-0.5 rounded text-[10px] font-bold">READY</span>
-                              )}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-
-                    {/* Published Apps List (Real-time Status) */}
-                    {activeTab === "Published" && (
-                      <div className="space-y-3">
-                        {myApps.length === 0 ? (
-                          <div className="py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
-                            No apps published yet.
-                          </div>
-                        ) : (
-                          myApps.map((app: any) => (
-                            <div key={app.id} className="flex items-center justify-between p-4 bg-surface/40 rounded-2xl border border-outline-variant">
-                              <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                  {app.name[0].toUpperCase()}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-on-surface">{app.name}</p>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${app.is_approved ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
-                                      {app.is_approved ? 'APPROVED' : 'PENDING APPROVAL'}
-                                    </span>
-                                    <span className="text-[10px] font-bold text-on-surface-variant bg-surface-low px-2 py-0.5 rounded-full">
-                                      {app.category.toUpperCase()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button onClick={() => router.push(`/apps/${app.id}`)} className="p-2 hover:bg-primary/10 rounded-xl transition-all text-primary"><ExternalLink size={18} /></button>
-                                <button onClick={() => handleDeleteApp(app.id, app.name)} className="p-2 hover:bg-red-50 rounded-xl transition-all text-red-500"><Trash2 size={18} /></button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                        <Button variant="secondary" className="w-full mt-2" onClick={() => router.push("/publisher")}>Upload New Achievement</Button>
-                      </div>
-                    )}
-
-                    {/* Reviews List */}
-                    {activeTab === "Reviews" && (
-                      <div className="space-y-4">
-                        {myReviews.length === 0 ? (
-                          <div className="py-8 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-2xl">
-                            No reviews placed yet.
-                          </div>
-                        ) : (
-                          myReviews.map((r: any) => (
-                            <div key={r.id} className="p-4 bg-surface/40 rounded-2xl border border-outline-variant">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star key={i} size={12} className={i < r.rating ? "fill-primary text-primary" : "text-on-surface-variant/20"} />
-                                  ))}
-                                </div>
-                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-                                  {new Date(r.created_at).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <p className="text-sm text-on-surface-variant leading-relaxed">"{r.comment || "No comment provided."}"</p>
-                              <div className="mt-3 flex justify-end">
-                                <Button size="sm" variant="tertiary" className="text-[10px]" onClick={() => router.push(`/apps/${r.app_id}`)}>View App</Button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </GlassCard>
-            </motion.div>
+        <div className="p-4 grid grid-cols-3 gap-[2px]">
+          {activeTab === "Posts" && (
+            <div className="col-span-3 py-20 text-center text-white/40 space-y-2">
+              <div className="w-16 h-16 rounded-full border-2 border-white/20 flex items-center justify-center mx-auto mb-4">
+                <Camera size={32} />
+              </div>
+              <p className="font-bold text-lg text-white">No Posts Yet</p>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Bio Section */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}>
-          <GlassCard className="p-8">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Biography</h2>
-            {editing ? (
-              <textarea 
-                value={formData.bio} 
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="w-full bg-surface-low rounded-2xl p-4 border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface text-sm transition-all"
-                placeholder="Tell the community about your innovations..."
-                rows={3}
-              />
+          {activeTab === "Apps" && (
+            myApps.length === 0 ? (
+              <div className="col-span-3 py-20 text-center text-white/40">
+                <p>No apps published yet.</p>
+              </div>
             ) : (
-              <p className="text-sm text-on-surface leading-relaxed italic">
-                {profile?.bio || "No bio set. A panda of few words."}
-              </p>
-            )}
-          </GlassCard>
-        </motion.div>
+              myApps.map((app) => (
+                <div key={app.id} className="aspect-square bg-[#1c1c1e] relative group cursor-pointer" onClick={() => router.push(`/apps/${app.id}`)}>
+                  <div className="absolute inset-0 flex items-center justify-center text-2xl font-black text-white/20">
+                    {app.name[0].toUpperCase()}
+                  </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <span className="flex items-center gap-1 text-[13px] font-bold"><Download size={14} /> 0</span>
+                    <span className="flex items-center gap-1 text-[13px] font-bold"><Star size={14} /> 0</span>
+                  </div>
+                </div>
+              ))
+            )
+          )}
+        </div>
+      </div>
 
-        {/* Account Details & Privacy */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
-          <GlassCard className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Account Details</h2>
-              <div className="flex items-center gap-3 bg-surface-low px-3 py-1.5 rounded-full border border-outline-variant/30">
-                <Shield size={14} className={formData.is_private ? "text-primary" : "text-on-surface-variant"} />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                  {formData.is_private ? "Private Mode" : "Public Mode"}
-                </span>
-                {editing && (
-                  <label className="relative inline-flex items-center cursor-pointer ml-2">
-                    <input 
-                      type="checkbox" 
-                      checked={formData.is_private} 
-                      onChange={(e) => setFormData({ ...formData, is_private: e.target.checked })}
-                      className="sr-only peer" 
-                    />
-                    <div className="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                  </label>
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {editing && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex flex-col"
+          >
+            <nav className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <button onClick={() => setEditing(false)} className="text-[16px]">Cancel</button>
+              <span className="font-bold text-[16px]">Edit profile</span>
+              <button 
+                onClick={handleSave} 
+                disabled={saving}
+                className="text-[16px] font-bold text-[#0095f6] disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Done"}
+              </button>
+            </nav>
+
+            <div className="p-6 flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-[#1c1c1e] flex items-center justify-center overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={40} className="text-white/20" />
                 )}
               </div>
-            </div>
-            
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Mail size={16} className="text-primary" /></div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Email</p>
-                  {editing ? (
-                    <input value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-sm font-medium bg-transparent border-b border-primary focus:outline-none text-on-surface w-full mt-0.5" />
-                  ) : (
-                    <p className="text-sm font-medium text-on-surface mt-0.5">{profile?.email || "Not set"}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0"><User size={16} className="text-primary" /></div>
-                <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Username</p>
-                  <p className="text-sm font-medium text-on-surface mt-0.5">@{profile?.username}</p>
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
+              <label className="text-[#0095f6] text-[14px] font-bold cursor-pointer">
+                Edit picture or avatar
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
 
-        {/* GitHub Repos */}
-        {session?.user && (
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
-            <GlassCard className="p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <GitFork size={20} className="text-primary" />
-                <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">GitHub Repositories</h2>
-              </div>
-              {reposLoading ? (
-                <div className="text-center py-6 text-on-surface-variant animate-pulse">Loading repositories...</div>
-              ) : repos.length === 0 ? (
-                <div className="text-center py-6 text-on-surface-variant">No public repositories found.</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {repos.map((repo) => (
-                    <a
-                      key={repo.id}
-                      href={repo.html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all group"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="font-bold text-on-surface group-hover:text-primary transition-colors truncate">{repo.name}</p>
-                        <ExternalLink size={14} className="text-on-surface-variant shrink-0 mt-0.5" />
-                      </div>
-                      {repo.description && (
-                        <p className="text-xs text-on-surface-variant mb-3 line-clamp-2">{repo.description}</p>
-                      )}
-                      <div className="flex items-center gap-4 text-xs text-on-surface-variant">
-                        {repo.language && (
-                          <span className="flex items-center gap-1.5">
-                            <span className={`w-2.5 h-2.5 rounded-full ${languageColors[repo.language] || "bg-gray-400"}`} />
-                            {repo.language}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1"><Star size={12} /> {repo.stargazers_count}</span>
-                        <span className="flex items-center gap-1"><GitFork size={12} /> {repo.forks_count}</span>
-                      </div>
-                    </a>
-                  ))}
+              <div className="w-full space-y-6 mt-4">
+                <div className="flex flex-col gap-1 border-b border-white/10 pb-2">
+                  <label className="text-[12px] text-white/40">Name</label>
+                  <input 
+                    value={formData.full_name} 
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    className="bg-transparent border-none focus:ring-0 p-0 text-[16px]"
+                    placeholder="Name"
+                  />
                 </div>
-              )}
-              {repos.length > 0 && (
-                <a
-                  href={`https://github.com/${session.user.name}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
+                <div className="flex flex-col gap-1 border-b border-white/10 pb-2">
+                  <label className="text-[12px] text-white/40">Username</label>
+                  <input 
+                    value={profile?.username} 
+                    disabled
+                    className="bg-transparent border-none focus:ring-0 p-0 text-[16px] opacity-50"
+                    placeholder="Username"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 border-b border-white/10 pb-2">
+                  <label className="text-[12px] text-white/40">Bio</label>
+                  <textarea 
+                    value={formData.bio} 
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="bg-transparent border-none focus:ring-0 p-0 text-[16px] resize-none"
+                    placeholder="Bio"
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="w-full mt-10">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full py-3 text-red-500 font-medium border-t border-b border-white/10"
                 >
-                  <GitFork size={14} /> View All Repositories
-                </a>
-              )}
-            </GlassCard>
-          </motion.div>
-        )}
-
-        {/* My Published Apps */}
-        {profile?.is_publisher && (
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.35 }}>
-            <GlassCard className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Package size={20} className="text-primary" />
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">My Published Apps</h2>
-                </div>
-                <Button size="sm" variant="secondary" onClick={() => router.push("/publisher")}>
-                  Upload New
-                </Button>
+                  Log Out
+                </button>
               </div>
-              
-              {myAppsLoading ? (
-                <div className="text-center py-6 text-on-surface-variant animate-pulse">Loading apps...</div>
-              ) : myApps.length === 0 ? (
-                <div className="text-center py-6 text-on-surface-variant">You haven't published any apps yet.</div>
-              ) : (
-                <div className="space-y-4">
-                  {myApps.map((app) => (
-                    <div key={app.id} className="flex items-center justify-between p-4 rounded-2xl border border-outline-variant hover:bg-surface-low transition-all bg-surface/50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {app.name[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-bold text-on-surface">{app.name}</p>
-                          <div className="flex items-center gap-3 text-xs text-on-surface-variant mt-0.5">
-                            <span className="bg-primary/5 px-2 py-0.5 rounded text-primary font-medium">{app.category}</span>
-                            <span>v{app.version}</span>
-                            <span>{app.is_approved ? "✅ Approved" : "⏳ Pending"}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteApp(app.id, app.name)}
-                        className="p-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
-                        title="Delete App"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </GlassCard>
+            </div>
           </motion.div>
         )}
-
-        {/* Logout */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }} className="flex justify-end">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-6 py-3 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold text-sm">
-            <LogOut size={16} /> Sign Out
-          </button>
-        </motion.div>
-
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileHover={{ scale: 1.02, y: -1 }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98, y: 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
         className={cn(
