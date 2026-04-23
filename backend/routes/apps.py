@@ -5,8 +5,7 @@ from typing import List, Optional
 import models, schemas, auth
 from database import get_db
 from routes import telemetry
-import os, cloudinary, cloudinary.uploader, json, re, logging
-import shutil
+import os, cloudinary, cloudinary.uploader, json, re, logging, zipfile, tempfile, shutil
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -137,9 +136,11 @@ def submit_app(
     return db_app
 
 @router.post("/{app_id}/upload")
-def upload_file(
+async def upload_file(
     app_id: int,
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(None),
+    icon: Optional[UploadFile] = File(None),
+    screenshots: List[UploadFile] = File([]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -150,110 +151,126 @@ def upload_file(
     if not app:
         raise HTTPException(404, "App not found")
 
-    try:
-        # Read file content
-        file_content = file.file.read()
-        
-        # Upload as raw file - works for APK, IPA, ZIP, etc
-        result = cloudinary.uploader.upload(
-            file_content,
-            resource_type="raw",
-            folder="pandastore/apps",
-            public_id=f"app_{app_id}_{file.filename}",
-            overwrite=True,
-            use_filename=True,
-            unique_filename=False,
-        )
-        
-        app.file_path = result["secure_url"]
-        db.commit()
-        return {"message": "File uploaded successfully", "file_path": result["secure_url"]}
-    except Exception as e:
-        raise HTTPException(500, f"Upload failed: {str(e)}")
-
-    # 1. Upload App File (if provided)
-    if file:
+    # 1. Upload App File
+    if file and file.filename:
         safe_name = sanitize_id(file.filename)
-        logger.info(f"Uploading app file: {safe_name}")
+        is_apk = safe_name.lower().endswith('.apk')
+        logger.info(f"Uploading app file: {safe_name} (is_apk: {is_apk})")
+        
         try:
-            file.file.seek(0)
-            logger.info(f"Attempting Cloudinary upload_large for {safe_name}")
-            # Reverting to resource_type="auto" as it's generally safer for diverse file types
-            # unless we are sure it's a raw file. Cloudinary free tier has lower limits for "raw".
-            result = cloudinary.uploader.upload_large(
-                file.file,
-                resource_type="auto",
-                folder="pandastore",
-                public_id=f"app_{app_id}_{safe_name}"
-            )
-            app.file_path = result["secure_url"]
-            logger.info(f"Cloudinary upload successful: {app.file_path}")
-        except Exception as e:
-            logger.error(f"Cloudinary upload failed for app_{app_id}: {str(e)}")
-            # Fallback to local storage if Cloudinary fails (e.g. large APKs > 10MB or timeout)
-            os.makedirs("uploads", exist_ok=True)
-            local_path = f"uploads/app_{app_id}_{safe_name}"
-            logger.info(f"Falling back to local storage: {local_path}")
+            # We need to read the file content to process it (zip or upload)
+            file_content = await file.read()
+            
+            # Temporary file handling
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{safe_name}") as tmp:
+                tmp.write(file_content)
+                tmp_path = tmp.name
+            
+            upload_path = tmp_path
+            final_filename = safe_name
+            
+            # Cloudinary often blocks .apk files in raw mode, so we zip them
+            if is_apk:
+                zip_path = tmp_path + ".zip"
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    zipf.write(tmp_path, safe_name)
+                upload_path = zip_path
+                final_filename = safe_name + ".zip"
+                logger.info(f"Zipped APK for Cloudinary: {final_filename}")
+
             try:
-                file.file.seek(0)
-                with open(local_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-                app.file_path = f"/{local_path}"
+                # Try Cloudinary upload
+                logger.info(f"Attempting Cloudinary upload for {final_filename}")
+                result = cloudinary.uploader.upload_large(
+                    upload_path,
+                    resource_type="raw",
+                    folder="pandastore/apps",
+                    public_id=f"app_{app_id}_{final_filename}",
+                    overwrite=True
+                )
+                app.file_path = result["secure_url"]
+                logger.info(f"Cloudinary upload successful: {app.file_path}")
+            except Exception as e:
+                logger.error(f"Cloudinary upload failed: {str(e)}. Falling back to local storage.")
+                # Fallback to local storage
+                os.makedirs("uploads", exist_ok=True)
+                dest_path = f"uploads/app_{app_id}_{safe_name}"
+                shutil.copy2(tmp_path, dest_path)
+                app.file_path = f"/{dest_path}"
                 logger.info(f"Local fallback successful: {app.file_path}")
-            except Exception as le:
-                logger.error(f"Local fallback failed too: {str(le)}")
+            finally:
+                # Cleanup temporary files
+                if os.path.exists(tmp_path): os.remove(tmp_path)
+                if is_apk and os.path.exists(upload_path): os.remove(upload_path)
+                
+        except Exception as e:
+            logger.error(f"File processing error: {str(e)}")
+            # Even if processing fails, don't crash everything if we have other files
 
-    # 2. Upload Icon (if provided)
-    if icon:
+    # 2. Upload Icon
+    if icon and icon.filename:
         logger.info(f"Uploading icon for app_{app_id}")
-        icon.file.seek(0)
-        icon_result = cloudinary.uploader.upload(
-            icon.file,
-            resource_type="image",
-            folder="pandastore/icons",
-            public_id=f"icon_{app_id}"
-        )
-        app.icon_url = icon_result["secure_url"]
-        logger.info(f"Icon upload successful: {app.icon_url}")
+        try:
+            icon_content = await icon.read()
+            icon_result = cloudinary.uploader.upload(
+                icon_content,
+                resource_type="image",
+                folder="pandastore/icons",
+                public_id=f"icon_{app_id}",
+                overwrite=True
+            )
+            app.icon_url = icon_result["secure_url"]
+            logger.info(f"Icon upload successful: {app.icon_url}")
+        except Exception as e:
+            logger.error(f"Icon upload failed: {str(e)}")
 
-    # 3. Upload Screenshots (if provided)
+    # 3. Upload Screenshots
     if screenshots:
         logger.info(f"Uploading {len(screenshots)} screenshots for app_{app_id}")
         shot_urls = []
+        # Support both single and multiple screenshots if sent via same field name
         for i, shot in enumerate(screenshots):
-            if not shot or not hasattr(shot, 'filename') or not shot.filename:
+            if not shot or not shot.filename:
                 continue
             try:
-                shot.file.seek(0)
+                shot_content = await shot.read()
                 shot_result = cloudinary.uploader.upload(
-                    shot.file,
+                    shot_content,
                     resource_type="image",
                     folder=f"pandastore/screenshots/{app_id}",
-                    public_id=f"shot_{i}_{sanitize_id(shot.filename)}"
+                    public_id=f"shot_{i}_{sanitize_id(shot.filename)}",
+                    overwrite=True
                 )
                 shot_urls.append(shot_result["secure_url"])
             except Exception as se:
-                logger.error(f"Screenshot {i} failed to upload: {str(se)}")
-                continue
-        if shot_urls:
-            app.screenshot_urls = json.dumps(shot_urls)
-            logger.info(f"Screenshots uploaded: {len(shot_urls)} files")
-    
-    if not app.file_path and not app.external_url and not file and not icon and not screenshots:
-        raise HTTPException(400, "No files or valid links provided for this app.")
+                logger.error(f"Screenshot {i} failed: {str(se)}")
         
-    # Mark as approved once files are uploaded
+        if shot_urls:
+            # Append to existing screenshots if any
+            existing_shots = json.loads(app.screenshot_urls) if app.screenshot_urls else []
+            existing_shots.extend(shot_urls)
+            app.screenshot_urls = json.dumps(existing_shots)
+            logger.info(f"Screenshots updated: {len(shot_urls)} new files added")
+
+    # Finalize
     if app.file_path or app.external_url:
         app.is_approved = True
+        app.is_active = True
+        logger.info(f"App {app_id} marked as approved and active.")
 
-    db.commit()
-    db.refresh(app)
-    return {
-        "message": "Files uploaded successfully",
-        "file_path": app.file_path,
-        "icon_url": app.icon_url,
-        "screenshot_urls": app.screenshot_urls
-    }
+    try:
+        db.commit()
+        db.refresh(app)
+        return {
+            "message": "Upload process completed",
+            "file_path": app.file_path,
+            "icon_url": app.icon_url,
+            "screenshots": json.loads(app.screenshot_urls) if app.screenshot_urls else []
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Database update failed: {str(e)}")
+        raise HTTPException(500, f"Database update failed: {str(e)}")
 
 @router.get("/{app_id}/download")
 def download_file(

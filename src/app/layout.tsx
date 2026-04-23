@@ -50,6 +50,7 @@ export const metadata: Metadata = {
     images: ["/panda-logo.png"],
     creator: "@pandastore",
   },
+  manifest: "/manifest.json",
   robots: {
     index: true,
     follow: true,
