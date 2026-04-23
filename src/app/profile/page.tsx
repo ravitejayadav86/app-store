@@ -46,6 +46,7 @@ interface LiveStats {
   published: number;
   followers: number;
   following: number;
+  requests: number;
 }
 
 export default function ProfilePage() {
