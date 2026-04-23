@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Optional
 import models, schemas, auth
@@ -52,6 +52,7 @@ def get_posts(
 @router.post("/posts")
 def create_post(
     post: schemas.PostCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -64,10 +65,10 @@ def create_post(
     
     data = build_post(new_post, db, current_user)
     # Broadcast to everyone
-    asyncio.create_task(manager.broadcast({
+    background_tasks.add_task(manager.broadcast, {
         "type": "NEW_POST",
         "post": data
-    }))
+    })
     return data
 
 @router.delete("/posts/{post_id}")
@@ -111,6 +112,7 @@ def toggle_like(
 def add_reply(
     post_id: int,
     reply: schemas.ReplyCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -135,13 +137,13 @@ def add_reply(
         db.commit()
         db.refresh(notif)
         db.refresh(new_reply)
-        asyncio.create_task(manager.send_to_user(post.user_id, {
+        background_tasks.add_task(manager.send_to_user, post.user_id, {
             "type": "NOTIFICATION",
             "id": notif.id,
             "title": notif.title,
             "message": notif.message,
             "created_at": notif.created_at.isoformat()
-        }))
+        })
     else:
         db.commit()
         db.refresh(new_reply)
@@ -157,10 +159,10 @@ def add_reply(
     }
     
     # Broadcast to everyone
-    asyncio.create_task(manager.broadcast({
+    background_tasks.add_task(manager.broadcast, {
         "type": "NEW_REPLY",
         "reply": data
-    }))
+    })
     
     return data
 

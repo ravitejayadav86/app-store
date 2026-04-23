@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
@@ -284,6 +284,7 @@ def get_following(username: str, db: Session = Depends(get_db)):
 @router.post("/support/feedback")
 def send_support_feedback(
     data: schemas.MessageCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -303,13 +304,12 @@ def send_support_feedback(
         db.add(notif)
         
         # Real-time WebSocket notification
-        import asyncio
-        asyncio.create_task(manager.send_to_user(admin.id, {
+        background_tasks.add_task(manager.send_to_user, admin.id, {
             "type": "NOTIFICATION",
             "title": "New Support Feedback",
             "message": f"@{current_user.username}: {data.content[:50]}...",
             "from": current_user.username
-        }))
+        })
 
     db.commit()
     return {"message": "Thank you! Your feedback has been sent to our admin team."}
