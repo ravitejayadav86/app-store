@@ -15,7 +15,12 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -111,7 +116,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             </button>
 
                             {/* Messages icon - logged in only */}
-                            {session && (
+                            {mounted && session && (
                                 <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Messages">
                                     <MessageCircle size={20} className="w-5 h-5 md:w-6 md:h-6" />
                                 </Link>
@@ -119,7 +124,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
 
                             <div className="hidden xl:flex items-center gap-1.5">
                                 {/* Admin button */}
-                                {session && (
+                                {mounted && session && (
                                     <Link href="/admin">
                                         <Button variant="tertiary" size="sm" className="h-9 text-red-500 hover:text-red-400 hover:bg-red-500/10 border-red-500/20 px-3">
                                             <ShieldAlert size={16} className="mr-1.5" />
@@ -129,7 +134,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 )}
 
                                 {/* Sign In if not logged in */}
-                                {!session && (
+                                {mounted && !session && (
                                     <Link href="/login">
                                         <Button variant="tertiary" size="sm" className="h-9 px-4">
                                             <User size={16} className="mr-1.5" />
@@ -144,7 +149,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             </div>
 
                             {/* Notification Bell */}
-                            {session && <NotificationBell />}
+                            {mounted && session && <NotificationBell />}
 
                             {/* Settings icon - hidden on mobile */}
                             <Link href="/settings" className="hidden sm:flex p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
@@ -193,21 +198,23 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             <Link href="/publisher" onClick={() => setMobileMenuOpen(false)}>
                                 <Button className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Publisher Hub</Button>
                             </Link>
-                            {session ? (
-                                <button 
-                                    onClick={() => {
-                                        localStorage.removeItem("token");
-                                        signOut({ callbackUrl: "/" });
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className="w-full py-4 text-red-500 font-black text-xs uppercase tracking-widest border border-red-200 rounded-2xl hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <LogOut size={16} /> Sign Out
-                                </button>
-                            ) : (
-                                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                                    <Button variant="tertiary" className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Sign In</Button>
-                                </Link>
+                            {mounted && (
+                                session ? (
+                                    <button 
+                                        onClick={() => {
+                                            localStorage.removeItem("token");
+                                            signOut({ callbackUrl: "/" });
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className="w-full py-4 text-red-500 font-black text-xs uppercase tracking-widest border border-red-200 rounded-2xl hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <LogOut size={16} /> Sign Out
+                                    </button>
+                                ) : (
+                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button variant="tertiary" className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Sign In</Button>
+                                    </Link>
+                                )
                             )}
                         </div>
                     </motion.div>

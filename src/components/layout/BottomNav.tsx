@@ -17,6 +17,13 @@ const NAV_ITEMS = [
 
 export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
   const pathname = usePathname();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <AnimatePresence>
