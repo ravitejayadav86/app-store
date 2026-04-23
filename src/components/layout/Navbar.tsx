@@ -36,20 +36,20 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     transition={{ type: "spring", damping: 30, stiffness: 300 }}
                     className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4"
                 >
-            <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-6 py-2.5 border border-white/20">
+            <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2.5 border border-white/20 rounded-full md:rounded-[2rem]">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
-                    <div className="relative w-10 h-10 overflow-hidden">
+                <Link href="/" className="flex items-center gap-1.5 md:gap-2">
+                    <div className="relative w-8 h-8 md:w-10 md:h-10 overflow-hidden">
                         <Image
-                            src="/panda-logo.png"
+                            src="/paw-logo.png"
                             alt="Panda Store Logo"
                             fill
                             className="object-contain"
                             priority
-                            sizes="40px"
+                            sizes="(max-width: 768px) 32px, 40px"
                         />
                     </div>
-                    <span className="font-inter font-bold text-xl tracking-tight text-on-surface">PandaStore</span>
+                    <span className="font-inter font-bold text-lg md:text-xl tracking-tight text-on-surface">PandaStore</span>
                 </Link>
 
                 {/* Search Bar (expanded) */}
@@ -101,19 +101,19 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-1 sm:gap-2">
+                        <div className="flex items-center gap-0 sm:gap-2">
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="p-2 text-on-surface-variant hover:text-primary transition-colors"
                                 aria-label="Open search"
                             >
-                                <Search size={20} />
+                                <Search size={20} className="w-5 h-5 md:w-6 md:h-6" />
                             </button>
 
                             {/* Messages icon - logged in only */}
                             {session && (
                                 <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Messages">
-                                    <MessageCircle size={20} />
+                                    <MessageCircle size={20} className="w-5 h-5 md:w-6 md:h-6" />
                                 </Link>
                             )}
 
@@ -152,8 +152,8 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             </Link>
 
                             {/* Profile */}
-                            <Link href="/profile" className="flex w-9 h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group" aria-label="View profile">
-                                <User size={18} className="group-hover:text-primary transition-colors" />
+                            <Link href="/profile" className="flex w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group ml-1" aria-label="View profile">
+                                <User size={16} className="md:size-[18px] group-hover:text-primary transition-colors" />
                             </Link>
                         </div>
                     </>
