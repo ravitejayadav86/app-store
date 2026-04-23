@@ -1,33 +1,33 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, User, UserPlus, Search } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ChevronLeft, User, Search } from "lucide-react";
 import api from "@/lib/api";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 
-export default function FollowersPage() {
+export default function UserFollowingPage() {
+  const { username } = useParams();
   const router = useRouter();
-  const [followers, setFollowers] = useState<any[]>([]);
+  const [following, setFollowing] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchFollowers = async () => {
+    const fetchFollowing = async () => {
       try {
-        const res = await api.get("/social/followers/me");
-        setFollowers(res.data);
+        const res = await api.get(`/social/following/${username}`);
+        setFollowing(res.data);
       } catch (err) {
-        console.error("Failed to fetch followers", err);
+        console.error("Failed to fetch following", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFollowers();
-  }, []);
+    fetchFollowing();
+  }, [username]);
 
-  const filtered = followers.filter(f => 
+  const filtered = following.filter(f => 
     f.username.toLowerCase().includes(search.toLowerCase()) ||
     f.full_name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -39,7 +39,7 @@ export default function FollowersPage() {
         <button onClick={() => router.back()} className="p-1">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="font-bold text-lg">Followers</h1>
+        <h1 className="font-bold text-lg">Following</h1>
       </header>
 
       {/* Search */}
@@ -49,7 +49,7 @@ export default function FollowersPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search followers"
+            placeholder="Search following"
             className="w-full bg-gray-100 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
@@ -63,7 +63,7 @@ export default function FollowersPage() {
           </div>
         ) : filtered.length > 0 ? (
           filtered.map((user) => (
-            <div key={user.id} className="flex items-center justify-between gap-3">
+            <div key={user.id} className="flex items-center justify-between gap-3 cursor-pointer" onClick={() => router.push(`/users/${user.username}`)}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-100">
                   {user.avatar_url ? (
@@ -77,12 +77,12 @@ export default function FollowersPage() {
                   <p className="text-xs text-gray-500">{user.full_name || "Panda User"}</p>
                 </div>
               </div>
-              <Button size="xs" variant="secondary" className="px-4">Follow</Button>
+              <Button size="xs" variant="secondary" className="px-4">View</Button>
             </div>
           ))
         ) : (
           <div className="py-20 text-center text-gray-400 text-sm">
-            No followers found.
+            Not following anyone yet.
           </div>
         )}
       </div>

@@ -237,6 +237,16 @@ def get_followers(username: str, db: Session = Depends(get_db)):
             result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url})
     return result
 
+@router.get("/followers/me")
+def get_my_followers(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    follows = db.query(models.Follow).filter(models.Follow.following_id == current_user.id, models.Follow.is_accepted == True).all()
+    result = []
+    for f in follows:
+        u = db.query(models.User).filter(models.User.id == f.follower_id).first()
+        if u:
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
+    return result
+
 @router.get("/following/{username}")
 def get_following(username: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
@@ -247,28 +257,12 @@ def get_following(username: str, db: Session = Depends(get_db)):
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.following_id).first()
         if u:
-            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url})
-    return result
-
-@router.get("/me/followers")
-def get_my_followers(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
-):
-    follows = db.query(models.Follow).filter(models.Follow.following_id == current_user.id).all()
-    result = []
-    for f in follows:
-        u = db.query(models.User).filter(models.User.id == f.follower_id).first()
-        if u:
             result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
     return result
 
-@router.get("/me/following")
-def get_my_following(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
-):
-    follows = db.query(models.Follow).filter(models.Follow.follower_id == current_user.id).all()
+@router.get("/following/me")
+def get_my_following(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    follows = db.query(models.Follow).filter(models.Follow.follower_id == current_user.id, models.Follow.is_accepted == True).all()
     result = []
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.following_id).first()

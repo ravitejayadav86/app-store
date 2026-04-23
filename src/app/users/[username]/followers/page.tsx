@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, User, UserPlus, Search } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ChevronLeft, User, Search } from "lucide-react";
 import api from "@/lib/api";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 
-export default function FollowersPage() {
+export default function UserFollowersPage() {
+  const { username } = useParams();
   const router = useRouter();
   const [followers, setFollowers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ export default function FollowersPage() {
   useEffect(() => {
     const fetchFollowers = async () => {
       try {
-        const res = await api.get("/social/followers/me");
+        const res = await api.get(`/social/followers/${username}`);
         setFollowers(res.data);
       } catch (err) {
         console.error("Failed to fetch followers", err);
@@ -25,7 +25,7 @@ export default function FollowersPage() {
       }
     };
     fetchFollowers();
-  }, []);
+  }, [username]);
 
   const filtered = followers.filter(f => 
     f.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -63,7 +63,7 @@ export default function FollowersPage() {
           </div>
         ) : filtered.length > 0 ? (
           filtered.map((user) => (
-            <div key={user.id} className="flex items-center justify-between gap-3">
+            <div key={user.id} className="flex items-center justify-between gap-3 cursor-pointer" onClick={() => router.push(`/users/${user.username}`)}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-100">
                   {user.avatar_url ? (
@@ -77,7 +77,7 @@ export default function FollowersPage() {
                   <p className="text-xs text-gray-500">{user.full_name || "Panda User"}</p>
                 </div>
               </div>
-              <Button size="xs" variant="secondary" className="px-4">Follow</Button>
+              <Button size="xs" variant="secondary" className="px-4">View</Button>
             </div>
           ))
         ) : (

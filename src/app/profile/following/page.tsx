@@ -15,7 +15,7 @@ export default function FollowingPage() {
   useEffect(() => {
     const fetchFollowing = async () => {
       try {
-        const res = await api.get("/users/me/following");
+        const res = await api.get("/social/following/me");
         setFollowing(res.data);
       } catch (err) {
         console.error("Failed to fetch following", err);
