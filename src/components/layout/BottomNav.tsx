@@ -51,7 +51,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
                   }}
                   className="px-4 py-1 rounded-full flex items-center justify-center transition-all"
                 >
-                  {React.cloneElement(item.icon as React.ReactElement, { size: 20 })}
+                  {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
                 </motion.div>
                 
                 {isActive && (
