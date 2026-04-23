@@ -9,7 +9,7 @@ import {
   User, Users, Mail, Calendar, Edit3, Save, X, Package, 
   Download, Star, Shield, LogOut, Camera, ExternalLink, 
   GitFork, Trash2, Code, Sparkles, Plus, Menu, ChevronDown,
-  Grid as GridIcon, Bookmark, UserSquare2, AtSign
+  Grid as GridIcon, Bookmark, UserSquare2, AtSign, UserPlus, ChevronRight
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -56,7 +56,14 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ full_name: "", email: "", bio: "", is_private: false });
-  const [liveStats, setLiveStats] = useState<LiveStats>({ installs: 0, reviews: 0, published: 0, followers: 0, following: 0 });
+  const [liveStats, setLiveStats] = useState<LiveStats>({ 
+    installs: 0, 
+    reviews: 0, 
+    published: 0, 
+    followers: 0, 
+    following: 0,
+    requests: 0 
+  });
   const [repos, setRepos] = useState<Repo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
   const [myApps, setMyApps] = useState<any[]>([]);
@@ -111,7 +118,11 @@ export default function ProfilePage() {
       });
 
       const statsRes = await api.get("/users/me/stats");
-      setLiveStats(statsRes.data);
+      const reqRes = await api.get("/social/requests/pending");
+      setLiveStats({
+        ...statsRes.data,
+        requests: reqRes.data.length
+      });
 
       const purchasesRes = await api.get("/users/me/purchases");
       setPurchasedApps(purchasesRes.data);
@@ -237,6 +248,21 @@ export default function ProfilePage() {
               {profile?.bio || "A panda of few words, but infinite innovations."}
             </p>
           </div>
+
+          {liveStats.requests > 0 && (
+            <Link href="/profile/requests" className="w-full flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-xl mb-4 group transition-all hover:bg-primary/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                  <UserPlus size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Follow Requests</p>
+                  <p className="text-[10px] text-gray-500 font-medium">You have {liveStats.requests} pending requests</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-primary group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
 
           <div className="flex gap-2">
             <button 

@@ -235,7 +235,17 @@ def get_followers(username: str, db: Session = Depends(get_db)):
     for f in follows:
         u = db.query(models.User).filter(models.User.id == f.follower_id).first()
         if u:
-            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url})
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
+    return result
+
+@router.get("/requests/pending")
+def get_pending_requests(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    requests = db.query(models.Follow).filter(models.Follow.following_id == current_user.id, models.Follow.is_accepted == False).all()
+    result = []
+    for r in requests:
+        u = db.query(models.User).filter(models.User.id == r.follower_id).first()
+        if u:
+            result.append({"id": u.id, "username": u.username, "bio": u.bio, "avatar_url": u.avatar_url, "full_name": u.full_name})
     return result
 
 @router.get("/followers/me")
