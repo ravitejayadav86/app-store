@@ -8,8 +8,8 @@ import { usePathname } from "next/navigation";
 export const Footer = () => {
   const pathname = usePathname();
   
-  // Hide footer on messenger pages
-  if (pathname?.startsWith("/messages")) {
+  // Show footer ONLY on the settings page
+  if (pathname !== "/settings") {
     return null;
   }
 
