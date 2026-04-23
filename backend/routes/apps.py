@@ -139,19 +139,37 @@ def submit_app(
 @router.post("/{app_id}/upload")
 def upload_file(
     app_id: int,
-    file: UploadFile = File(None),
-    icon: Optional[UploadFile] = File(None),
-    screenshots: List[UploadFile] = File(default=[]),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    logger.info(f"Upload request for app_id {app_id} by user {current_user.username}")
     app = db.query(models.App).filter(
         models.App.id == app_id,
         models.App.developer == current_user.username
     ).first()
     if not app:
         raise HTTPException(404, "App not found")
+
+    try:
+        # Read file content
+        file_content = file.file.read()
+        
+        # Upload as raw file - works for APK, IPA, ZIP, etc
+        result = cloudinary.uploader.upload(
+            file_content,
+            resource_type="raw",
+            folder="pandastore/apps",
+            public_id=f"app_{app_id}_{file.filename}",
+            overwrite=True,
+            use_filename=True,
+            unique_filename=False,
+        )
+        
+        app.file_path = result["secure_url"]
+        db.commit()
+        return {"message": "File uploaded successfully", "file_path": result["secure_url"]}
+    except Exception as e:
+        raise HTTPException(500, f"Upload failed: {str(e)}")
 
     # 1. Upload App File (if provided)
     if file:
@@ -240,25 +258,18 @@ def upload_file(
 @router.get("/{app_id}/download")
 def download_file(
     app_id: int,
-    background_tasks: BackgroundTasks,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_optional_user)
+    db: Session = Depends(get_db)
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
-        raise HTTPException(404, "No file uploaded for this app.")
+        raise HTTPException(404, "No file uploaded for this app yet.")
     
-    # If free app and logged in, record a "purchase" to track downloads
-    if current_user and app.price == 0:
-        existing = db.query(models.Purchase).filter(
-            models.Purchase.user_id == current_user.id,
-            models.Purchase.app_id == app.id
-        ).first()
-        if not existing:
-            purchase = models.Purchase(user_id=current_user.id, app_id=app.id)
-            db.add(purchase)
-            db.commit()
+    # If it's a Cloudinary URL, redirect directly
+    if app.file_path.startswith("http"):
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=app.file_path)
+    
+    raise HTTPException(404, "File not found.")
 
     # Broadcast to telemetry in background
     username = current_user.username if current_user else "Someone"
