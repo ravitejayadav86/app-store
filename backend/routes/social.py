@@ -77,8 +77,8 @@ def get_profile(
     if not user:
         raise HTTPException(404, "User not found")
     
-    followers_count = db.query(models.Follow).filter(models.Follow.following_id == user.id).count()
-    following_count = db.query(models.Follow).filter(models.Follow.follower_id == user.id).count()
+    followers_count = db.query(models.Follow).filter(models.Follow.following_id == user.id, models.Follow.is_accepted == True).count()
+    following_count = db.query(models.Follow).filter(models.Follow.follower_id == user.id, models.Follow.is_accepted == True).count()
     installs_count = db.query(models.Purchase).filter(models.Purchase.user_id == user.id).count()
     reviews_count = db.query(models.Review).filter(models.Review.user_id == user.id).count()
     
@@ -87,7 +87,8 @@ def get_profile(
     if current_user:
         is_following = db.query(models.Follow).filter(
             models.Follow.follower_id == current_user.id,
-            models.Follow.following_id == user.id
+            models.Follow.following_id == user.id,
+            models.Follow.is_accepted == True
         ).first() is not None
 
     apps = db.query(models.App).filter(models.App.developer == user.username).all()

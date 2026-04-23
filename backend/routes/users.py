@@ -69,11 +69,13 @@ def get_my_stats(
     ).count()
     
     followers = db.query(models.Follow).filter(
-        models.Follow.following_id == current_user.id
+        models.Follow.following_id == current_user.id,
+        models.Follow.is_accepted == True
     ).count()
     
     following = db.query(models.Follow).filter(
-        models.Follow.follower_id == current_user.id
+        models.Follow.follower_id == current_user.id,
+        models.Follow.is_accepted == True
     ).count()
     
     return {
