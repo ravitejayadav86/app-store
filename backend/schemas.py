@@ -192,17 +192,7 @@ class UpdateProfile(BaseModel):
     auto_update: Optional[str] = None
     download_pref: Optional[str] = None
 
-class MessageResponse(BaseModel):
-    message: str
-    detail: Optional[str] = None
-
 class UserStats(BaseModel):
-    installs: int
-    reviews: int
-    published: int
-    followers: int
-    following: int
-    class UserStats(BaseModel):
     installs: int = 0
     published: int = 0
     reviews: int = 0
@@ -211,3 +201,4 @@ class UserStats(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+    detail: Optional[str] = None
