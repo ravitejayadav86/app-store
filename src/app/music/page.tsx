@@ -41,22 +41,22 @@ export default function MusicPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-12 md:gap-20 pb-20 pt-4 md:pt-0">
       <section className="px-4 md:px-8">
-        <div className="relative h-[500px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-pink-900 to-purple-900 p-12 text-white flex flex-col justify-end gap-6 shadow-2xl">
+        <div className="relative h-[380px] md:h-[500px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-pink-900 to-purple-900 p-8 md:p-12 text-white flex flex-col justify-end gap-4 shadow-2xl">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] -mr-40 -mt-40"
+            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-pink-500/20 rounded-full blur-[100px] -mr-20 -mt-20"
           />
           <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20">
-              <Music size={14} />
+            <div className="flex items-center gap-2 mb-3 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/20">
+              <Music size={12} />
               <span>Music Ecosystem</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">Feel the Rhythm.</h1>
-            <p className="text-lg md:text-xl text-white/80 mb-2">
+            <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-2">Feel the Rhythm.</h1>
+            <p className="text-sm md:text-xl text-white/80 mb-2 font-medium max-w-sm">
               Discover community-published music tracks on PandaStore. All free.
             </p>
           </div>

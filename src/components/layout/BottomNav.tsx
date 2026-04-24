@@ -59,7 +59,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
                     isActive ? "bg-primary/10" : ""
                   }`}
                 >
-                  {React.cloneElement(item.icon as React.ReactElement, { 
+                  {React.cloneElement(item.icon as React.ReactElement<any>, { 
                     size: 22, 
                     strokeWidth: isActive ? 2.5 : 2 
                   })}
