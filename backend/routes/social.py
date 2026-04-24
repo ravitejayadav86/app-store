@@ -667,6 +667,8 @@ async def websocket_endpoint(
                 )
                 db.add(message)
                 db.commit()
+                db.refresh(message)
+
                 # Persistent Notification for the receiver
                 notif = models.Notification(
                     user_id=receiver.id,
@@ -678,6 +680,7 @@ async def websocket_endpoint(
                 db.refresh(notif)
                 
                 payload = {
+                    "type": "MESSAGE",
                     "id": message.id,
                     "sender_id": user_id,
                     "receiver_id": receiver.id,

@@ -137,37 +137,48 @@ export default function ChatClient({ username: propUsername }: { username?: stri
           return;
         }
 
+        // Ignore notifications in the chat list
+        if (msg.type === "NOTIFICATION") return;
+
         setMessages(prev => {
+          // Verify this message belongs to the current conversation
+          const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+          const isFromRecipient = msg.sender_username === username;
+
+          if (!isFromMe && !isFromRecipient) {
+            return prev; // Ignore messages from other users in this chat window
+          }
+
           const exists = prev.some(m => m.id === msg.id);
           if (exists) return prev;
           
-          // If we receive a message while in the chat, mark it as read immediately
-          if (msg.sender_username === username) {
-             // Send read confirmation back
+          // If we receive a message from the recipient while in the chat, mark it as read immediately
+          if (isFromRecipient) {
              ws.send(JSON.stringify({ type: "READ", to: username }));
-          } else if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-             // Show native notification if window is hidden
-             new Notification(`New message from @${msg.sender_username}`, {
-                body: msg.content,
-                icon: "/panda-logo.png"
-             });
+          } else if (isFromMe && typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+             // Optional: Handle own messages in other tabs if needed
           }
           
           return [...prev, msg];
         });
 
-        // Only scroll to bottom for incoming messages if we are already near the bottom
-        // Or if it's our own message
-        if (msg.sender_id === currentUserId) {
-          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        // Scroll logic for incoming messages
+        // Always scroll for own messages, or if near bottom for others
+        const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+        if (isFromMe) {
+          setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 100);
         }
-      } catch {}
+      } catch (err) {
+        console.error("WS Message handling error:", err);
+      }
     };
 
     return () => {
       ws.close();
     };
-  }, [currentUserId, username]);
+  }, [currentUserId, currentUsername, username]);
 
   useEffect(() => {
     // Initial scroll to bottom
@@ -271,6 +282,7 @@ export default function ChatClient({ username: propUsername }: { username?: stri
       setMessages(prev => [...prev, {
         ...res.data,
         sender_id: currentUserId!,
+        sender_username: currentUsername!,
         receiver_id: 0,
         is_read: false
       }]);
@@ -329,7 +341,8 @@ export default function ChatClient({ username: propUsername }: { username?: stri
       {/* Messages */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30"
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30 overscroll-contain"
+        style={{ WebkitOverflowScrolling: "touch" }}
         onScroll={(e) => {
           const target = e.currentTarget;
           if (target.scrollTop === 0 && hasMore && !fetchingMore) {
@@ -363,7 +376,7 @@ export default function ChatClient({ username: propUsername }: { username?: stri
           const showAvatar = !isMe && (i === 0 || messages[i-1].sender_id !== msg.sender_id);
           
           return (
-            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2`}>
+            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2 px-1`}>
               {!isMe && (
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 overflow-hidden mb-1 border border-primary/5">
                   {showAvatar ? (
@@ -373,11 +386,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
                   ) : null}
                 </div>
               )}
-              <div className={`max-w-[80%] px-4 py-2.5 shadow-sm glass ${
+              <div className={`max-w-[85%] px-4 py-2.5 shadow-md ${
                 isMe
-                  ? "bg-primary/90 text-on-primary rounded-3xl rounded-br-sm border-white/20"
-                  : "bg-white/60 text-on-surface rounded-3xl rounded-bl-sm border-white/30"
-              }`}>
+                  ? "bg-primary text-white rounded-2xl rounded-br-none shadow-primary/20"
+                  : "glass bg-white/60 text-on-surface rounded-2xl rounded-bl-none border-white/30"
+              } transition-all duration-300`}>
                 {msg.media_url && (
                   <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative bg-black/5 min-h-[120px] flex items-center justify-center">
                     {msg.media_type === "image" ? (

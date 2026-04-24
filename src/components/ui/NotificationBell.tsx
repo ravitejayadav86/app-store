@@ -36,24 +36,39 @@ export function NotificationBell() {
 
   const { onEvent } = useRealtime(userId || undefined);
 
-  onEvent("NOTIFICATION", (data) => {
-    const newNotif: Notification = {
-      id: data.id,
-      title: data.title,
-      message: data.message,
-      is_read: false,
-      created_at: data.created_at || new Date().toISOString()
-    };
-    setNotifications(prev => [newNotif, ...prev]);
-    setUnread(prev => prev + 1);
+  useEffect(() => {
+    // Request notification permission
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
     
-    // Show instant toast notification globally
-    toast.info(data.title, { 
-      description: data.message,
-      duration: 5000,
-      position: "top-right"
+    onEvent("NOTIFICATION", (data) => {
+      const newNotif: Notification = {
+        id: data.id || Math.random(),
+        title: data.title,
+        message: data.message,
+        is_read: false,
+        created_at: data.created_at || new Date().toISOString()
+      };
+      setNotifications(prev => [newNotif, ...prev]);
+      setUnread(prev => prev + 1);
+      
+      // Show instant toast notification globally
+      toast(data.title, {
+        description: data.message,
+      });
+
+      // Native notification
+      if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+        new Notification(data.title, {
+          body: data.message,
+          icon: "/panda-logo.png"
+        });
+      }
     });
-  });
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     try {

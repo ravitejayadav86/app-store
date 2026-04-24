@@ -9,7 +9,8 @@ if (Test-Path "backend") {
 if (Test-Path "..\venv") {
     Write-Host "Activating Virtual Environment from root..." -ForegroundColor Green
     ..\venv\Scripts\activate
-} elseif (Test-Path "venv") {
+}
+elseif (Test-Path "venv") {
     Write-Host "Activating Virtual Environment..." -ForegroundColor Green
     .\venv\Scripts\activate
 }
