@@ -1,5 +1,15 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/auth/:path*",
@@ -7,35 +17,35 @@
     },
     {
       "source": "/api/v1/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/apps/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/users/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/admin/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/reviews/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/notifications/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/community/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     },
     {
       "source": "/api/social/:path*",
-      "destination": "/api/index"
+      "destination": "backend/main.py"
     }
   ]
 }
