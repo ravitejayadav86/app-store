@@ -272,29 +272,27 @@ async def upload_file(
         raise HTTPException(500, f"Database update failed: {str(e)}")
 
 @router.get("/{app_id}/download")
-def download_file(
+async def download_file(
     app_id: int,
-    db: Session = Depends(get_db)
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_optional_user)
 ):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
         raise HTTPException(404, "No file uploaded for this app yet.")
     
-    # If it's a Cloudinary URL, redirect directly
-    if app.file_path.startswith("http"):
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=app.file_path)
-    
-    raise HTTPException(404, "File not found.")
-
     # Broadcast to telemetry in background
     username = current_user.username if current_user else "Someone"
     background_tasks.add_task(telemetry.notify_download, app.name, username)
 
-    # Redirect to file URL
-    url = app.file_path
+    # If it's a Cloudinary URL or external URL, redirect directly
+    if app.file_path.startswith("http"):
+        return RedirectResponse(url=app.file_path)
     
-    # If it's a local path, ensure it's absolute for the redirect
+    # If it's a local path
+    url = app.file_path
     if url.startswith("/uploads/"):
         local_path = url.lstrip("/")
         if not os.path.exists(local_path):
@@ -303,8 +301,9 @@ def download_file(
         # Use the request's base URL to build an absolute redirect
         base_url = str(request.base_url).rstrip("/")
         url = f"{base_url}{url}"
+        return RedirectResponse(url=url)
             
-    return RedirectResponse(url=url)
+    raise HTTPException(404, "File not found or invalid path.")
 
 @router.post("/{app_id}/nudge")
 async def nudge_publisher(

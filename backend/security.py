@@ -17,17 +17,14 @@ except ImportError:
 load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "memory://")
 
-if redis and REDIS_URL.startswith("redis"):
+if not redis or not REDIS_URL.startswith("redis"):
+    REDIS_URL = "memory://"
+elif redis and REDIS_URL.startswith("redis"):
     try:
         r = redis.Redis.from_url(REDIS_URL, socket_connect_timeout=1)
         r.ping()
     except Exception as e:
         print(f"Redis unavailable for rate limiter, falling back to memory: {e}")
-        REDIS_URL = "memory://"
-else:
-    # If redis package is missing OR REDIS_URL doesn't start with redis, use memory
-    if REDIS_URL.startswith("redis"):
-        print("Redis package missing, falling back to memory for rate limiter.")
         REDIS_URL = "memory://"
 
 # Rate limiter with Redis backend support for horizontal scaling
