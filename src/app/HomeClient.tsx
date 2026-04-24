@@ -43,43 +43,41 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-12 pb-24">
       {/* Hero Section */}
       <section className="px-4 md:px-8">
         <div
-          className="relative h-[350px] md:h-[400px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-10 text-on-primary flex flex-col justify-end gap-3 md:gap-4 shadow-xl"
+          className="relative h-[380px] md:h-[450px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-linear-to-br from-[#0058bb] via-[#0070f3] to-[#4f46e5] p-8 md:p-12 text-on-primary flex flex-col justify-end gap-4 shadow-2xl shadow-primary/20"
         >
           {/* Decorative background elements */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-0 right-0 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-white/10 rounded-full blur-[80px] md:blur-[100px] -mr-20 md:-mr-40 -mt-20 md:-mt-40"
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 10, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/20 rounded-full blur-[90px] -mr-24 -mt-24"
           />
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-            className="absolute bottom-0 left-0 w-[150px] md:w-[250px] h-[150px] md:h-[250px] bg-white/5 rounded-full blur-[60px] md:blur-[80px] -ml-10 md:-ml-20 -mb-10 md:-mb-20"
-          />
+          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl">
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 mb-2 md:mb-3 bg-white/10 w-fit px-2.5 py-1 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md border border-white/20"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl border border-white/30"
             >
-              <Star size={12} className="fill-current" />
-              <span>Editors&apos; Choice</span>
+              <Sparkles size={12} />
+              <span>New Release</span>
             </motion.div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-2 md:mb-4">Create Without Boundaries.</h1>
-            <p className="text-xs md:text-lg text-on-primary/80 mb-4 md:mb-6 leading-snug">
-              Explore a curated selection of tools designed to elevate your professional workflow.
+            <h1 className="hero-text font-black tracking-tight mb-3 text-white drop-shadow-sm">
+              The Future of <br/> Discovery.
+            </h1>
+            <p className="text-sm md:text-lg text-white/90 mb-6 leading-relaxed max-w-sm font-medium">
+              Explore a curated world of premium apps, games, and creative tools.
             </p>
-            <div className="flex flex-row gap-2 md:gap-3">
-              <Button size="sm" className="bg-white text-primary px-6">Get App</Button>
-              <Button variant="secondary" size="sm" className="bg-white/10 text-white border-white/20 px-6">Learn More</Button>
+            <div className="flex flex-row gap-3">
+              <Button size="lg" className="bg-white text-primary px-8 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">Get Started</Button>
+              <Button variant="secondary" size="lg" className="bg-white/10 text-white border-white/30 backdrop-blur-md px-8 rounded-2xl font-bold active:scale-95 transition-all">Explore</Button>
             </div>
           </div>
         </div>

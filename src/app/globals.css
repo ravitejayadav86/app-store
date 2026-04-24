@@ -89,85 +89,46 @@ body {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
+/* Premium Touch Feedback - iOS style */
+button:active, 
+a:active, 
+.interactive:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+  transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1), opacity 0.1s ease;
+}
+
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(35px) saturate(220%);
-  -webkit-backdrop-filter: blur(35px) saturate(220%);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(40px) saturate(240%);
+  -webkit-backdrop-filter: blur(40px) saturate(240%);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
   box-shadow: 
-    0 15px 45px rgba(0, 0, 0, 0.06),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-xl);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.liquid-glass-pill {
-  @extend .liquid-glass;
-  border-radius: 9999px;
+/* Page Transition Container */
+.page-transition-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.liquid-glass:hover {
-  background: rgba(255, 255, 255, 0.65);
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 
-    0 25px 60px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
-}
-
-/* Global Card Liquid Glass style */
-.card-glass {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-xl);
-  transition: all 0.3s ease;
-}
-
-.card-glass:hover {
-  background: rgba(255, 255, 255, 0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-}
-
-/* Custom Premium Scrollbar for Windows/Chrome */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--surface);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--outline-variant);
-  border-radius: 10px;
-  border: 3px solid var(--surface);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--on-surface-variant);
-}
-
-/* Tonal Stacking Utility - Enforcing the 'No-Line' rule */
-.tonal-stack {
-  background: var(--surface-container-lowest);
-  border: none; /* Removed borders per design system docs */
-}
-
-/* Secondary Container for active states */
-.active-container {
-  background: #cfcdff;
-  color: #3631b5;
-}
-
-/* App Card Lift Animation */
-.app-card {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.app-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+/* Mobile-only optimizations */
+@media (max-width: 768px) {
+  .hero-text {
+    font-size: 2.2rem;
+    line-height: 1.1;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

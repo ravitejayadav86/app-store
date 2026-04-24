@@ -35,7 +35,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
           className="md:hidden fixed bottom-0 inset-x-0 liquid-glass z-50 border-t border-white/30 !rounded-none"
         >
-      <div className="grid grid-cols-6 items-center pt-1 pb-safe px-1">
+      <div className="flex justify-around items-center pt-2 pb-safe px-2 max-w-lg mx-auto">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
           
@@ -44,33 +44,39 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
               key={item.name}
               href={item.href}
               aria-label={item.name}
-              className={`relative flex flex-col items-center gap-0.5 w-full py-1 transition-colors duration-300 ${
-                isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+              className={`relative flex flex-col items-center gap-1 flex-1 py-1 transition-all duration-300 ${
+                isActive ? "text-primary" : "text-on-surface-variant/70 hover:text-on-surface"
               }`}
             >
-              <div className="relative group">
+              <div className="relative">
                 <motion.div
                   initial={false}
                   animate={{
-                    scale: isActive ? 1 : 0.85,
-                    backgroundColor: isActive ? "var(--primary-container)" : "transparent",
-                    color: isActive ? "var(--on-primary)" : "inherit",
+                    scale: isActive ? 1.1 : 1,
+                    y: isActive ? -2 : 0,
                   }}
-                  className="px-4 py-1 rounded-full flex items-center justify-center transition-all"
+                  className={`p-2 rounded-2xl flex items-center justify-center transition-all ${
+                    isActive ? "bg-primary/10" : ""
+                  }`}
                 >
-                  {item.icon}
+                  {React.cloneElement(item.icon as React.ReactElement, { 
+                    size: 22, 
+                    strokeWidth: isActive ? 2.5 : 2 
+                  })}
                 </motion.div>
                 
                 {isActive && (
                   <motion.div
-                    layoutId="bubble"
-                    className="absolute inset-0 bg-primary/10 rounded-full -z-10"
+                    layoutId="nav-pill"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
               </div>
               
-              <span className={`text-[9px] font-bold uppercase tracking-tighter transition-transform duration-300 ${isActive ? "scale-105" : "scale-100 opacity-60"}`}>
+              <span className={`text-[10px] font-bold tracking-tight transition-all ${
+                isActive ? "opacity-100 translate-y-0" : "opacity-40 translate-y-0.5"
+              }`}>
                 {item.name}
               </span>
             </Link>
