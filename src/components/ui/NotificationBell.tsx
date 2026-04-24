@@ -34,41 +34,42 @@ export function NotificationBell() {
       .catch(() => {});
   }, []);
 
-  const { onEvent } = useRealtime(userId || undefined);
+  const { useEvent } = useRealtime(userId || undefined);
 
+  // Request notification permission on mount
   useEffect(() => {
-    // Request notification permission
     if (typeof window !== "undefined" && "Notification" in window) {
       if (Notification.permission === "default") {
         Notification.requestPermission();
       }
     }
-    
-    onEvent("NOTIFICATION", (data) => {
-      const newNotif: Notification = {
-        id: data.id || Math.random(),
-        title: data.title,
-        message: data.message,
-        is_read: false,
-        created_at: data.created_at || new Date().toISOString()
-      };
-      setNotifications(prev => [newNotif, ...prev]);
-      setUnread(prev => prev + 1);
-      
-      // Show instant toast notification globally
-      toast(data.title, {
-        description: data.message,
-      });
-
-      // Native notification
-      if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-        new Notification(data.title, {
-          body: data.message,
-          icon: "/panda-logo.png"
-        });
-      }
-    });
   }, []);
+
+  // Subscribe to real-time NOTIFICATION events (called at top level — proper hook usage)
+  useEvent("NOTIFICATION", (data) => {
+    const newNotif: Notification = {
+      id: data.id || Math.random(),
+      title: data.title,
+      message: data.message,
+      is_read: false,
+      created_at: data.created_at || new Date().toISOString()
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    setUnread(prev => prev + 1);
+    
+    // Show instant toast notification globally
+    toast(data.title, {
+      description: data.message,
+    });
+
+    // Native notification
+    if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+      new window.Notification(data.title, {
+        body: data.message,
+        icon: "/panda-logo.png"
+      });
+    }
+  });
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -187,7 +188,7 @@ export function NotificationBell() {
                     <CheckCheck size={14} /> All read
                   </button>
                 )}
-                <button onClick={() => setOpen(false)} className="text-on-surface-variant hover:text-on-surface">
+                <button onClick={() => setOpen(false)} aria-label="Close notifications" className="text-on-surface-variant hover:text-on-surface">
                   <X size={16} />
                 </button>
               </div>

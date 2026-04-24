@@ -21,7 +21,21 @@ interface Message {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
-const WS_BASE = API_BASE.replace("https://", "wss://").replace("http://", "ws://");
+
+const resolveMediaUrl = (url: string | null | undefined, forDownload = false) => {
+  if (!url) return "";
+  let finalUrl = url;
+  if (!(url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:"))) {
+    finalUrl = `${API_BASE}${url}`;
+  }
+  
+  if (forDownload && finalUrl.includes("cloudinary.com")) {
+    return finalUrl.replace("/upload/", "/upload/fl_attachment/");
+  }
+  return finalUrl;
+};
+
+import { useRealtime } from "@/hooks/useRealtime";
 
 export default function ChatClient({ username: propUsername }: { username?: string }) {
   const params = useParams();
@@ -40,7 +54,8 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+
+  const { isConnected: connected, useEvent, sendEvent } = useRealtime(currentUserId || undefined);
 
   const [hasMore, setHasMore] = useState(true);
   const [fetchingMore, setFetchingMore] = useState(false);
@@ -67,17 +82,14 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const markAsRead = useCallback(async () => {
     try {
       await api.post(`/social/messages/${username}/read`);
-      // Also send via WebSocket if connected for immediate update
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: "READ",
-          to: username
-        }));
-      }
+      sendEvent({
+        type: "READ",
+        to: username
+      });
     } catch (err) {
       console.error("Failed to mark messages as read", err);
     }
-  }, [username]);
+  }, [username, sendEvent]);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -117,68 +129,46 @@ export default function ChatClient({ username: propUsername }: { username?: stri
     }
   }, [currentUserId, fetchMessages, username]);
 
-  // WebSocket connection
-  useEffect(() => {
-    if (!currentUserId) return;
+  // WebSocket connection using the shared hook
+  useEvent("MESSAGES_READ", () => {
+    setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
+  });
 
-    const ws = new WebSocket(`${WS_BASE}/social/ws/${currentUserId}`);
-    wsRef.current = ws;
+  useEvent("NEW_MESSAGE", (msg) => {
+    // Ignore notifications in the chat list
+    if (msg.type === "NOTIFICATION") return;
 
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setConnected(false);
+    setMessages(prev => {
+      // Verify this message belongs to the current conversation
+      const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+      const isFromRecipient = msg.sender_username === username;
 
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        
-        if (msg.type === "MESSAGES_READ") {
-          setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
-          return;
-        }
-
-        // Ignore notifications in the chat list
-        if (msg.type === "NOTIFICATION") return;
-
-        setMessages(prev => {
-          // Verify this message belongs to the current conversation
-          const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
-          const isFromRecipient = msg.sender_username === username;
-
-          if (!isFromMe && !isFromRecipient) {
-            return prev; // Ignore messages from other users in this chat window
-          }
-
-          const exists = prev.some(m => m.id === msg.id);
-          if (exists) return prev;
-          
-          // If we receive a message from the recipient while in the chat, mark it as read immediately
-          if (isFromRecipient) {
-             ws.send(JSON.stringify({ type: "READ", to: username }));
-          } else if (isFromMe && typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-             // Optional: Handle own messages in other tabs if needed
-          }
-          
-          return [...prev, msg];
-        });
-
-        // Scroll logic for incoming messages
-        // Always scroll for own messages, or if near bottom for others
-        const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
-        if (isFromMe) {
-          setTimeout(() => {
-            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
-        }
-      } catch (err) {
-        console.error("WS Message handling error:", err);
+      if (!isFromMe && !isFromRecipient) {
+        return prev; // Ignore messages from other users in this chat window
       }
-    };
 
-    return () => {
-      ws.close();
-    };
-  }, [currentUserId, currentUsername, username]);
+      const exists = prev.some(m => m.id === msg.id);
+      if (exists) return prev;
+      
+      // If we receive a message from the recipient while in the chat, mark it as read immediately
+      if (isFromRecipient) {
+         sendEvent({ type: "READ", to: username });
+      } else if (isFromMe && typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+         // Optional: Handle own messages in other tabs if needed
+      }
+      
+      return [...prev, msg];
+    });
+
+    // Scroll logic for incoming messages
+    // Always scroll for own messages, or if near bottom for others
+    const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+    if (isFromMe) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  });
 
   useEffect(() => {
     // Initial scroll to bottom
@@ -266,14 +256,14 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   };
 
   const emitMessage = async (content: string, media_url: string | null, media_type: string | null) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        to: username,
-        content,
-        media_url,
-        media_type
-      }));
-    } else {
+    const sentViaWs = sendEvent({
+      to: username,
+      content,
+      media_url,
+      media_type
+    });
+    
+    if (!sentViaWs) {
       const res = await api.post(`/social/messages/${username}`, { 
         content,
         media_url,
@@ -299,18 +289,7 @@ export default function ChatClient({ username: propUsername }: { username?: stri
     return new Date(date).toLocaleDateString();
   };
 
-  const resolveMediaUrl = (url: string | null | undefined, forDownload = false) => {
-    if (!url) return "";
-    let finalUrl = url;
-    if (!(url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:"))) {
-      finalUrl = `${API_BASE}${url}`;
-    }
-    
-    if (forDownload && finalUrl.includes("cloudinary.com")) {
-      return finalUrl.replace("/upload/", "/upload/fl_attachment/");
-    }
-    return finalUrl;
-  };
+
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] mt-20 md:mt-24">

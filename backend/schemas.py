@@ -25,8 +25,7 @@ class UserOut(BaseModel):
     auto_update: str = "Over Wi-Fi only"
     download_pref: str = "Ask every time"
     created_at: datetime
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class Token(BaseModel):
     access_token: str
@@ -67,8 +66,7 @@ class AppOut(AppBase):
     downloads_count: int = 0
     maturity_rating: str = "3+"
     file_size: str = "Varies"
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class GrantAccessInput(BaseModel):
     username: str
@@ -80,8 +78,7 @@ class PurchaseOut(BaseModel):
     app_id: int
     purchased_at: datetime
     app: Optional[AppOut] = None
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 # ── Reviews ───────────────────────────────────
 class ReviewCreate(BaseModel):
@@ -95,8 +92,7 @@ class ReviewOut(BaseModel):
     rating: int
     comment: Optional[str] = None
     created_at: datetime
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 # ── Notifications ──────────────────────────────
 class NotificationOut(BaseModel):
@@ -106,8 +102,7 @@ class NotificationOut(BaseModel):
     message: str
     is_read: bool
     created_at: datetime
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 # -- Community --
 class PostCreate(BaseModel):
@@ -124,8 +119,7 @@ class ReplyOut(BaseModel):
     created_at: datetime
     username: Optional[str] = None
     avatar_url: Optional[str] = None
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class PostOut(BaseModel):
     id: int
@@ -137,8 +131,7 @@ class PostOut(BaseModel):
     likes_count: int = 0
     liked_by_me: bool = False
     replies: List[ReplyOut] = []
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 # -- Social --
 class UserProfile(BaseModel):
@@ -157,8 +150,7 @@ class UserProfile(BaseModel):
     is_following: bool = False
     apps: List[AppOut] = []
     posts: List[PostOut] = []
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class MessageCreate(BaseModel):
     content: str
@@ -176,8 +168,7 @@ class MessageOut(BaseModel):
     created_at: datetime
     sender_username: Optional[str] = None
     sender_avatar_url: Optional[str] = None
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class UpdateProfile(BaseModel):
     full_name: Optional[str] = None

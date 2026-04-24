@@ -13,6 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app-store-smoky.vercel.app"),
   title: {
     default: "PandaStore | Discover Apps, Games, Music & Books",
     template: "%s | PandaStore",
@@ -81,7 +82,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden">
+      <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden" suppressHydrationWarning>
         <Providers>
           <UILayoutWrapper>
             {children}

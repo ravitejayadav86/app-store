@@ -20,6 +20,7 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface Conversation {
   username: string;
@@ -31,7 +32,6 @@ interface Conversation {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
-const WS_BASE = API_BASE.replace("https://", "wss://").replace("http://", "ws://");
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -39,7 +39,8 @@ export default function MessagesPage() {
   const [search, setSearch] = useState("");
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const router = useRouter();
-  const wsRef = useRef<WebSocket | null>(null);
+
+  const { useEvent } = useRealtime(currentUserId || undefined);
 
   const fetchConversations = async () => {
     try {
@@ -68,56 +69,40 @@ export default function MessagesPage() {
     }
   }, [currentUserId]);
 
-  // WebSocket for real-time list updates
-  useEffect(() => {
-    if (!currentUserId) return;
+  // WebSocket for real-time list updates via shared hook
+  useEvent("MESSAGES_READ", (msg) => {
+    setConversations(prev => prev.map(c => 
+      (c.username === msg.by) ? { ...c, unread_count: 0 } : c
+    ));
+  });
 
-    const ws = new WebSocket(`${WS_BASE}/social/ws/${currentUserId}`);
-    wsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
+  useEvent("NEW_MESSAGE", (msg) => {
+    if (msg.content) {
+      setConversations(prev => {
+        const otherUsername = msg.sender_username === currentUserId ? msg.receiver_username : msg.sender_username;
+        // Note: Our WS payload might not have receiver_username, but it has sender_username.
+        // In a real app, we'd ensure the payload has what we need.
         
-        // If it's a read notification
-        if (msg.type === "MESSAGES_READ") {
-          setConversations(prev => prev.map(c => 
-            (c.username === msg.by) ? { ...c, unread_count: 0 } : c
-          ));
-          return;
+        const existingIdx = prev.findIndex(c => c.username === msg.sender_username);
+        const newConv: Conversation = {
+          username: msg.sender_username,
+          avatar_url: msg.sender_avatar_url,
+          last_message: msg.content,
+          created_at: msg.created_at,
+          is_read: false,
+          unread_count: (existingIdx >= 0 ? (prev[existingIdx].unread_count || 0) : 0) + 1
+        };
+
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated.splice(existingIdx, 1);
+          return [newConv, ...updated];
+        } else {
+          return [newConv, ...prev];
         }
-
-        // If it's a new message
-        if (msg.content) {
-          setConversations(prev => {
-            const otherUsername = msg.sender_username === currentUserId ? msg.receiver_username : msg.sender_username;
-            // Note: Our WS payload might not have receiver_username, but it has sender_username.
-            // In a real app, we'd ensure the payload has what we need.
-            
-            const existingIdx = prev.findIndex(c => c.username === msg.sender_username);
-            const newConv: Conversation = {
-              username: msg.sender_username,
-              avatar_url: msg.sender_avatar_url,
-              last_message: msg.content,
-              created_at: msg.created_at,
-              is_read: false,
-              unread_count: (existingIdx >= 0 ? (prev[existingIdx].unread_count || 0) : 0) + 1
-            };
-
-            if (existingIdx >= 0) {
-              const updated = [...prev];
-              updated.splice(existingIdx, 1);
-              return [newConv, ...updated];
-            } else {
-              return [newConv, ...prev];
-            }
-          });
-        }
-      } catch {}
-    };
-
-    return () => ws.close();
-  }, [currentUserId]);
+      });
+    }
+  });
 
   const filtered = conversations.filter(c => 
     c.username.toLowerCase().includes(search.toLowerCase())

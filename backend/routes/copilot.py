@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 import models
 from pydantic import BaseModel
+import re
 
 router = APIRouter(prefix="/copilot", tags=["Copilot"])
 
@@ -13,36 +14,69 @@ class ChatResponse(BaseModel):
     reply: str
     links: list[dict]
 
+def get_app_links(query_result):
+    links = []
+    for r in query_result:
+        url = f"/apps/{r.id}"
+        if r.category == "Games": url = f"/game/{r.id}"
+        elif r.category == "Music": url = f"/music"
+        elif r.category == "Books": url = f"/books"
+        links.append({"text": r.name, "url": url})
+    return links
+
 @router.post("/ask", response_model=ChatResponse)
 def ask_copilot(req: ChatRequest, db: Session = Depends(get_db)):
     msg = req.message.lower()
-    reply = "I'm Panda AI! I can help you find apps, games, music, books, or help you publish your own creations. What are you looking for?"
-    links = []
+    
+    # Advanced intent matching
+    if any(w in msg for w in ["hello", "hi", "hey", "greetings"]):
+        return ChatResponse(
+            reply="Hello! I'm Panda AI, your personal guide to the PandaStore universe. I can help you discover amazing apps, troubleshoot issues, or show you how to publish your own creations. What's on your mind?",
+            links=[{"text": "Explore Apps", "url": "/apps"}, {"text": "Discover Games", "url": "/games"}]
+        )
 
-    # Help / Support / Publish
-    if any(w in msg for w in ["publish", "upload", "create", "developer", "how to make"]):
-        reply = "I can definitely help with that! PandaStore is an open platform for creators. You can upload your Apps, Games, Music, or Books via our Publisher Portal."
-        links.append({"text": "Go to Publisher Portal", "url": "/publisher"})
-        return ChatResponse(reply=reply, links=links)
+    if any(w in msg for w in ["publish", "upload", "create", "developer", "submit", "make an app"]):
+        return ChatResponse(
+            reply="Awesome! PandaStore loves creators. To share your work with the world, head over to the Publisher Portal. You can upload Apps, Games, Music, and Books directly. We even support external URLs for web apps!",
+            links=[{"text": "Go to Publisher Portal", "url": "/publisher"}, {"text": "View Your Profile", "url": "/profile"}]
+        )
+
+    if any(w in msg for w in ["help", "support", "contact", "admin", "issue", "bug", "broken", "fix"]):
+        return ChatResponse(
+            reply="I'm here to help! If you're experiencing issues or need guidance, you can visit our Support Hub or ask the community. Our admins are also actively monitoring the platform.",
+            links=[{"text": "Support Hub", "url": "/support"}, {"text": "Community Discussions", "url": "/community"}]
+        )
         
-    if any(w in msg for w in ["help", "support", "contact", "admin", "issue"]):
-        reply = "Need assistance? You can check our Support page or ask the community for help."
-        links.append({"text": "Support Hub", "url": "/support"})
-        links.append({"text": "Community", "url": "/community"})
-        return ChatResponse(reply=reply, links=links)
+    if any(w in msg for w in ["message", "chat", "dm", "inbox"]):
+        return ChatResponse(
+            reply="Want to connect with others? Your inbox is fully end-to-end encrypted. You can chat securely with any other user on PandaStore.",
+            links=[{"text": "Open Messages", "url": "/messages"}, {"text": "Find People", "url": "/community"}]
+        )
+
+    if any(w in msg for w in ["settings", "profile", "account", "password", "theme", "dark mode"]):
+        return ChatResponse(
+            reply="You can customize your PandaStore experience in the Settings panel. From there, you can change your avatar, update your bio, toggle dark mode, and manage security.",
+            links=[{"text": "Account Settings", "url": "/settings"}, {"text": "View Profile", "url": "/profile"}]
+        )
+
+    if any(w in msg for w in ["what is pandastore", "about", "who are you"]):
+        return ChatResponse(
+            reply="PandaStore is the ultimate digital marketplace and social hub! It's not just an app store—it's a community where you can discover games, listen to music, read books, and connect with developers directly. And I'm Panda AI, the intelligence powering your experience here.",
+            links=[{"text": "Discover Trending", "url": "/discover"}, {"text": "Community", "url": "/community"}]
+        )
 
     # Categories Search
     category = None
     if any(w in msg for w in ["game", "games", "play", "racing", "action", "puzzle", "rpg", "shooter"]):
         category = "Games"
-    elif any(w in msg for w in ["music", "song", "audio", "track", "beat", "album"]):
+    elif any(w in msg for w in ["music", "song", "audio", "track", "beat", "album", "listen"]):
         category = "Music"
-    elif any(w in msg for w in ["book", "read", "novel", "ebook", "story"]):
+    elif any(w in msg for w in ["book", "read", "novel", "ebook", "story", "literature"]):
         category = "Books"
-    elif any(w in msg for w in ["app", "productivity", "tool", "utility", "social"]):
+    elif any(w in msg for w in ["app", "productivity", "tool", "utility", "social", "software"]):
         category = "Productivity" 
 
-    if category or "find" in msg or "search" in msg or "show me" in msg:
+    if category or any(w in msg for w in ["find", "search", "show", "looking", "want"]):
         query = db.query(models.App).filter(models.App.status == 'published')
         
         if category:
@@ -52,8 +86,8 @@ def ask_copilot(req: ChatRequest, db: Session = Depends(get_db)):
                 query = query.filter(models.App.category == category)
                 
         # Basic keyword extraction
-        stop_words = ["find", "show", "search", "best", "good", "some", "the", "that", "this", "me", "a", "an", "for", "with"]
-        words = [w for w in msg.split() if len(w) > 2 and w not in stop_words]
+        stop_words = ["find", "show", "search", "best", "good", "some", "the", "that", "this", "me", "a", "an", "for", "with", "want", "looking"]
+        words = [w for w in re.findall(r'\w+', msg) if len(w) > 2 and w not in stop_words]
         
         for w in words:
             query = query.filter(
@@ -62,19 +96,13 @@ def ask_copilot(req: ChatRequest, db: Session = Depends(get_db)):
                 (models.App.category.ilike(f"%{w}%"))
             )
             
-        results = query.limit(3).all()
+        results = query.limit(4).all()
         
         if results:
-            reply = f"I found some great options in the store that match what you're looking for! Here are the top {len(results)} results:"
-            for r in results:
-                url = f"/apps/{r.id}"
-                if r.category == "Games": url = f"/game/{r.id}"
-                elif r.category == "Music": url = f"/music" # Simple redirect for now
-                elif r.category == "Books": url = f"/books"
-                links.append({"text": r.name, "url": url})
+            reply = f"I found some fantastic options matching your request! Here are the top {len(results)} results from the store:"
+            return ChatResponse(reply=reply, links=get_app_links(results))
         else:
             if category:
-                # Fallback to top 3 in category
                 fallback = db.query(models.App).filter(models.App.status == 'published')
                 if category == "Productivity":
                     fallback = fallback.filter(models.App.category.notin_(["Games", "Music", "Books"]))
@@ -83,16 +111,17 @@ def ask_copilot(req: ChatRequest, db: Session = Depends(get_db)):
                     
                 fallback_results = fallback.limit(3).all()
                 if fallback_results:
-                    reply = f"I couldn't find exact matches for your words, but here are some of the best {category} we have!"
-                    for r in fallback_results:
-                        url = f"/apps/{r.id}"
-                        if r.category == "Games": url = f"/game/{r.id}"
-                        elif r.category == "Music": url = f"/music"
-                        elif r.category == "Books": url = f"/books"
-                        links.append({"text": r.name, "url": url})
+                    reply = f"I couldn't find exact matches for those specific words, but here are some of the most popular {category} on PandaStore right now:"
+                    return ChatResponse(reply=reply, links=get_app_links(fallback_results))
                 else:
-                    reply = f"I'm sorry, I couldn't find any {category} in the store right now."
+                    return ChatResponse(reply=f"I'm sorry, our shelves for {category} are currently empty. Check back later!", links=[])
             else:
-                reply = "I couldn't find any apps matching your exact request. Try searching for a broader category like 'games' or 'music'!"
+                return ChatResponse(
+                    reply="I couldn't find any specific items matching your request. Try searching for a broader category like 'action games', 'productivity apps', or 'electronic music'!",
+                    links=[{"text": "Browse All Categories", "url": "/discover"}]
+                )
 
-    return ChatResponse(reply=reply, links=links)
+    return ChatResponse(
+        reply="I'm not quite sure how to help with that specific request. I can help you find apps, games, music, or books, and I can guide you through using PandaStore's features like publishing or messaging.",
+        links=[{"text": "Discover Apps", "url": "/discover"}, {"text": "Support", "url": "/support"}]
+    )

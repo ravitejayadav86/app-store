@@ -223,8 +223,8 @@ export default function ProfileClient() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/publisher")} className="text-gray-900"><Plus size={24} /></button>
-            <button className="text-gray-900"><Menu size={24} /></button>
+            <button onClick={() => router.push("/publisher")} aria-label="Go to Publisher Hub" className="text-gray-900"><Plus size={24} /></button>
+            <button aria-label="Open Menu" className="text-gray-900"><Menu size={24} /></button>
           </div>
         </header>
 
@@ -276,10 +276,10 @@ export default function ProfileClient() {
         </div>
 
         <div className="mt-6 flex border-b border-gray-100">
-          <button onClick={() => setActiveTab(null)} className={`flex-1 py-3 flex justify-center border-b-2 ${!activeTab ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><GridIcon size={20} /></button>
-          <button onClick={() => setActiveTab("installed")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "installed" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Package size={20} /></button>
-          <button onClick={() => setActiveTab("saved")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "saved" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Bookmark size={20} /></button>
-          <button onClick={() => setActiveTab("tags")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "tags" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><UserSquare2 size={20} /></button>
+          <button aria-label="Grid View" onClick={() => setActiveTab(null)} className={`flex-1 py-3 flex justify-center border-b-2 ${!activeTab ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><GridIcon size={20} /></button>
+          <button aria-label="Installed Apps" onClick={() => setActiveTab("installed")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "installed" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Package size={20} /></button>
+          <button aria-label="Saved Items" onClick={() => setActiveTab("saved")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "saved" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Bookmark size={20} /></button>
+          <button aria-label="Tagged Posts" onClick={() => setActiveTab("tags")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "tags" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><UserSquare2 size={20} /></button>
         </div>
 
         <div className="flex-1 bg-white">
@@ -474,7 +474,7 @@ export default function ProfileClient() {
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl">
               <header className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
                 <h2 className="text-xl font-black text-gray-900">Edit Profile</h2>
-                <button onClick={() => setEditing(false)} className="text-gray-400 hover:text-gray-900"><X size={24} /></button>
+                <button onClick={() => setEditing(false)} aria-label="Close edit profile" className="text-gray-400 hover:text-gray-900"><X size={24} /></button>
               </header>
               <div className="p-8 space-y-6">
                 <div className="space-y-1.5">
@@ -513,7 +513,7 @@ export default function ProfileClient() {
             className="fixed inset-0 z-[110] bg-white flex flex-col sm:max-w-md sm:ml-auto sm:shadow-2xl sm:border-l sm:border-gray-100"
           >
             <header className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-white sticky top-0 z-10">
-              <button onClick={() => setShowPersonalInfo(false)} className="p-2 -ml-2 text-gray-500 hover:text-black transition-colors">
+              <button onClick={() => setShowPersonalInfo(false)} aria-label="Go back" className="p-2 -ml-2 text-gray-500 hover:text-black transition-colors">
                 <ChevronLeft size={24} />
               </button>
               <h2 className="font-bold text-lg">Personal Information</h2>

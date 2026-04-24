@@ -36,7 +36,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={{ scale: 0.98, y: 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
         className={cn(
-          "inline-flex items-center justify-center rounded-pill transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
+          "inline-flex items-center justify-center rounded-pill transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           variants[variant],
           sizes[size],
           className

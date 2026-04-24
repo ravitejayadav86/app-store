@@ -49,16 +49,16 @@ export default function CommunityPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   // Real-time Integration
-  const { onEvent } = useRealtime(currentUserId || undefined);
+  const { useEvent } = useRealtime(currentUserId || undefined);
 
-  onEvent("NEW_POST", (data) => {
+  useEvent("NEW_POST", (data) => {
     setPosts(prev => {
       if (prev.find(p => p.id === data.post.id)) return prev;
       return [data.post, ...prev];
     });
   });
 
-  onEvent("NEW_REPLY", (data) => {
+  useEvent("NEW_REPLY", (data) => {
     setPosts(prev => prev.map(p => {
       if (p.id === data.reply.post_id) {
         if (p.replies.find(r => r.id === data.reply.id)) return p;
