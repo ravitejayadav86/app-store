@@ -531,19 +531,28 @@ def upload_chat_file(
 @router.get("/messages/{username}")
 def get_messages(
     username: str,
+    limit: int = 50,
+    before_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     other = db.query(models.User).filter(models.User.username == username).first()
     if not other:
         raise HTTPException(404, "User not found")
-    messages = db.query(models.Message).filter(
+    
+    query = db.query(models.Message).filter(
         ((models.Message.sender_id == current_user.id) & (models.Message.receiver_id == other.id)) |
         ((models.Message.sender_id == other.id) & (models.Message.receiver_id == current_user.id))
-    ).order_by(models.Message.created_at.asc()).all()
+    )
     
+    if before_id:
+        query = query.filter(models.Message.id < before_id)
+        
+    messages = query.order_by(models.Message.id.desc()).limit(limit).all()
+    
+    # Return reversed because we want chronological order in the UI
     result = []
-    for m in messages:
+    for m in reversed(messages):
         result.append({
             "id": m.id,
             "sender_id": m.sender_id,
@@ -563,36 +572,50 @@ def get_conversations(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    # Use a more efficient query to get last messages
-    messages = db.query(models.Message).filter(
-        (models.Message.sender_id == current_user.id) |
-        (models.Message.receiver_id == current_user.id)
-    ).order_by(models.Message.created_at.desc()).all()
+    # Use a more efficient query to get conversations with user details joined
+    from sqlalchemy import or_, and_, desc, func
     
-    seen = set()
+    # Subquery to get the latest message ID for each conversation partner
+    subquery = db.query(
+        func.max(models.Message.id).label("max_id")
+    ).filter(
+        or_(
+            models.Message.sender_id == current_user.id,
+            models.Message.receiver_id == current_user.id
+        )
+    ).group_by(
+        func.case(
+            (models.Message.sender_id == current_user.id, models.Message.receiver_id),
+            else_=models.Message.sender_id
+        )
+    ).subquery()
+
+    latest_messages = db.query(models.Message).filter(
+        models.Message.id.in_(subquery)
+    ).order_by(models.Message.created_at.desc()).all()
+
     conversations = []
-    for m in messages:
+    for m in latest_messages:
         other_id = m.receiver_id if m.sender_id == current_user.id else m.sender_id
-        if other_id not in seen:
-            seen.add(other_id)
-            other = db.query(models.User).filter(models.User.id == other_id).first()
-            if other:
-                # Count unread messages from this user
-                unread_count = db.query(models.Message).filter(
-                    models.Message.sender_id == other_id,
-                    models.Message.receiver_id == current_user.id,
-                    models.Message.is_read == False
-                ).count()
-                
-                conversations.append({
-                    "username": other.username,
-                    "avatar_url": other.avatar_url,
-                    "last_message": m.content,
-                    "created_at": m.created_at,
-                    "is_read": m.is_read or m.sender_id == current_user.id,
-                    "unread_count": unread_count
-                })
-    return conversations 
+        other = db.query(models.User).filter(models.User.id == other_id).first()
+        
+        if other:
+            # Count unread messages from this user
+            unread_count = db.query(models.Message).filter(
+                models.Message.sender_id == other_id,
+                models.Message.receiver_id == current_user.id,
+                models.Message.is_read == False
+            ).count()
+            
+            conversations.append({
+                "username": other.username,
+                "avatar_url": other.avatar_url,
+                "last_message": m.content,
+                "created_at": m.created_at,
+                "is_read": m.is_read or m.sender_id == current_user.id,
+                "unread_count": unread_count
+            })
+    return conversations
 
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(
@@ -644,7 +667,15 @@ async def websocket_endpoint(
                 )
                 db.add(message)
                 db.commit()
-                db.refresh(message)
+                # Persistent Notification for the receiver
+                notif = models.Notification(
+                    user_id=receiver.id,
+                    title="New Message",
+                    message=f"@{sender.username if sender else 'Someone'} sent you a message."
+                )
+                db.add(notif)
+                db.commit()
+                db.refresh(notif)
                 
                 payload = {
                     "id": message.id,
@@ -661,6 +692,15 @@ async def websocket_endpoint(
                 
                 await manager.send_to_user(receiver.id, payload)
                 await manager.send_to_user(user_id, payload)
+                
+                # Also notify about the new notification record
+                await manager.send_to_user(receiver.id, {
+                    "type": "NOTIFICATION",
+                    "id": notif.id,
+                    "title": notif.title,
+                    "message": notif.message,
+                    "created_at": notif.created_at.isoformat()
+                })
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)

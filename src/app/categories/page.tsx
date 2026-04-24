@@ -88,27 +88,27 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-12 md:gap-20 pb-20 pt-4 md:pt-0">
       <section className="px-4 md:px-8">
-        <div className="relative h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-12 text-on-primary flex flex-col justify-end gap-6 shadow-2xl shadow-primary/20">
+        <div className="relative h-[380px] md:h-[600px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-linear-to-br from-primary to-primary-dim p-8 md:p-12 text-on-primary flex flex-col justify-end gap-4 shadow-2xl shadow-primary/20">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }} 
             animate={{ scale: 1, opacity: 1 }} 
             transition={{ duration: 1.5, ease: "easeOut" }} 
-            className="absolute top-0 right-10 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -mr-40 -mt-40" 
+            className="absolute top-0 right-10 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/10 rounded-full blur-[100px] -mr-20 -mt-20" 
           />
           <div className="relative z-10 max-w-2xl">
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border border-white/20"
+              className="flex items-center gap-2 mb-3 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/20"
             >
-              <Zap size={14} />
+              <Zap size={12} />
               <span>Live Taxonomy</span>
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-on-primary">Segment Your World.</h1>
-            <p className="text-lg md:text-xl text-on-primary/80 mb-2">Find exactly what you need with our real-time application organization.</p>
+            <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-2 text-on-primary">Segment Your World.</h1>
+            <p className="text-sm md:text-xl text-on-primary/80 mb-2 font-medium max-w-sm">Find exactly what you need with our real-time application organization.</p>
           </div>
         </div>
       </section>

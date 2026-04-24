@@ -209,27 +209,27 @@ function UploadFormContent() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-20">
-      <div className="flex items-center gap-4 mb-12">
+    <div className="max-w-4xl mx-auto px-4 py-8 md:py-20">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 md:mb-12">
         <button
           onClick={() => step === 2 ? setStep(1) : router.back()}
-          className="p-3 rounded-2xl glass hover:bg-surface-low transition-colors"
+          className="p-3 rounded-2xl glass hover:bg-surface-low transition-colors active:scale-95"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Submit New App</h1>
-          <p className="text-on-surface-variant font-medium">
-            {step === 1 ? "Step 1 of 2: App Information" :
-             step === 2 ? "Step 2 of 2: Upload Files" :
-             "Submission Complete!"}
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight">Submit New App</h1>
+          <p className="text-xs md:text-sm text-on-surface-variant font-bold uppercase tracking-widest mt-1">
+            {step === 1 ? "Step 1 of 2: Information" :
+             step === 2 ? "Step 2 of 2: Files" :
+             "Complete!"}
           </p>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-10">
+      <div className="flex gap-1.5 md:gap-2 mb-8 md:mb-10">
         {[1, 2, 3].map((s) => (
-          <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= s ? "bg-primary" : "bg-surface-low"}`} />
+          <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= s ? "bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" : "bg-surface-low"}`} />
         ))}
       </div>
 
@@ -237,7 +237,7 @@ function UploadFormContent() {
 
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-            <GlassCard className="p-10 space-y-8">
+            <GlassCard className="p-6 md:p-10 space-y-6 md:space-y-8">
               <form onSubmit={handleMetadataSubmit} className="space-y-6">
 
                 <div className="flex items-center gap-6">
@@ -378,7 +378,7 @@ function UploadFormContent() {
 
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <GlassCard className="p-10 space-y-8">
+            <GlassCard className="p-6 md:p-10 space-y-6 md:space-y-8">
               <form onSubmit={handleFileUpload} className="space-y-8">
                 <div className="space-y-3">
                   <div className="flex justify-between items-end px-1">
