@@ -308,38 +308,43 @@ function AppDetailContent({ id: propId }: { id?: string }) {
           </div>
         </div>
 
-        {/* Main Action Button */}
-        <Button
-          size="lg"
-          onClick={() => {
-            if (!app.file_path) {
-              handleDownload();
-              return;
-            }
-            if (app.price > 0) {
-              router.push(`/checkout?appId=${app.id}`);
-            } else {
-              handleDownload();
-            }
-          }}
-          disabled={downloading}
-          className="w-full h-14 sm:h-12 rounded-xl sm:rounded-full bg-primary text-on-primary font-black text-lg mb-12 shadow-xl shadow-primary/20 active:scale-95 transition-all"
-        >
-          {downloading ? (
-            <Loader2 className="animate-spin mr-3" size={20} />
-          ) : !app.file_path ? (
-            <Bell size={20} className="mr-3" />
-          ) : (
-            <Download size={20} className="mr-3" />
-          )}
-          {downloading
-            ? "Installing..."
-            : !app.file_path
-            ? "Notify Me"
-            : app.price === 0
-            ? "Install"
-            : `Buy for $${app.price}`}
-        </Button>
+        {/* Main Action Button - Sticky for Mobile */}
+        <div className="fixed bottom-0 inset-x-0 p-4 md:relative md:p-0 z-50 md:z-10 md:mb-12">
+          <div className="md:hidden absolute inset-0 bg-linear-to-t from-background via-background/95 to-transparent -z-10 pointer-events-none h-32 -top-12" />
+          <Button
+            size="lg"
+            onClick={() => {
+              if (!app.file_path) {
+                handleDownload();
+                return;
+              }
+              if (app.price > 0) {
+                router.push(`/checkout?appId=${app.id}`);
+              } else {
+                handleDownload();
+              }
+            }}
+            disabled={downloading}
+            className="w-full h-14 rounded-2xl md:rounded-full bg-primary text-on-primary font-black text-lg shadow-2xl shadow-primary/30 active:scale-95 transition-all"
+          >
+            {downloading ? (
+              <Loader2 className="animate-spin mr-3" size={22} />
+            ) : !app.file_path ? (
+              <Bell size={22} className="mr-3" />
+            ) : (
+              <Download size={22} className="mr-3" />
+            )}
+            <span className="tracking-tight">
+              {downloading
+                ? "Preparing..."
+                : !app.file_path
+                ? "Notify When Available"
+                : app.price === 0
+                ? "Install"
+                : `Buy for $${app.price}`}
+            </span>
+          </Button>
+        </div>
 
         {/* Screenshots Section */}
         {app.screenshot_urls && JSON.parse(app.screenshot_urls).length > 0 && (

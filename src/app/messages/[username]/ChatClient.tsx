@@ -39,7 +39,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+
+  const [hasMore, setHasMore] = useState(true);
+  const [fetchingMore, setFetchingMore] = useState(false);
 
   useEffect(() => {
     api.get("/users/me")
@@ -51,6 +55,13 @@ export default function ChatClient({ username: propUsername }: { username?: stri
         toast.error("Please sign in to message");
         router.push("/login");
       });
+    
+    // Request notification permission
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
   }, [router]);
 
   const markAsRead = useCallback(async () => {
@@ -70,14 +81,30 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await api.get(`/social/messages/${username}`);
+      const res = await api.get(`/social/messages/${username}?limit=50`);
       setMessages(res.data);
+      if (res.data.length < 50) setHasMore(false);
       // Mark as read when messages are loaded
       markAsRead();
     } catch {
       toast.error("Failed to load messages");
     }
   }, [username, markAsRead]);
+
+  const loadMoreMessages = async () => {
+    if (!hasMore || fetchingMore || messages.length === 0) return;
+    setFetchingMore(true);
+    try {
+      const beforeId = messages[0].id;
+      const res = await api.get(`/social/messages/${username}?limit=50&before_id=${beforeId}`);
+      if (res.data.length < 50) setHasMore(false);
+      setMessages(prev => [...res.data, ...prev]);
+    } catch {
+      console.error("Failed to load more messages");
+    } finally {
+      setFetchingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (currentUserId) fetchMessages();
@@ -118,10 +145,22 @@ export default function ChatClient({ username: propUsername }: { username?: stri
           if (msg.sender_username === username) {
              // Send read confirmation back
              ws.send(JSON.stringify({ type: "READ", to: username }));
+          } else if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+             // Show native notification if window is hidden
+             new Notification(`New message from @${msg.sender_username}`, {
+                body: msg.content,
+                icon: "/panda-logo.png"
+             });
           }
           
           return [...prev, msg];
         });
+
+        // Only scroll to bottom for incoming messages if we are already near the bottom
+        // Or if it's our own message
+        if (msg.sender_id === currentUserId) {
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
       } catch {}
     };
 
@@ -131,8 +170,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   }, [currentUserId, username]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Initial scroll to bottom
+    if (messages.length > 0 && messages.length <= 50 && !fetchingMore) {
+      bottomRef.current?.scrollIntoView({ behavior: "auto" });
+    }
+  }, [messages.length, fetchingMore]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -259,34 +301,55 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] mt-20">
+    <div className="flex flex-col h-[calc(100vh-80px)] mt-20 md:mt-24">
       {/* Header */}
-      <div className="mx-4 my-3 px-4 py-3 liquid-glass flex items-center gap-4 sticky top-24 z-20 border border-white/20">
-        <button onClick={() => router.back()} className="text-on-surface-variant hover:text-primary transition-colors">
-          <ArrowLeft size={20} />
+      <div className="mx-4 my-2 px-3 py-2 liquid-glass flex items-center gap-3 sticky top-24 z-20 border border-white/20">
+        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-primary/5 transition-colors">
+          <ArrowLeft size={18} />
         </button>
-        <Link href={`/users/${username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary/20 to-transparent flex items-center justify-center font-bold text-primary text-sm overflow-hidden shadow-inner border border-primary/5">
+        <Link href={`/users/${username}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-1">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-sm overflow-hidden shadow-inner border border-primary/5">
             {recipientProfile?.avatar_url 
               ? <img src={resolveMediaUrl(recipientProfile.avatar_url)} alt={username as string} className="w-full h-full object-cover" />
               : (username as string)?.[0]?.toUpperCase()}
           </div>
-          <div>
-            <p className="font-bold text-on-surface text-sm">@{username}</p>
-            <div className="flex items-center gap-1.5">
-              <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500 animate-pulse" : "bg-on-surface-variant/30"}`} />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{connected ? "Connected" : "Offline"}</p>
+          <div className="min-w-0">
+            <p className="font-bold text-on-surface text-sm truncate">@{username}</p>
+            <div className="flex items-center gap-1">
+              <div className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-green-500 animate-pulse" : "bg-on-surface-variant/30"}`} />
+              <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">{connected ? "Online" : "Offline"}</p>
             </div>
           </div>
         </Link>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 text-[10px] font-bold uppercase tracking-widest text-primary">
-          <Lock size={12} /> E2E Active
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 text-[9px] font-bold uppercase tracking-widest text-primary">
+          <Lock size={10} /> Secure
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30">
-        {messages.length === 0 && (
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30"
+        onScroll={(e) => {
+          const target = e.currentTarget;
+          if (target.scrollTop === 0 && hasMore && !fetchingMore) {
+            loadMoreMessages();
+          }
+        }}
+      >
+        {hasMore && (
+          <div className="flex justify-center py-2">
+            <button 
+              onClick={loadMoreMessages}
+              disabled={fetchingMore}
+              className="text-[10px] font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors flex items-center gap-2"
+            >
+              {fetchingMore ? <Loader2 size={12} className="animate-spin" /> : "Load older messages"}
+            </button>
+          </div>
+        )}
+
+        {messages.length === 0 && !fetchingMore && (
           <div className="flex flex-col items-center justify-center h-full text-on-surface-variant space-y-4 opacity-40">
             <div className="p-4 rounded-3xl bg-surface-low border border-outline-variant/50">
               <Lock size={40} />

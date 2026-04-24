@@ -61,31 +61,32 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-12 pb-24">
       <section className="px-4 md:px-8">
-        <div className="relative h-[500px] md:h-[600px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-12 text-on-primary flex flex-col justify-end gap-4 md:gap-6 shadow-2xl">
+        <div className="relative h-[400px] md:h-[600px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-linear-to-br from-[#1a1c1e] via-[#2d2e33] to-[#1a1c1e] p-8 md:p-12 text-on-primary flex flex-col justify-end gap-4 shadow-2xl">
+          {/* Animated background pulse */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/10 rounded-full blur-[80px] md:blur-[100px] -mr-20 md:-mr-40 -mt-20 md:-mt-40"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 8, repeat: Infinity }}
+            className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32"
           />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
           <div className="relative z-10 max-w-2xl">
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 mb-3 md:mb-4 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md border border-white/20"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 mb-3 bg-white/10 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl border border-white/20"
             >
-              <Star size={12} className="fill-current md:w-3.5 md:h-3.5" />
-              <span>Discover</span>
+              <Compass size={12} />
+              <span>Explore Nexus</span>
             </motion.div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-3 md:mb-6">Find Your Next App.</h1>
-            <p className="text-sm md:text-xl text-on-primary/80 mb-6 md:mb-8 leading-relaxed">
-              Explore thousands of apps built by our amazing community of developers.
+            <h1 className="hero-text font-black tracking-tight mb-3 text-white">Find Your <br/> Next App.</h1>
+            <p className="text-sm md:text-xl text-white/80 mb-6 leading-relaxed max-w-sm font-medium">
+              Explore thousands of apps built by our community of developers.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-              <Button size="lg" className="bg-white text-primary w-full sm:w-auto">Browse Categories</Button>
+            <div className="flex flex-row gap-3">
+              <Button size="lg" className="bg-primary text-on-primary px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">All Categories</Button>
             </div>
           </div>
         </div>
@@ -98,7 +99,7 @@ export default function DiscoverPage() {
               <Flame className="text-primary" />
               <h2 className="text-3xl font-bold text-on-surface">Trending Now</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {trending.map((app, index) => (
                 <motion.div 
                   key={app.id} 
@@ -107,28 +108,25 @@ export default function DiscoverPage() {
                   transition={{ delay: 0.3 + index * 0.08 }}
                 >
                   <Link href={`/apps/${app.id}`}>
-                    <GlassCard className="flex flex-col gap-6 h-full hover:bg-surface-low transition-colors group">
-                      <div className={`w-16 h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white group-hover:scale-110 transition-transform overflow-hidden`}>
+                    <GlassCard className="flex flex-col gap-4 md:gap-6 h-full hover:bg-surface-low transition-colors group p-4 md:p-6">
+                      <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white group-hover:scale-110 transition-transform overflow-hidden`}>
                         {app.icon_url ? (
                           <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                         ) : (
-                          <Star size={28} />
+                          <Star size={24} className="md:w-7 md:h-7" />
                         )}
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
-                        <p className="text-sm text-on-surface-variant">{app.category}</p>
+                        <h3 className="text-sm md:text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
+                        <p className="text-[10px] md:text-sm text-on-surface-variant">{app.category}</p>
                       </div>
-                      <div className="flex items-center justify-between mt-auto">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mt-auto gap-2">
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">
+                          <span className="text-[8px] md:text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase w-fit">
                             {app.price === 0 ? "Free" : `$${app.price}`}
                           </span>
-                          {!app.file_path && (
-                            <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Unavailable</span>
-                          )}
                         </div>
-                        <Button size="sm" variant={app.file_path ? "primary" : "secondary"}>
+                        <Button size="xs" variant={app.file_path ? "primary" : "secondary"} className="w-full md:w-auto h-7">
                           {app.file_path ? "Get" : "View"}
                         </Button>
                       </div>
@@ -143,9 +141,9 @@ export default function DiscoverPage() {
             <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
               <div className="flex items-center gap-3 mb-8">
                 <TrendingUp className="text-primary" />
-                <h2 className="text-3xl font-bold text-on-surface">Rising Stars</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-on-surface">Rising Stars</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {risingStars.map((app, index) => (
                   <motion.div 
                     key={app.id} 
@@ -154,22 +152,19 @@ export default function DiscoverPage() {
                     transition={{ delay: 0.5 + index * 0.08 }}
                   >
                     <Link href={`/apps/${app.id}`}>
-                      <GlassCard className="flex flex-col gap-6 h-full hover:bg-surface-low transition-colors group">
-                        <div className={`w-16 h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white opacity-80 backdrop-grayscale-[0.5] group-hover:scale-110 transition-transform`}>
-                          <TrendingUp size={28} />
+                      <GlassCard className="flex flex-col gap-4 md:gap-6 h-full hover:bg-surface-low transition-colors group p-4 md:p-6">
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white opacity-80 backdrop-grayscale-[0.5] group-hover:scale-110 transition-transform`}>
+                          <TrendingUp size={24} className="md:w-7 md:h-7" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
-                          <p className="text-sm text-on-surface-variant">{app.category}</p>
+                          <h3 className="text-sm md:text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
+                          <p className="text-[10px] md:text-sm text-on-surface-variant">{app.category}</p>
                         </div>
-                        <div className="flex items-center justify-between mt-auto">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mt-auto gap-2">
                           <div className="flex flex-col gap-0.5">
-                             <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">NEW</span>
-                             {!app.file_path && (
-                               <span className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">Unavailable</span>
-                             )}
+                             <span className="text-[8px] md:text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase w-fit">NEW</span>
                           </div>
-                          <Button size="sm" variant={app.file_path ? "primary" : "secondary"}>
+                          <Button size="xs" variant={app.file_path ? "primary" : "secondary"} className="w-full md:w-auto h-7">
                             {app.file_path ? "Get" : "View"}
                           </Button>
                         </div>

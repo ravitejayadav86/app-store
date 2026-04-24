@@ -176,48 +176,71 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
             {/* Mobile Drawer */}
             <AnimatePresence>
                 {mobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        className="absolute top-full left-4 right-4 mt-3 liquid-glass p-6 lg:hidden flex flex-col gap-3 shadow-2xl border border-white/50 z-[60]"
-                    >
-                        <div className="grid grid-cols-2 gap-2 mb-4">
-                            {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => (
-                                <Link 
-                                    key={item} 
-                                    href={`/${item.toLowerCase() === 'discover' ? '' : item.toLowerCase()}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="flex items-center justify-center p-4 rounded-2xl bg-surface-low border border-outline-variant/10 text-sm font-black text-on-surface hover:bg-primary/5 hover:text-primary transition-all"
-                                >
-                                    {item}
-                                </Link>
-                            ))}
-                        </div>
-                        <div className="flex flex-col gap-3">
-                            <Link href="/publisher" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Publisher Hub</Button>
-                            </Link>
-                            {mounted && (
-                                session ? (
-                                    <button 
-                                        onClick={() => {
-                                            localStorage.removeItem("token");
-                                            signOut({ callbackUrl: "/" });
-                                            setMobileMenuOpen(false);
-                                        }}
-                                        className="w-full py-4 text-red-500 font-black text-xs uppercase tracking-widest border border-red-200 rounded-2xl hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                    <>
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-md z-[55] lg:hidden"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                            className="fixed top-24 left-4 right-4 liquid-glass p-8 lg:hidden flex flex-col gap-4 shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-white/40 z-[60] rounded-[2.5rem]"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-black tracking-tight">Main Menu</h3>
+                                <X size={20} className="opacity-40" onClick={() => setMobileMenuOpen(false)} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {[
+                                    { label: "Discover", icon: <Search size={16} />, href: "/" },
+                                    { label: "Apps", icon: <Settings size={16} />, href: "/discover" },
+                                    { label: "Music", icon: <MessageCircle size={16} />, href: "/music" },
+                                    { label: "Books", icon: <User size={16} />, href: "/books" },
+                                    { label: "Community", icon: <MessageCircle size={16} />, href: "/community" },
+                                    { label: "Support", icon: <ShieldAlert size={16} />, href: "/support" }
+                                ].map((item) => (
+                                    <Link 
+                                        key={item.label} 
+                                        href={item.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex flex-col items-center justify-center p-5 rounded-[2rem] bg-surface-low border border-outline-variant/10 text-xs font-black text-on-surface hover:bg-primary/5 hover:text-primary transition-all gap-2 active:scale-95"
                                     >
-                                        <LogOut size={16} /> Sign Out
-                                    </button>
-                                ) : (
-                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                                        <Button variant="tertiary" className="w-full justify-center py-5 text-sm font-black uppercase tracking-widest">Sign In</Button>
+                                        <div className="p-2.5 rounded-xl bg-white/5 shadow-sm text-primary">
+                                            {item.icon}
+                                        </div>
+                                        {item.label}
                                     </Link>
-                                )
-                            )}
-                        </div>
-                    </motion.div>
+                                ))}
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <Link href="/publisher" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button className="w-full justify-center py-6 text-sm font-black uppercase tracking-widest rounded-3xl">Publisher Hub</Button>
+                                </Link>
+                                {mounted && (
+                                    session ? (
+                                        <button 
+                                            onClick={() => {
+                                                localStorage.removeItem("token");
+                                                signOut({ callbackUrl: "/" });
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className="w-full py-5 text-red-500 font-black text-xs uppercase tracking-widest border border-red-200 rounded-3xl hover:bg-red-50 transition-all flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            <LogOut size={16} /> Sign Out
+                                        </button>
+                                    ) : (
+                                        <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="tertiary" className="w-full justify-center py-6 text-sm font-black uppercase tracking-widest rounded-3xl">Sign In</Button>
+                                        </Link>
+                                    )
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
                 </motion.nav>
