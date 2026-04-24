@@ -7,12 +7,19 @@ import { Button } from "@/components/ui/Button";
 import { Star, ArrowRight, Zap, Shield, Sparkles, Layout, Database, Cloud } from "lucide-react";
 import api from "@/lib/api";
 
+interface App {
+  id?: number | string;
+  title: string;
+  category: string;
+  icon: React.ReactNode;
+}
+
 export default function Home() {
-  const [apps, setApps] = useState([
-    { title: "Horizon Docs", category: "Productivity", icon: <Layout className="text-blue-500" /> },
-    { title: "Quantum Code", category: "Development", icon: <Database className="text-purple-500" /> },
-    { title: "Nebula Sync", category: "Utilities", icon: <Cloud className="text-cyan-500" /> },
-    { title: "Lumina Edit", category: "Graphics", icon: <Sparkles className="text-pink-500" /> },
+  const [apps, setApps] = useState<App[]>([
+    { id: 1, title: "Horizon Docs", category: "Productivity", icon: <Layout className="text-blue-500" /> },
+    { id: 2, title: "Quantum Code", category: "Development", icon: <Database className="text-purple-500" /> },
+    { id: 3, title: "Nebula Sync", category: "Utilities", icon: <Cloud className="text-cyan-500" /> },
+    { id: 4, title: "Lumina Edit", category: "Graphics", icon: <Sparkles className="text-pink-500" /> },
   ]);
 
   useEffect(() => {
@@ -26,7 +33,7 @@ export default function Home() {
             category: app.category,
             icon: app.icon_url ? <img src={app.icon_url} className="w-full h-full object-cover rounded-xl" alt={app.name} /> : <Layout className="text-primary" />
           }));
-          setApps(mappedApps as any);
+          setApps(mappedApps);
         }
       } catch (error) {
         console.error("Failed to fetch apps:", error);
