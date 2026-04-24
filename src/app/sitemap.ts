@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
 
+export const dynamic = "force-static";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://pandas-store.vercel.app";
 
@@ -21,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic app routes
   try {
-    const res = await fetch(`${API_BASE}/apps/`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/apps/`);
     if (res.ok) {
       const apps = await res.json();
       const dynamicRoutes: MetadataRoute.Sitemap = apps.map((app: { id: number; created_at: string }) => ({

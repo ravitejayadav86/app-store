@@ -9,58 +9,66 @@ from security import limiter, add_security_headers
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-try:
-    Base.metadata.create_all(bind=engine)
-    print("Tables synchronized.")
-except Exception as e:
-    print(f"Table sync error: {e}")
+# Table creation handled at runtime if needed, wrapped in try-except to prevent startup failure
+def init_db():
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Tables synchronized.")
+    except Exception as e:
+        print(f"Table sync error: {e}")
 
-try:
-    with engine.connect() as conn:
-        inspector = inspect(engine)
-        if "users" in inspector.get_table_names():
-            columns = [c["name"] for c in inspector.get_columns("users")]
-            for col, col_type in [
-                ("is_private", "BOOLEAN DEFAULT FALSE"),
-                ("is_publisher", "BOOLEAN DEFAULT FALSE"),
-                ("bio", "TEXT"),
-                ("avatar_url", "TEXT"),
-                ("full_name", "TEXT"),
-                ("biometric_enabled", "BOOLEAN DEFAULT FALSE"),
-                ("safe_browsing", "BOOLEAN DEFAULT TRUE"),
-                ("auto_update", "TEXT DEFAULT 'Over Wi-Fi only'"),
-                ("download_pref", "TEXT DEFAULT 'Ask every time'"),
-                ("billing_address", "TEXT"),
-                ("payment_method", "TEXT"),
-            ]:
-                if col not in columns:
-                    try:
-                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
-                        conn.commit()
-                    except Exception:
-                        pass
-        if "apps" in inspector.get_table_names():
-            columns = [c["name"] for c in inspector.get_columns("apps")]
-            for col, col_type in [("icon_url", "TEXT"), ("screenshot_urls", "TEXT")]:
-                if col not in columns:
-                    try:
-                        conn.execute(text(f"ALTER TABLE apps ADD COLUMN {col} {col_type}"))
-                        conn.commit()
-                    except Exception:
-                        pass
-        if "messages" in inspector.get_table_names():
-            columns = [c["name"] for c in inspector.get_columns("messages")]
-            for col, col_type in [("media_url", "TEXT"), ("media_type", "TEXT")]:
-                if col not in columns:
-                    try:
-                        conn.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {col_type}"))
-                        conn.commit()
-                    except Exception:
-                        pass
-except Exception as e:
-    print(f"Migration error: {e}")
+def run_migrations():
+    try:
+        with engine.connect() as conn:
+            inspector = inspect(engine)
+            if "users" in inspector.get_table_names():
+                columns = [c["name"] for c in inspector.get_columns("users")]
+                for col, col_type in [
+                    ("is_private", "BOOLEAN DEFAULT FALSE"),
+                    ("is_publisher", "BOOLEAN DEFAULT FALSE"),
+                    ("bio", "TEXT"),
+                    ("avatar_url", "TEXT"),
+                    ("full_name", "TEXT"),
+                    ("biometric_enabled", "BOOLEAN DEFAULT FALSE"),
+                    ("safe_browsing", "BOOLEAN DEFAULT TRUE"),
+                    ("auto_update", "TEXT DEFAULT 'Over Wi-Fi only'"),
+                    ("download_pref", "TEXT DEFAULT 'Ask every time'"),
+                    ("billing_address", "TEXT"),
+                    ("payment_method", "TEXT"),
+                ]:
+                    if col not in columns:
+                        try:
+                            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
+                            conn.commit()
+                        except Exception:
+                            pass
+            if "apps" in inspector.get_table_names():
+                columns = [c["name"] for c in inspector.get_columns("apps")]
+                for col, col_type in [("icon_url", "TEXT"), ("screenshot_urls", "TEXT")]:
+                    if col not in columns:
+                        try:
+                            conn.execute(text(f"ALTER TABLE apps ADD COLUMN {col} {col_type}"))
+                            conn.commit()
+                        except Exception:
+                            pass
+            if "messages" in inspector.get_table_names():
+                columns = [c["name"] for c in inspector.get_columns("messages")]
+                for col, col_type in [("media_url", "TEXT"), ("media_type", "TEXT")]:
+                    if col not in columns:
+                        try:
+                            conn.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {col_type}"))
+                            conn.commit()
+                        except Exception:
+                            pass
+    except Exception as e:
+        print(f"Migration error: {e}")
 
 app = FastAPI(title="PandaStore API", version="2.0.0")
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    run_migrations()
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
