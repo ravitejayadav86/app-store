@@ -12,7 +12,39 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/auth/:path*",
+      "destination": "/api/auth/:path*"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/apps/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/users/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/reviews/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/notifications/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/community/:path*",
+      "destination": "backend/main.py"
+    },
+    {
+      "source": "/api/social/:path*",
       "destination": "backend/main.py"
     }
   ]

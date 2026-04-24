@@ -13,7 +13,6 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://app-store-smoky.vercel.app"),
   title: {
     default: "PandaStore | Discover Apps, Games, Music & Books",
     template: "%s | PandaStore",
