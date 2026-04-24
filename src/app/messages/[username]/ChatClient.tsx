@@ -46,7 +46,7 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [connected, setConnected] = useState(false);
+
   const [recipientProfile, setRecipientProfile] = useState<{avatar_url?: string | null} | null>(null);
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
