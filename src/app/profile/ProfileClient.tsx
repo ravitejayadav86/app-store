@@ -15,6 +15,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 
 interface UserProfile {
