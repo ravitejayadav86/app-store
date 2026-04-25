@@ -8,7 +8,6 @@ export function SplashScreen() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if splash has been shown in this session
     const hasShown = sessionStorage.getItem("splash_shown");
     const isMobile = window.innerWidth < 768;
 
@@ -21,7 +20,7 @@ export function SplashScreen() {
     const timer = setTimeout(() => {
       setIsVisible(false);
       sessionStorage.setItem("splash_shown", "true");
-    }, 1800);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -35,113 +34,88 @@ export function SplashScreen() {
             opacity: 0,
             transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
           }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0a0a0a]"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden"
         >
-          {/* Ambient Glow Background */}
+          {/* Dynamic Liquid Swirl Background */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
-              opacity: [0, 0.4, 0.2],
-              scale: [0.8, 1.2, 1],
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 180, 270, 360],
+              opacity: [0.3, 0.6, 0.3]
             }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            className="absolute w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute w-[600px] h-[600px] bg-linear-to-r from-pink-500/20 via-blue-500/20 to-purple-500/20 rounded-full blur-[100px]"
           />
 
           <div className="relative flex flex-col items-center">
-            {/* Logo Animation */}
+            {/* The Liquid Ring & Panda Container */}
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.7, rotate: -10 }}
-              animate={{ 
-                opacity: 1, 
-                y: [0, -10, 0], 
-                scale: 1,
-                rotate: 0,
-              }}
-              transition={{ 
-                opacity: { duration: 1, ease: [0.22, 1, 0.36, 1] },
-                y: { 
-                  duration: 4, 
-                  repeat: Infinity, 
-                  ease: "easeInOut",
-                  times: [0, 0.5, 1]
-                },
-                scale: { duration: 1.2, ease: [0.22, 1, 0.36, 1] },
-                rotate: { duration: 1.2, ease: [0.22, 1, 0.36, 1] },
-                delay: 0.2
-              }}
-              className="relative w-32 h-32 md:w-40 md:h-40"
+              initial={{ scale: 0.5, opacity: 0, rotate: -15 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-64 h-64 md:w-80 md:h-80"
             >
-              <div className="absolute inset-0 bg-white/5 rounded-[40px] blur-3xl" />
-              <div className="relative w-full h-full">
+              {/* Outer Liquid Glow */}
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.05, 1],
+                  rotate: [0, -360]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-full border-[2px] border-transparent bg-linear-to-r from-pink-500/50 via-cyan-400/50 to-blue-600/50 opacity-30 blur-xl"
+              />
+
+              {/* Main Panda Image */}
+              <div className="relative w-full h-full flex items-center justify-center">
                 <Image
-                  src="/panda-logo.png"
-                  alt="PandaStore Logo"
+                  src="/panda-intro.png"
+                  alt="Waving Panda"
                   fill
-                  className="object-contain drop-shadow-[0_0_50px_rgba(0,88,187,0.3)]"
+                  className="object-contain z-10"
                   priority
                 />
-                {/* Shimmer Overlay */}
+                
+                {/* Waving Paw Overlay Effect (Subtle scale pulse on the whole panda to simulate life) */}
                 <motion.div
-                  initial={{ x: "-150%", opacity: 0 }}
-                  animate={{ x: "150%", opacity: [0, 0.5, 0] }}
+                  animate={{ 
+                    rotate: [0, -2, 2, -2, 0],
+                    y: [0, -5, 0]
+                  }}
                   transition={{ 
                     duration: 2, 
                     repeat: Infinity, 
-                    repeatDelay: 1,
-                    ease: "linear" 
+                    ease: "easeInOut" 
                   }}
-                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                  className="absolute inset-0 z-20 pointer-events-none"
                 />
               </div>
             </motion.div>
 
-            {/* Text Animation */}
+            {/* Premium Text Branding */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
-              className="mt-8 text-center"
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mt-6 text-center z-30"
             >
-              <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white mb-2">
-                Panda<span className="text-primary">Store</span>
+              <h1 className="text-4xl font-black tracking-tight text-white mb-1">
+                Panda<span className="bg-linear-to-r from-pink-400 to-blue-400 bg-clip-text text-transparent">Store</span>
               </h1>
-              <div className="flex items-center gap-2 justify-center">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: 40 }}
-                  transition={{ delay: 1.2, duration: 0.6 }}
-                  className="h-[1px] bg-white/20"
-                />
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">
-                  Premium Experience
-                </span>
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: 40 }}
-                  transition={{ delay: 1.2, duration: 0.6 }}
-                  className="h-[1px] bg-white/20"
-                />
-              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">
+                Premium Digital Oasis
+              </p>
             </motion.div>
           </div>
 
-          {/* Bottom loading indicator */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
-          >
-            <div className="w-48 h-[2px] bg-white/5 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ x: "-100%" }}
-                animate={{ x: "0%" }}
-                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
-                className="w-full h-full bg-linear-to-r from-transparent via-primary to-transparent"
-              />
-            </div>
-          </motion.div>
+          {/* Liquid Loading Bar */}
+          <div className="absolute bottom-16 w-40 h-[1px] bg-white/10 overflow-hidden rounded-full">
+            <motion.div 
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 2, ease: "easeInOut" }}
+              className="w-full h-full bg-linear-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_15px_rgba(96,165,250,0.5)]"
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
