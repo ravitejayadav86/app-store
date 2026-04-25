@@ -303,6 +303,7 @@ export default function ProfileClient() {
 
         <div className="flex-1 bg-white">
           <div className="grid grid-cols-3 gap-0.5">
+            {activeTab === null && myApps.map((app, i) => (
               <div key={app.id} onClick={() => router.push(`/apps/${app.id}`)} className="aspect-square bg-gray-100 relative group overflow-hidden">
                 <Image 
                   src={app.icon_url || "/app-placeholder.png"} 
@@ -317,6 +318,7 @@ export default function ProfileClient() {
                 </div>
               </div>
             ))}
+            {activeTab === "installed" && purchasedApps.map((p, i) => (
               <div key={p.id} onClick={() => router.push(`/apps/${p.app_id}`)} className="aspect-square bg-gray-100 relative overflow-hidden">
                 <Image 
                   src={p.app?.icon_url || "/app-placeholder.png"} 
