@@ -88,8 +88,6 @@ export default function RootLayout({
         <link rel="preload" href="/main-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <script src="/main.js" defer></script>
         <script src="/analytics.js" async></script>
-        <link rel="stylesheet" href="/non-critical.css" media="print" onLoad={(e: any) => { e.currentTarget.media = 'all' }} />
-        <noscript><link rel="stylesheet" href="/non-critical.css" /></noscript>
       </head>
       <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden" suppressHydrationWarning>
         <Providers>
