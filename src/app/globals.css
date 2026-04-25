@@ -65,6 +65,25 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   touch-action: manipulation;
+  
+  /* Hardware Acceleration for 120fps mobile */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-perspective: 1000;
+  
+  /* Additional Performance Flags */
+  text-rendering: optimizeLegibility;
+  image-rendering: -webkit-optimize-contrast;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Force GPU on all interactive elements */
+.interactive, button, a {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 @media (max-width: 640px) {
@@ -111,9 +130,9 @@ textarea:focus-visible,
 
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(40px) saturate(240%);
-  -webkit-backdrop-filter: blur(40px) saturate(240%);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1.5px solid rgba(255, 255, 255, 0.8);
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.08),
@@ -122,6 +141,8 @@ textarea:focus-visible,
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateZ(0); /* Hardware acceleration for smoother mobile render */
   will-change: transform, backdrop-filter;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }
 
 /* Page Transition Container */

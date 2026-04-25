@@ -11,6 +11,7 @@ import {
   Layout, Music, BookOpen, Wrench, Code2
 } from "lucide-react";
 import api from "@/lib/api";
+import axios from "axios";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -175,39 +176,124 @@ function UploadFormContent() {
 
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const uploadToCloudinary = async (file: File, folder: string, onProgress?: (p: number) => void) => {
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const signatureRes = await api.post("/apps/generate-signature", { timestamp, folder });
+    const { signature, api_key, cloud_name } = signatureRes.data;
+
+    // Use chunked upload for files > 10MB
+    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > CHUNK_SIZE) {
+      const uniqueId = `file_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      let uploadedBytes = 0;
+      let finalUrl = "";
+
+      for (let i = 0; i < file.size; i += CHUNK_SIZE) {
+        const chunk = file.slice(i, Math.min(i + CHUNK_SIZE, file.size));
+        const formData = new FormData();
+        formData.append("file", chunk);
+        formData.append("api_key", api_key);
+        formData.append("timestamp", timestamp.toString());
+        formData.append("signature", signature);
+        formData.append("folder", folder);
+
+        const res = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`,
+          formData,
+          {
+            headers: {
+              "X-Unique-Upload-Id": uniqueId,
+              "Content-Range": `bytes ${i}-${Math.min(i + CHUNK_SIZE, file.size) - 1}/${file.size}`,
+            },
+          }
+        );
+        
+        uploadedBytes += chunk.size;
+        if (onProgress) onProgress(Math.round((uploadedBytes * 100) / file.size));
+        if (res.data.secure_url) finalUrl = res.data.secure_url;
+      }
+      return finalUrl;
+    } else {
+      // Standard upload for small files
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", api_key);
+      formData.append("timestamp", timestamp.toString());
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`,
+        formData,
+        {
+          onUploadProgress: (e) => {
+            if (e.total && onProgress) {
+              onProgress(Math.round((e.loaded * 100) / e.total));
+            }
+          },
+        }
+      );
+      return response.data.secure_url;
+    }
+  };
+
   const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
     if (!appId) return;
     if (!file && !metadata.external_url) {
-      toast.error("Please upload a file or provide a link in the previous step.");
+      toast.error("Please upload a file or provide a link.");
       return;
     }
     
     setLoading(true);
     setUploadProgress(0);
-    const formData = new FormData();
-    if (file) formData.append("file", file);
-    if (iconFile) formData.append("icon", iconFile);
-    screenshots.forEach((s) => formData.append("screenshots", s));
 
     try {
-      await api.post(`/apps/${appId}/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        timeout: 0, // Disable timeout for large uploads
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percentCompleted);
-          }
-        },
+      // Parallel Direct Uploads to Cloudinary (Consumes more bandwidth for speed)
+      const uploadTasks: Promise<any>[] = [];
+      let mainFileUrl = metadata.external_url;
+      let iconUrl = "";
+      let screenshotUrls: string[] = [];
+
+      // 1. Main File Task
+      if (file) {
+        uploadTasks.push(
+          uploadToCloudinary(file, "pandastore/apps", (p) => setUploadProgress(p))
+            .then(url => { mainFileUrl = url; })
+        );
+      }
+
+      // 2. Icon Task
+      if (iconFile) {
+        uploadTasks.push(
+          uploadToCloudinary(iconFile, "pandastore/icons")
+            .then(url => { iconUrl = url; })
+        );
+      }
+
+      // 3. Screenshots Tasks (Parallel)
+      screenshots.forEach((s, i) => {
+        uploadTasks.push(
+          uploadToCloudinary(s, `pandastore/screenshots/${appId}`)
+            .then(url => { screenshotUrls[i] = url; })
+        );
       });
+
+      // Wait for all parallel uploads to complete
+      await Promise.all(uploadTasks);
+
+      // Finalize with backend
+      await api.post(`/apps/${appId}/upload`, {
+        file_path: mainFileUrl,
+        icon_url: iconUrl,
+        screenshot_urls: JSON.stringify(screenshotUrls.filter(Boolean))
+      });
+
       toast.success("Application is now live!");
       setStep(3);
-    } catch (err: unknown) {
-      const error = err as ApiError;
-      toast.error(error.response?.data?.detail || "File upload failed. The file might be too large or your connection timed out.");
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err.response?.data?.detail || "High-speed upload failed. Your connection might have reset.");
     } finally {
       setLoading(false);
       setUploadProgress(0);
@@ -216,7 +302,8 @@ function UploadFormContent() {
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   };
 
   return (
@@ -430,7 +517,7 @@ function UploadFormContent() {
                       <>
                         <CloudUpload size={32} className="text-on-surface-variant" />
                         <p className="font-bold text-on-surface">Drag & drop or click to upload</p>
-                        <p className="text-xs text-on-surface-variant uppercase tracking-widest">ZIP · DMG · EXE · APK · IPA — Max 500MB</p>
+                        <p className="text-xs text-on-surface-variant uppercase tracking-widest">ZIP · DMG · EXE · APK · IPA — Max 5GB</p>
                       </>
                     )}
                   </div>

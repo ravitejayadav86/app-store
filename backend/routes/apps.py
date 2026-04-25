@@ -61,13 +61,34 @@ def attach_stats(app: models.App, db: Session):
         "file_size": file_size
     }
 
+from sqlalchemy import func
+
 @router.get("/", response_model=List[schemas.AppOut])
 def get_apps(
     category: Optional[str] = None,
     q: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.App).filter(
+    # Optimized query to fetch counts in one go
+    review_counts = db.query(
+        models.Review.app_id, 
+        func.count(models.Review.id).label('reviews_count'),
+        func.avg(models.Review.rating).label('avg_rating')
+    ).group_by(models.Review.app_id).subquery()
+
+    purchase_counts = db.query(
+        models.Purchase.app_id,
+        func.count(models.Purchase.id).label('downloads_count')
+    ).group_by(models.Purchase.app_id).subquery()
+
+    query = db.query(
+        models.App,
+        func.coalesce(review_counts.c.reviews_count, 0),
+        func.coalesce(review_counts.c.avg_rating, 0.0),
+        func.coalesce(purchase_counts.c.downloads_count, 0)
+    ).outerjoin(review_counts, models.App.id == review_counts.c.app_id)\
+     .outerjoin(purchase_counts, models.App.id == purchase_counts.c.app_id)\
+     .filter(
         models.App.is_approved == True,
         models.App.is_active == True
     )
@@ -83,8 +104,42 @@ def get_apps(
             (models.App.developer.ilike(search))
         )
         
-    apps = query.all()
-    return [attach_stats(app, db) for app in apps]
+    results = query.all()
+    
+    # Process results into AppOut schema
+    out = []
+    for app, reviews_count, avg_rating, downloads_count in results:
+        # Re-use attach_stats logic but with pre-fetched data
+        maturity = "3+"
+        if app.category.lower() in ["games", "social"]:
+            maturity = "12+" if any(x in app.name.lower() or x in (app.description or "").lower() for x in ["battle", "fight", "war"]) else "7+"
+        
+        file_size = "Small" if app.category.lower() in ["productivity", "utilities"] else "Standard"
+        if app.category.lower() == "games": file_size = "Large"
+
+        app_dict = {
+            "id": app.id,
+            "name": app.name,
+            "description": app.description,
+            "price": app.price,
+            "category": app.category,
+            "version": app.version,
+            "developer": app.developer,
+            "is_active": app.is_active,
+            "is_approved": app.is_approved,
+            "file_path": app.file_path,
+            "icon_url": app.icon_url,
+            "screenshot_urls": app.screenshot_urls,
+            "created_at": app.created_at,
+            "rating": round(float(avg_rating), 1),
+            "reviews_count": int(reviews_count),
+            "downloads_count": int(downloads_count),
+            "maturity_rating": maturity,
+            "file_size": file_size
+        }
+        out.append(app_dict)
+    
+    return out
 
 @router.get("/me", response_model=List[schemas.AppOut])
 def get_my_apps(
@@ -137,6 +192,7 @@ def submit_app(
 @router.post("/{app_id}/upload")
 async def upload_file(
     app_id: int,
+    request: Request,
     file: Optional[UploadFile] = File(None),
     icon: Optional[UploadFile] = File(None),
     screenshots: List[UploadFile] = File([]),
@@ -150,7 +206,20 @@ async def upload_file(
     if not app:
         raise HTTPException(404, "App not found")
 
-    # 1. Upload App File
+    # Support for Direct Upload Finalization (JSON)
+    if request.headers.get("content-type") == "application/json":
+        data = await request.json()
+        if "file_path" in data: app.file_path = data["file_path"]
+        if "icon_url" in data: app.icon_url = data["icon_url"]
+        if "screenshot_urls" in data: app.screenshot_urls = data["screenshot_urls"]
+        
+        app.is_approved = True
+        app.is_active = True
+        db.commit()
+        db.refresh(app)
+        return {"message": "Direct upload finalized"}
+
+    # 1. Upload App File (FormData Fallback)
     if file and file.filename:
         safe_name = sanitize_id(file.filename)
         is_apk = safe_name.lower().endswith('.apk')
@@ -390,6 +459,32 @@ def get_app(app_id: int, db: Session = Depends(get_db)):
     if not app:
         raise HTTPException(404, "App not found or has been removed")
     return attach_stats(app, db)
+
+@router.post("/generate-signature")
+def generate_signature(
+    params: dict,
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Generate a Cloudinary signature for direct-to-cloud uploads."""
+    timestamp = params.get("timestamp")
+    folder = params.get("folder", "pandastore/apps")
+    
+    # Sign the request params
+    to_sign = {
+        "timestamp": timestamp,
+        "folder": folder
+    }
+    
+    signature = cloudinary.utils.api_sign_request(
+        to_sign,
+        os.getenv("CLOUDINARY_API_SECRET")
+    )
+    
+    return {
+        "signature": signature,
+        "api_key": os.getenv("CLOUDINARY_API_KEY"),
+        "cloud_name": os.getenv("CLOUDINARY_CLOUD_NAME")
+    }
 
 @router.delete("/{app_id}")
 def delete_app(

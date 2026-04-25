@@ -33,7 +33,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="md:hidden fixed bottom-0 inset-x-0 liquid-glass z-50 border-t border-white/30 !rounded-none"
+          className="md:hidden fixed bottom-0 inset-x-0 liquid-glass z-50 border-t border-white/30 !rounded-none transform-gpu will-change-transform"
         >
       <div className="flex justify-around items-center pt-2 pb-safe px-2 max-w-lg mx-auto">
         {NAV_ITEMS.map((item) => {
@@ -55,7 +55,7 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
                     scale: isActive ? 1.1 : 1,
                     y: isActive ? -2 : 0,
                   }}
-                  className={`p-2 rounded-2xl flex items-center justify-center transition-all ${
+                  className={`p-2 rounded-2xl flex items-center justify-center transition-all transform-gpu ${
                     isActive ? "bg-primary/10" : ""
                   }`}
                 >

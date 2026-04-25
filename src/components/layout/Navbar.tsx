@@ -39,7 +39,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -100, opacity: 0 }}
                     transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                    className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4"
+                    className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 transform-gpu will-change-transform"
                 >
             <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2.5 border border-white/20 rounded-full md:rounded-[2rem]">
                 {/* Logo */}
@@ -188,7 +188,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             initial={{ opacity: 0, y: 20, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                            className="fixed top-24 left-4 right-4 liquid-glass p-8 lg:hidden flex flex-col gap-4 shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-white/40 z-[60] rounded-[2.5rem]"
+                            className="fixed top-24 left-4 right-4 liquid-glass p-8 lg:hidden flex flex-col gap-4 shadow-[0_30px_90px_rgba(0,0,0,0.3)] border border-white/40 z-[60] rounded-[2.5rem] transform-gpu will-change-transform"
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-black tracking-tight">Main Menu</h3>

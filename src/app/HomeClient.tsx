@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -126,9 +127,15 @@ export default function Home() {
               >
                 <Link href={`/apps/${app.id}`}>
                   <GlassCard className="flex flex-col gap-4 h-full transition-all group p-4 md:p-6">
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl liquid-glass flex items-center justify-center text-xl shadow-md overflow-hidden text-primary">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl liquid-glass flex items-center justify-center text-xl shadow-md overflow-hidden text-primary relative">
                       {app.icon_url ? (
-                        <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                        <Image 
+                          src={app.icon_url} 
+                          alt={app.name} 
+                          fill 
+                          className="object-cover"
+                          sizes="(max-width: 768px) 48px, 64px"
+                        />
                       ) : (
                         getFallbackIcon(app.category)
                       )}

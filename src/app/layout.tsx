@@ -75,6 +75,8 @@ export const viewport: Viewport = {
 
 export const preferredRegion = "bom1";
 
+import { SplashScreen } from "@/components/ui/SplashScreen";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,6 +86,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden" suppressHydrationWarning>
         <Providers>
+          <SplashScreen />
           <UILayoutWrapper>
             {children}
           </UILayoutWrapper>

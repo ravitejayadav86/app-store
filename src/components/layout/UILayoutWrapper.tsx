@@ -44,14 +44,17 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
     <>
       <Navbar isHidden={effectiveHidden} />
       <main className={`flex-grow transition-all duration-500 overflow-x-hidden ${effectiveHidden ? "pt-0 pb-0" : "pt-24 pb-24 md:pb-0"}`}>
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence initial={false}>
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full h-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ 
+              duration: 0.4, 
+              ease: [0.22, 1, 0.36, 1] // Butter smooth cubic bezier
+            }}
+            className="w-full h-full transform-gpu will-change-transform"
           >
             {children}
           </motion.div>
