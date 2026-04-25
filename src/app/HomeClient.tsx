@@ -57,7 +57,7 @@ export default function Home() {
               rotate: [0, 10, 0],
             }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/20 rounded-full blur-[90px] -mr-24 -mt-24"
+            className="hidden md:block absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-white/20 rounded-full blur-[90px] -mr-24 -mt-24"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
@@ -126,7 +126,7 @@ export default function Home() {
                 transition={{ delay: 0.8 + index * 0.1 }}
               >
                 <Link href={`/apps/${app.id}`}>
-                  <GlassCard className="flex flex-col gap-4 h-full transition-all group p-4 md:p-6">
+                  <GlassCard className="flex flex-col gap-4 h-full transition-all group p-4 md:p-6 transform-gpu will-change-transform border-white/60">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl liquid-glass flex items-center justify-center text-xl shadow-md overflow-hidden text-primary relative">
                       {app.icon_url ? (
                         <Image 

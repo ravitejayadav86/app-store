@@ -55,7 +55,7 @@ html {
 }
 
 body {
-  background: radial-gradient(circle at top left, #f7f6fb 0%, #e8eaf6 40%, #f3e5f5 100%);
+  background: linear-gradient(135deg, #f7f6fb 0%, #e8eaf6 100%);
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-inter);
@@ -138,11 +138,18 @@ textarea:focus-visible,
     0 12px 40px rgba(0, 0, 0, 0.08),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-xl);
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: translateZ(0); /* Hardware acceleration for smoother mobile render */
-  will-change: transform, backdrop-filter;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(0);
+  will-change: transform;
   content-visibility: auto;
-  contain-intrinsic-size: 1px 500px;
+  contain-intrinsic-size: 1px 400px;
+}
+
+@media (max-width: 768px) {
+  .liquid-glass, .glass {
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  }
 }
 
 /* Page Transition Container */

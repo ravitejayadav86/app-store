@@ -300,9 +300,15 @@ export default function PublisherPage() {
                   <GlassCard className="flex flex-col transition-all overflow-hidden relative group">
                     <div className="flex justify-between items-center z-10 relative">
                       <div className="flex items-center gap-6">
-                        <div className={`w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>
+                        <div className={`relative w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>
                           {app.icon_url ? (
-                            <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                            <Image 
+                              src={app.icon_url} 
+                              alt={app.name} 
+                              fill
+                              className="object-cover"
+                              sizes="56px"
+                            />
                           ) : (
                             app.name[0]
                           )}

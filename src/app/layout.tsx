@@ -75,8 +75,6 @@ export const viewport: Viewport = {
 
 export const preferredRegion = "bom1";
 
-import { SplashScreen } from "@/components/ui/SplashScreen";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,9 +82,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preload" href="/main-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <script src="/main.js" defer></script>
+        <script src="/analytics.js" async></script>
+        <link rel="stylesheet" href="/non-critical.css" media="print" onLoad={(e: any) => { e.currentTarget.media = 'all' }} />
+        <noscript><link rel="stylesheet" href="/non-critical.css" /></noscript>
+      </head>
       <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden" suppressHydrationWarning>
         <Providers>
-          <SplashScreen />
           <UILayoutWrapper>
             {children}
           </UILayoutWrapper>

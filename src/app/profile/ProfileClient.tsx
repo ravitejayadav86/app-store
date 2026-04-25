@@ -219,7 +219,14 @@ export default function ProfileClient() {
               <ChevronLeft size={24} />
             </button>
             <div className="relative w-7 h-7">
-              <img src="/paw-logo.png" alt="Paw Logo" className="w-full h-full object-contain" />
+              <Image 
+                src="/paw-logo.png" 
+                alt="Paw Logo" 
+                fill
+                priority
+                className="object-contain" 
+                sizes="28px"
+              />
             </div>
             <h1 className="font-bold text-lg flex items-center gap-1">
               {profile?.username} <ChevronDown size={14} />
@@ -234,8 +241,17 @@ export default function ProfileClient() {
         <div className="px-4 pt-4 flex items-center gap-6">
           <div className="relative">
             <div className="w-20 h-20 rounded-full border-2 border-primary p-0.5">
-              <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-primary font-black text-2xl overflow-hidden border border-white">
-                {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : profile?.username[0].toUpperCase()}
+              <div className="relative w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-primary font-black text-2xl overflow-hidden border border-white">
+                {profile?.avatar_url ? (
+                  <Image 
+                    src={profile.avatar_url} 
+                    alt="Avatar"
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                ) : profile?.username[0].toUpperCase()}
               </div>
             </div>
             <label className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full border-2 border-white flex items-center justify-center text-white cursor-pointer shadow-lg">
@@ -287,18 +303,28 @@ export default function ProfileClient() {
 
         <div className="flex-1 bg-white">
           <div className="grid grid-cols-3 gap-0.5">
-            {activeTab === null && myApps.map((app, i) => (
               <div key={app.id} onClick={() => router.push(`/apps/${app.id}`)} className="aspect-square bg-gray-100 relative group overflow-hidden">
-                <img src={app.icon_url || "/app-placeholder.png"} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                <Image 
+                  src={app.icon_url || "/app-placeholder.png"} 
+                  alt={app.name}
+                  fill
+                  className="object-cover transition-transform group-hover:scale-110" 
+                  sizes="(max-width: 768px) 33vw, 200px"
+                />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white text-xs font-bold transition-opacity">
                   <span className="flex items-center gap-1"><Star size={12} fill="white" /> {app.rating || "0"}</span>
                   <span className="flex items-center gap-1"><Download size={12} fill="white" /> {app.downloads_count || "0"}</span>
                 </div>
               </div>
             ))}
-            {activeTab === "installed" && purchasedApps.map((p, i) => (
-              <div key={p.id} onClick={() => router.push(`/apps/${p.app_id}`)} className="aspect-square bg-gray-100">
-                <img src={p.app?.icon_url || "/app-placeholder.png"} className="w-full h-full object-cover" />
+              <div key={p.id} onClick={() => router.push(`/apps/${p.app_id}`)} className="aspect-square bg-gray-100 relative overflow-hidden">
+                <Image 
+                  src={p.app?.icon_url || "/app-placeholder.png"} 
+                  alt={p.app?.name || "App"}
+                  fill
+                  className="object-cover" 
+                  sizes="(max-width: 768px) 33vw, 200px"
+                />
               </div>
             ))}
           </div>
@@ -332,9 +358,18 @@ export default function ProfileClient() {
               
               <div className="relative flex flex-col md:flex-row items-center gap-12">
                 <div className="relative group">
-                  <div className="w-48 h-48 rounded-[2.5rem] bg-linear-to-br from-primary to-primary-container p-1 shadow-2xl shadow-primary/20 transition-transform hover:scale-105">
-                    <div className="w-full h-full rounded-[2.3rem] bg-white flex items-center justify-center text-primary font-black text-6xl overflow-hidden border-4 border-white shadow-inner">
-                      {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : profile?.username[0].toUpperCase()}
+                  <div className="relative w-48 h-48 rounded-[2.5rem] bg-linear-to-br from-primary to-primary-container p-1 shadow-2xl shadow-primary/20 transition-transform hover:scale-105 overflow-hidden">
+                    <div className="relative w-full h-full rounded-[2.3rem] bg-white flex items-center justify-center text-primary font-black text-6xl overflow-hidden border-4 border-white shadow-inner">
+                      {profile?.avatar_url ? (
+                        <Image 
+                          src={profile.avatar_url} 
+                          alt="Profile"
+                          fill
+                          priority
+                          className="object-cover"
+                          sizes="192px"
+                        />
+                      ) : profile?.username[0].toUpperCase()}
                     </div>
                   </div>
                   <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center text-primary cursor-pointer border border-gray-100 hover:scale-110 active:scale-95 transition-all">
@@ -456,8 +491,14 @@ export default function ProfileClient() {
                 {myApps.slice(0, 3).map((app) => (
                   <GlassCard key={app.id} className="p-4 hover:shadow-xl transition-all cursor-pointer group" onClick={() => router.push(`/apps/${app.id}`)}>
                     <div className="flex gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 group-hover:scale-105 transition-transform">
-                        <img src={app.icon_url || "/app-placeholder.png"} className="w-full h-full object-cover" />
+                      <div className="relative w-16 h-16 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 group-hover:scale-105 transition-transform">
+                        <Image 
+                          src={app.icon_url || "/app-placeholder.png"} 
+                          alt={app.name}
+                          fill
+                          className="object-cover" 
+                          sizes="64px"
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
@@ -538,8 +579,16 @@ export default function ProfileClient() {
 
             <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8 pb-32">
               <div className="bg-gray-50 p-5 rounded-3xl flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary font-black text-xl overflow-hidden">
-                  {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : profile?.username[0].toUpperCase()}
+                <div className="relative w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary font-black text-xl overflow-hidden">
+                  {profile?.avatar_url ? (
+                    <Image 
+                      src={profile.avatar_url} 
+                      alt="Avatar Small"
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  ) : profile?.username[0].toUpperCase()}
                 </div>
                 <div>
                   <p className="font-bold text-gray-900">@{profile?.username}</p>

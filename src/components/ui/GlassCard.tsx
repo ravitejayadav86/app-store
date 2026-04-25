@@ -21,8 +21,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({ children, className, anima
       whileHover={animate ? { y: -2, scale: 1.01 } : {}}
       whileTap={animate && onClick ? { scale: 0.98 } : {}}
       className={cn(
-        "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-500",
-        "card-glass transform-gpu will-change-transform",
+        "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-300",
+        "liquid-glass transform-gpu will-change-transform border-white/60",
         className
       )}
     >
