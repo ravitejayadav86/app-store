@@ -157,12 +157,13 @@ async def upload_file(
         logger.info(f"Uploading app file: {safe_name} (is_apk: {is_apk})")
         
         try:
-            # We need to read the file content to process it (zip or upload)
-            file_content = await file.read()
-            
-            # Temporary file handling
+            # Stream file to disk to avoid memory issues
             with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{safe_name}") as tmp:
-                tmp.write(file_content)
+                while True:
+                    chunk = await file.read(1024 * 1024) # 1MB chunks
+                    if not chunk:
+                        break
+                    tmp.write(chunk)
                 tmp_path = tmp.name
             
             upload_path = tmp_path
@@ -170,17 +171,26 @@ async def upload_file(
             
             # Cloudinary often blocks .apk files in raw mode, so we zip them
             if is_apk:
+                from fastapi.concurrency import run_in_threadpool
                 zip_path = tmp_path + ".zip"
-                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    zipf.write(tmp_path, safe_name)
+                
+                def create_zip(src, dst, arcname):
+                    with zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                        zipf.write(src, arcname)
+                
+                await run_in_threadpool(create_zip, tmp_path, zip_path, safe_name)
+                
                 upload_path = zip_path
                 final_filename = safe_name + ".zip"
                 logger.info(f"Zipped APK for Cloudinary: {final_filename}")
 
             try:
-                # Try Cloudinary upload
+                # Try Cloudinary upload - using run_in_threadpool because upload_large is blocking
+                from fastapi.concurrency import run_in_threadpool
                 logger.info(f"Attempting Cloudinary upload for {final_filename}")
-                result = cloudinary.uploader.upload_large(
+                
+                result = await run_in_threadpool(
+                    cloudinary.uploader.upload_large,
                     upload_path,
                     resource_type="raw",
                     folder="pandastore/apps",
@@ -199,8 +209,12 @@ async def upload_file(
                 logger.info(f"Local fallback successful: {app.file_path}")
             finally:
                 # Cleanup temporary files
-                if os.path.exists(tmp_path): os.remove(tmp_path)
-                if is_apk and os.path.exists(upload_path): os.remove(upload_path)
+                if os.path.exists(tmp_path): 
+                    try: os.remove(tmp_path)
+                    except: pass
+                if is_apk and os.path.exists(upload_path): 
+                    try: os.remove(upload_path)
+                    except: pass
                 
         except Exception as e:
             logger.error(f"File processing error: {str(e)}")
@@ -210,8 +224,10 @@ async def upload_file(
     if icon and icon.filename:
         logger.info(f"Uploading icon for app_{app_id}")
         try:
+            from fastapi.concurrency import run_in_threadpool
             icon_content = await icon.read()
-            icon_result = cloudinary.uploader.upload(
+            icon_result = await run_in_threadpool(
+                cloudinary.uploader.upload,
                 icon_content,
                 resource_type="image",
                 folder="pandastore/icons",
@@ -227,13 +243,15 @@ async def upload_file(
     if screenshots:
         logger.info(f"Uploading {len(screenshots)} screenshots for app_{app_id}")
         shot_urls = []
+        from fastapi.concurrency import run_in_threadpool
         # Support both single and multiple screenshots if sent via same field name
         for i, shot in enumerate(screenshots):
             if not shot or not shot.filename:
                 continue
             try:
                 shot_content = await shot.read()
-                shot_result = cloudinary.uploader.upload(
+                shot_result = await run_in_threadpool(
+                    cloudinary.uploader.upload,
                     shot_content,
                     resource_type="image",
                     folder=f"pandastore/screenshots/{app_id}",

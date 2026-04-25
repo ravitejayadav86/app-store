@@ -173,6 +173,8 @@ function UploadFormContent() {
     }
   };
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
     if (!appId) return;
@@ -182,6 +184,7 @@ function UploadFormContent() {
     }
     
     setLoading(true);
+    setUploadProgress(0);
     const formData = new FormData();
     if (file) formData.append("file", file);
     if (iconFile) formData.append("icon", iconFile);
@@ -192,14 +195,22 @@ function UploadFormContent() {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 0, // Disable timeout for large uploads
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        },
       });
       toast.success("Application is now live!");
       setStep(3);
     } catch (err: unknown) {
       const error = err as ApiError;
-      toast.error(error.response?.data?.detail || "File upload failed.");
+      toast.error(error.response?.data?.detail || "File upload failed. The file might be too large or your connection timed out.");
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -483,9 +494,27 @@ function UploadFormContent() {
                   <p className="text-xs text-on-surface-variant">PNG or JPG screenshots of your app in action</p>
                 </div>
 
-                <Button size="lg" className="w-full py-6 text-lg" disabled={loading || (!file && !metadata.external_url)}>
-                  {loading ? "Uploading..." : "Publish Application"} <CheckCircle2 className="ml-2" />
-                </Button>
+                <div className="space-y-4">
+                  {loading && uploadProgress > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-primary">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-surface-low rounded-full overflow-hidden border border-outline-variant">
+                        <motion.div 
+                          className="h-full bg-primary"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <Button size="lg" className="w-full py-6 text-lg" disabled={loading || (!file && !metadata.external_url)}>
+                    {loading ? (uploadProgress > 0 ? "Uploading..." : "Processing...") : "Publish Application"} <CheckCircle2 className="ml-2" />
+                  </Button>
+                </div>
               </form>
             </GlassCard>
           </motion.div>
