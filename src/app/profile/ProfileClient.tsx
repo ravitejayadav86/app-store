@@ -214,7 +214,10 @@ export default function ProfileClient() {
       {/* 📱 MOBILE UI (Instagram Reference) */}
       <div className="sm:hidden flex flex-col min-h-screen bg-white">
         <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} aria-label="Go back" className="text-gray-900">
+              <ChevronLeft size={24} />
+            </button>
             <div className="relative w-7 h-7">
               <img src="/paw-logo.png" alt="Paw Logo" className="w-full h-full object-contain" />
             </div>
@@ -310,6 +313,17 @@ export default function ProfileClient() {
       {/* 🖥️ DESKTOP UI (White Liquid Glass) */}
       <div className="hidden sm:block">
         <div className="max-w-6xl mx-auto px-6 pt-32 pb-20">
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="mb-6">
+            <button 
+              onClick={() => router.back()}
+              className="group flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold text-sm"
+            >
+              <div className="p-2 rounded-xl bg-surface-low border border-outline-variant group-hover:border-primary/30 transition-all">
+                <ChevronLeft size={18} />
+              </div>
+              Back
+            </button>
+          </motion.div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
             <GlassCard className="p-10 border-white/60 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 pointer-events-none">

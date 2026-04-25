@@ -10,7 +10,9 @@ export function SplashScreen() {
   useEffect(() => {
     // Check if splash has been shown in this session
     const hasShown = sessionStorage.getItem("splash_shown");
-    if (hasShown) {
+    const isMobile = window.innerWidth < 768;
+
+    if (hasShown || !isMobile) {
       setIsVisible(false);
       return;
     }

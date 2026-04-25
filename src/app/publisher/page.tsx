@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import axios from "axios";
 import {
   BarChart3, Upload, Settings, TrendingUp, Code2, Globe,
-  Plus, UserPlus, CheckCircle2, Lock, Music, BookOpen, Gamepad2
+  Plus, UserPlus, CheckCircle2, Lock, Music, BookOpen, Gamepad2, Camera
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -117,6 +118,32 @@ export default function PublisherPage() {
     } catch (err: unknown) {
       const error = err as ApiError;
       toast.error(error.response?.data?.detail || "Failed to grant access.");
+    }
+  };
+
+  const handleInlineIconUpload = async (appId: number, file: File) => {
+    const loadingToast = toast.loading("Uploading icon...");
+    try {
+      const timestamp = Math.round(new Date().getTime() / 1000);
+      const sigRes = await api.post("/apps/generate-signature", { timestamp, folder: "pandastore/icons" });
+      const { signature, api_key, cloud_name } = sigRes.data;
+
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("api_key", api_key);
+      fd.append("timestamp", timestamp.toString());
+      fd.append("signature", signature);
+      fd.append("folder", "pandastore/icons");
+
+      const cloudRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`, fd);
+      const iconUrl = cloudRes.data.secure_url;
+
+      await api.post(`/apps/${appId}/upload`, { icon_url: iconUrl });
+      toast.success("Icon updated!", { id: loadingToast });
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload icon.", { id: loadingToast });
     }
   };
 
@@ -301,21 +328,41 @@ export default function PublisherPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        {(!app.file_path || !app.icon_url) && (
-                          <Link href={`/publisher/upload?id=${app.id}&name=${encodeURIComponent(app.name)}`}>
-                            <button className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">
-                              <Upload size={14} /> {!app.file_path ? "Finish Upload" : "Add Icon"}
-                            </button>
-                          </Link>
-                        )}
-                        <button
-                          onClick={() => setGrantingAppId(grantingAppId === app.id ? null : app.id)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
-                        >
-                          <Lock size={14} /> Grant Access
-                        </button>
-                      </div>
+                        <div className="flex items-center gap-4">
+                          {!app.icon_url && (
+                            <div className="relative group/upload">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                id={`icon-upload-${app.id}`}
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleInlineIconUpload(app.id, f);
+                                }}
+                              />
+                              <button
+                                onClick={() => document.getElementById(`icon-upload-${app.id}`)?.click()}
+                                className="px-4 py-2 bg-primary/10 text-primary rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-primary/20 transition-all border border-primary/20"
+                              >
+                                <Camera size={14} /> Add Icon
+                              </button>
+                            </div>
+                          )}
+                          {!app.file_path && (
+                            <Link href={`/publisher/upload?id=${app.id}&name=${encodeURIComponent(app.name)}`}>
+                              <button className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">
+                                <Upload size={14} /> Finish Upload
+                              </button>
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => setGrantingAppId(grantingAppId === app.id ? null : app.id)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
+                          >
+                            <Lock size={14} /> Grant Access
+                          </button>
+                        </div>
                     </div>
                     <AnimatePresence>
                       {grantingAppId === app.id && (

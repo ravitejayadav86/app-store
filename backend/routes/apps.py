@@ -193,9 +193,6 @@ def submit_app(
 async def upload_file(
     app_id: int,
     request: Request,
-    file: Optional[UploadFile] = File(None),
-    icon: Optional[UploadFile] = File(None),
-    screenshots: List[UploadFile] = File([]),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -206,19 +203,28 @@ async def upload_file(
     if not app:
         raise HTTPException(404, "App not found")
 
+    content_type = request.headers.get("content-type", "")
+
     # Support for Direct Upload Finalization (JSON)
-    if request.headers.get("content-type") == "application/json":
+    if "application/json" in content_type:
         data = await request.json()
         if "file_path" in data: app.file_path = data["file_path"]
         if "icon_url" in data: app.icon_url = data["icon_url"]
-        if "screenshot_urls" in data: app.screenshot_urls = data["screenshot_urls"]
+        if "screenshot_urls" in data: 
+            urls = data["screenshot_urls"]
+            app.screenshot_urls = urls if isinstance(urls, str) else json.dumps(urls)
         
         app.is_approved = True
         app.is_active = True
         db.commit()
         db.refresh(app)
-        return {"message": "Direct upload finalized"}
+        return {"message": "Direct upload finalized", "app": app}
 
+    # Fallback to Multipart/Form-Data (Legacy or small files)
+    form = await request.form()
+    file = form.get("file")
+    icon = form.get("icon")
+    screenshots = form.getlist("screenshots")
     # 1. Upload App File (FormData Fallback)
     if file and file.filename:
         safe_name = sanitize_id(file.filename)
