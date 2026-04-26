@@ -38,7 +38,7 @@ import Link from "next/link";
 interface UserProfile {
   id: number;
   username: string;
-  email: string;
+  email?: string;
   full_name?: string;
   bio?: string;
   avatar_url?: string;
@@ -49,6 +49,8 @@ interface UserProfile {
   following_count: number;
   apps_count: number;
   is_following?: boolean;
+  apps?: any[];
+  posts?: any[];
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
@@ -59,6 +61,7 @@ export default function UserProfileClient({ username: propUsername }: { username
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("apps");
   const [isMe, setIsMe] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -70,15 +73,20 @@ export default function UserProfileClient({ username: propUsername }: { username
           api.get(`/social/profile/${username}`),
           api.get("/users/me").catch(() => ({ data: null }))
         ]);
-        
         setUser(profileRes.data);
         if (meRes.data && meRes.data.username === username) {
           setIsMe(true);
         }
-      } catch (err) {
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404) {
+          setError("User not found");
+        } else if (status === 401) {
+          setError("Sign in to view this profile");
+        } else {
+          setError("Could not load profile. Please try again.");
+        }
         console.error("Profile fetch error:", err);
-        toast.error("User not found");
-        router.push("/discover");
       } finally {
         setLoading(false);
       }
@@ -126,7 +134,21 @@ export default function UserProfileClient({ username: propUsername }: { username
     </div>
   );
 
-  if (!user) return null;
+  if (error || !user) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-surface text-center px-4">
+      <div className="w-24 h-24 rounded-3xl bg-surface-low border border-outline-variant/30 flex items-center justify-center shadow-inner">
+        <User size={40} className="text-on-surface-variant/30" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold text-on-surface mb-2">{error || "User not found"}</h2>
+        <p className="text-sm text-on-surface-variant">The profile @{username} could not be loaded.</p>
+      </div>
+      <button onClick={() => router.back()}
+        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">
+        Go Back
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-surface pb-20 pt-20">
@@ -297,25 +319,28 @@ export default function UserProfileClient({ username: propUsername }: { username
                transition={{ duration: 0.4 }}
              >
                 {activeTab === "apps" ? (
-                   user.apps_count > 0 ? (
+                   user.apps && user.apps.filter(a => a.is_approved && a.is_active).length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         {[1,2].map(i => (
-                           <GlassCard key={i} className="p-6 group cursor-pointer border-outline-variant/40 hover:border-primary/30 transition-all shadow-sm hover:shadow-xl hover:shadow-primary/5">
-                              <div className="flex gap-6 items-center">
-                                 <div className="w-20 h-20 rounded-2xl bg-surface-lowest shadow-inner border border-outline-variant/30 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                    <Package className="text-primary/40" size={32} />
-                                 </div>
-                                 <div className="flex-grow">
-                                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors">Sample App {i}</h4>
-                                    <p className="text-xs text-on-surface-variant">Utilities • 1.2 MB</p>
-                                    <div className="flex items-center gap-1.5 mt-2">
-                                       <div className="flex text-yellow-500"><Heart size={10} className="fill-current" /></div>
-                                       <span className="text-[10px] font-bold text-on-surface-variant">4.9 (1.2k)</span>
-                                    </div>
-                                 </div>
-                                 <ChevronRight className="text-on-surface-variant/30 group-hover:text-primary transition-colors" />
-                              </div>
-                           </GlassCard>
+                         {user.apps.filter(a => a.is_approved && a.is_active).map((app: any) => (
+                           <Link key={app.id} href={`/apps/${app.id}`}>
+                            <GlassCard className="p-6 group cursor-pointer border-outline-variant/40 hover:border-primary/30 transition-all shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                               <div className="flex gap-6 items-center">
+                                  <div className="w-20 h-20 rounded-2xl bg-surface-lowest shadow-inner border border-outline-variant/30 flex items-center justify-center group-hover:scale-105 transition-transform overflow-hidden">
+                                     {app.icon_url
+                                       ? <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                                       : <Package className="text-primary/40" size={32} />}
+                                  </div>
+                                  <div className="flex-grow">
+                                     <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{app.name}</h4>
+                                     <p className="text-xs text-on-surface-variant">{app.category} {app.file_size ? `• ${app.file_size}` : ""}</p>
+                                     <div className="flex items-center gap-1.5 mt-2">
+                                        <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">{app.price === 0 ? "Free" : `₹${app.price}`}</span>
+                                     </div>
+                                  </div>
+                                  <ChevronRight className="text-on-surface-variant/30 group-hover:text-primary transition-colors" />
+                               </div>
+                            </GlassCard>
+                           </Link>
                          ))}
                       </div>
                    ) : (
