@@ -1,71 +1,51 @@
+import boto3
 import os
-import json
-import logging
-from datetime import timedelta
-import firebase_admin
-from firebase_admin import credentials, storage
+import uuid
+from botocore.client import Config
 
-logger = logging.getLogger(__name__)
+B2_KEY_ID = os.getenv("B2_KEY_ID")
+B2_APPLICATION_KEY = os.getenv("B2_APPLICATION_KEY")
+B2_BUCKET_NAME = os.getenv("B2_BUCKET_NAME")
+B2_ENDPOINT = os.getenv("B2_ENDPOINT")
 
-FIREBASE_BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME")
-# Support loading from a secret file (Render) or a JSON string directly
-FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "firebase-credentials.json")
-FIREBASE_CREDENTIALS_JSON = os.getenv("FIREBASE_CREDENTIALS_JSON")
+def get_s3_client():
+    return boto3.client(
+        "s3",
+        endpoint_url=f"https://{B2_ENDPOINT}",
+        aws_access_key_id=B2_KEY_ID,
+        aws_secret_access_key=B2_APPLICATION_KEY,
+        config=Config(signature_version="s3v4")
+    )
 
-_firebase_app = None
+def upload_file(file_obj, filename: str, content_type: str = "application/octet-stream") -> str:
+    s3 = get_s3_client()
+    unique_name = f"{uuid.uuid4()}_{filename}"
+    s3.upload_fileobj(
+        file_obj,
+        B2_BUCKET_NAME,
+        unique_name,
+        ExtraArgs={"ContentType": content_type}
+    )
+    return f"https://{B2_ENDPOINT}/{B2_BUCKET_NAME}/{unique_name}"
 
-def get_firebase_app():
-    global _firebase_app
-    if _firebase_app is not None:
-        return _firebase_app
-
-    if not FIREBASE_BUCKET_NAME:
-        return None
-
+def delete_file(file_url: str):
     try:
-        cred = None
-        if FIREBASE_CREDENTIALS_JSON:
-            cred_dict = json.loads(FIREBASE_CREDENTIALS_JSON)
-            cred = credentials.Certificate(cred_dict)
-        elif os.path.exists(FIREBASE_CREDENTIALS_PATH):
-            cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-        else:
-            logger.warning("Firebase credentials not found.")
-            return None
-
-        _firebase_app = firebase_admin.initialize_app(cred, {
-            'storageBucket': FIREBASE_BUCKET_NAME
-        })
-        return _firebase_app
+        s3 = get_s3_client()
+        key = file_url.split(f"{B2_BUCKET_NAME}/")[-1]
+        s3.delete_object(Bucket=B2_BUCKET_NAME, Key=key)
     except Exception as e:
-        logger.error(f"Failed to initialize Firebase: {e}")
-        return None
+        print(f"Failed to delete file: {e}")
 
-def upload_file_to_firebase(file_path: str, object_name: str) -> str:
-    """
-    Uploads a file to Firebase Storage and returns the public download URL.
-    """
-    if not get_firebase_app():
-        raise Exception("Firebase is not configured.")
-
+def generate_download_url(file_url: str, expires_in: int = 3600) -> str:
     try:
-        bucket = storage.bucket()
-        blob = bucket.blob(object_name)
-
-        content_type = "application/octet-stream"
-        if file_path.lower().endswith('.apk'):
-            content_type = "application/vnd.android.package-archive"
-        elif file_path.lower().endswith('.zip'):
-            content_type = "application/zip"
-
-        logger.info(f"Uploading {file_path} to Firebase Storage as {object_name}...")
-        blob.upload_from_filename(file_path, content_type=content_type)
-        
-        # Make the blob publicly accessible
-        blob.make_public()
-        
-        return blob.public_url
-
+        s3 = get_s3_client()
+        key = file_url.split(f"{B2_BUCKET_NAME}/")[-1]
+        url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": B2_BUCKET_NAME, "Key": key},
+            ExpiresIn=expires_in
+        )
+        return url
     except Exception as e:
-        logger.error(f"Unexpected upload error: {e}")
-        raise Exception(f"Unexpected error during Firebase upload: {str(e)}")
+        print(f"Failed to generate URL: {e}")
+        return file_url
