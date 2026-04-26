@@ -12,6 +12,8 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtime } from "@/hooks/useRealtime";
+import { useSession } from "next-auth/react";
 
 interface AppData {
   id: number;
@@ -108,6 +110,30 @@ function AppDetailContent({ id: propId }: { id?: string }) {
   const [myRating, setMyRating] = useState(0);
   const [myComment, setMyComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    api.get("/users/me").then(res => setCurrentUser(res.data)).catch(() => {});
+  }, []);
+
+  const { useEvent } = useRealtime(currentUser?.id);
+
+  useEvent("APP_DOWNLOADED", (data) => {
+    if (data.app_id === app?.id) {
+      setApp(prev => prev ? { ...prev, downloads_count: (prev.downloads_count || 0) + 1 } : null);
+    }
+  });
+
+  useEvent("NEW_REVIEW", (data) => {
+    if (data.app_id === app?.id) {
+      setReviews(prev => {
+        const exists = prev.find(r => r.id === data.review.id);
+        if (exists) return prev.map(r => r.id === data.review.id ? data.review : r);
+        return [data.review, ...prev];
+      });
+      setApp(prev => prev ? { ...prev, reviews_count: (prev.reviews_count || 0) + 1 } : null);
+    }
+  });
 
   const fetchReviews = useCallback(async (appId: number) => {
     try {

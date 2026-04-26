@@ -45,7 +45,7 @@ def run_migrations():
                             pass
             if "apps" in inspector.get_table_names():
                 columns = [c["name"] for c in inspector.get_columns("apps")]
-                for col, col_type in [("icon_url", "TEXT"), ("screenshot_urls", "TEXT")]:
+                for col, col_type in [("icon_url", "TEXT"), ("screenshot_urls", "TEXT"), ("file_size", "TEXT")]:
                     if col not in columns:
                         try:
                             conn.execute(text(f"ALTER TABLE apps ADD COLUMN {col} {col_type}"))

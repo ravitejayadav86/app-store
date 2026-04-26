@@ -3,6 +3,8 @@ from typing import List
 from sqlalchemy.orm import Session
 import models, schemas, auth
 from database import get_db
+from realtime import manager
+import asyncio
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -38,6 +40,20 @@ def submit_review(
         existing.comment = review.comment
         db.commit()
         db.refresh(existing)
+        
+        # Broadcast update
+        asyncio.create_task(manager.broadcast({
+            "type": "NEW_REVIEW",
+            "app_id": app_id,
+            "review": {
+                "id": existing.id,
+                "rating": existing.rating,
+                "comment": existing.comment,
+                "created_at": existing.created_at.isoformat(),
+                "user_id": existing.user_id
+            }
+        }))
+        
         return existing
     db_review = models.Review(
         user_id=current_user.id,
@@ -48,4 +64,18 @@ def submit_review(
     db.add(db_review)
     db.commit()
     db.refresh(db_review)
+
+    # Broadcast review event for realtime UI
+    asyncio.create_task(manager.broadcast({
+        "type": "NEW_REVIEW",
+        "app_id": app_id,
+        "review": {
+            "id": db_review.id,
+            "rating": db_review.rating,
+            "comment": db_review.comment,
+            "created_at": db_review.created_at.isoformat(),
+            "user_id": db_review.user_id
+        }
+    }))
+
     return db_review

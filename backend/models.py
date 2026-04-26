@@ -41,6 +41,7 @@ class App(Base):
     is_active    = Column(Boolean, default=True)
     is_approved  = Column(Boolean, default=False)
     file_path    = Column(String, nullable=True)
+    file_size    = Column(String, nullable=True)
     icon_url     = Column(String, nullable=True)
     screenshot_urls = Column(Text, nullable=True)  # JSON-encoded list of URLs
     created_at   = Column(DateTime(timezone=True), server_default=func.now())

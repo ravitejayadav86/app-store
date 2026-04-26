@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
 from database import get_db
+from realtime import manager
+import asyncio
 from routes import telemetry
-import os, cloudinary, cloudinary.uploader, json, re, logging, zipfile, tempfile, shutil
+import os, cloudinary, cloudinary.uploader, json, re, logging, zipfile, tempfile, shutil, math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 def sanitize_id(filename: str) -> str:
     return re.sub(r'[^a-zA-Z0-9.\-_]', '_', filename)
+
+def format_size(size_bytes):
+    if size_bytes <= 0: return "Varies"
+    size_name = ("B", "KB", "MB", "GB", "TB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 1)
+    return f"{s} {size_name[i]}"
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -36,10 +46,6 @@ def attach_stats(app: models.App, db: Session):
     if app.category.lower() in ["games", "social"]:
         maturity = "12+" if any(x in app.name.lower() or x in (app.description or "").lower() for x in ["battle", "fight", "war"]) else "7+"
     
-    # Simple size mapping
-    file_size = "Small" if app.category.lower() in ["productivity", "utilities"] else "Standard"
-    if app.category.lower() == "games": file_size = "Large"
-
     return {
         "id": app.id,
         "name": app.name,
@@ -58,7 +64,7 @@ def attach_stats(app: models.App, db: Session):
         "reviews_count": len(reviews),
         "downloads_count": downloads,
         "maturity_rating": maturity,
-        "file_size": file_size
+        "file_size": app.file_size or "Varies"
     }
 
 from sqlalchemy import func
@@ -240,6 +246,8 @@ async def upload_file(
                         break
                     tmp.write(chunk)
                 tmp_path = tmp.name
+                file_size_bytes = os.path.getsize(tmp_path)
+                app.file_size = format_size(file_size_bytes)
             
             upload_path = tmp_path
             final_filename = safe_name
@@ -458,6 +466,15 @@ def grant_access(
         purchase = models.Purchase(user_id=user.id, app_id=app_id)
         db.add(purchase)
         db.commit()
+        
+        # Broadcast download event for realtime UI
+        from realtime import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast({
+            "type": "APP_DOWNLOADED",
+            "app_id": app_id
+        }))
+        
     return {"message": f"Access granted to {username}"}
 
 @router.post("/generate-signature")
