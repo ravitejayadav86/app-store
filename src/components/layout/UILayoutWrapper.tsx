@@ -11,21 +11,32 @@ interface UILayoutWrapperProps {
 }
 
 export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
-  const [uiHidden, setUiHidden] = useState(false);
+  const [uiHiddenOverride, setUiHiddenOverride] = useState<boolean | null>(null);
   const pathname = usePathname();
 
   const isDetailPage = pathname?.startsWith("/apps/") || 
                        pathname?.startsWith("/game/") || 
                        pathname?.startsWith("/users/") ||
                        pathname?.startsWith("/profile");
-  const effectiveHidden = uiHidden || isDetailPage;
+                       
+  // Reset override on navigation
+  useEffect(() => {
+    setUiHiddenOverride(null);
+  }, [pathname]);
+
+  const effectiveHidden = uiHiddenOverride !== null ? uiHiddenOverride : isDetailPage;
 
   useEffect(() => {
-    const handleDoubleClick = (e: MouseEvent) => {
+    let lastTapTime = 0;
+    
+    // Support both mouse double-click and touch double-tap
+    const handleDoubleTap = (e: Event) => {
       const target = e.target as HTMLElement;
       if (
         target.tagName === "BUTTON" || 
         target.tagName === "A" || 
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
         target.closest("button") || 
         target.closest("a") ||
         target.closest(".interactive")
@@ -33,12 +44,34 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
         return;
       }
       
-      setUiHidden(prev => !prev);
+      // Prevent selection on double click
+      if (e.type === "dblclick") {
+        window.getSelection()?.removeAllRanges();
+      }
+
+      setUiHiddenOverride(prev => {
+        const currentlyHidden = prev !== null ? prev : isDetailPage;
+        return !currentlyHidden;
+      });
     };
 
-    window.addEventListener("dblclick", handleDoubleClick);
-    return () => window.removeEventListener("dblclick", handleDoubleClick);
-  }, []);
+    const handleTouchStart = (e: TouchEvent) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTapTime;
+      if (tapLength < 300 && tapLength > 0) {
+        handleDoubleTap(e);
+        e.preventDefault();
+      }
+      lastTapTime = currentTime;
+    };
+
+    window.addEventListener("dblclick", handleDoubleTap);
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    return () => {
+      window.removeEventListener("dblclick", handleDoubleTap);
+      window.removeEventListener("touchstart", handleTouchStart);
+    };
+  }, [isDetailPage]);
 
   return (
     <>

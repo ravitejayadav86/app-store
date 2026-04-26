@@ -174,21 +174,21 @@ export default function PublisherPage() {
   }
 
   return (
-    <div className="flex flex-col gap-12 pb-20 mt-12 px-4 md:px-8 max-w-7xl mx-auto">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+    <div className="flex flex-col gap-8 md:gap-12 pb-20 mt-8 md:mt-12 px-4 md:px-8 max-w-7xl mx-auto">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-5xl font-bold tracking-tight text-on-surface mb-2">Publisher Hub.</h1>
-          <p className="text-on-surface-variant max-w-lg">Manage your products, grant manual accesses, and view deep analytics.</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-on-surface mb-2">Publisher Hub.</h1>
+          <p className="text-sm md:text-base text-on-surface-variant max-w-lg">Manage your products, grant manual accesses, and view deep analytics.</p>
         </div>
-        <Link href="/publisher/upload">
-          <button className="flex items-center gap-2 px-8 py-4 bg-primary text-on-primary rounded-2xl font-bold hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 group">
-            <Upload size={20} className="group-hover:-translate-y-1 transition-transform" />
+        <Link href="/publisher/upload" className="w-full md:w-auto">
+          <button className="w-full flex justify-center items-center gap-2 px-8 py-3.5 bg-primary text-on-primary rounded-2xl font-bold hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 group">
+            <Upload size={18} className="group-hover:-translate-y-1 transition-transform" />
             Submit New App
           </button>
         </Link>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {stats.map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
             <GlassCard className="flex flex-col gap-2">
@@ -205,11 +205,11 @@ export default function PublisherPage() {
         ))}
       </div>
 
-      <section className="space-y-6">
-        <h2 className="text-2xl font-bold text-on-surface">Quick Publish Content</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="space-y-4 md:space-y-6">
+        <h2 className="text-xl md:text-2xl font-bold text-on-surface">Quick Publish Content</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           <Link href="/publisher/upload?category=Games&price=0" className="group">
-            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+            <GlassCard className="flex items-center gap-4 md:gap-6 p-5 md:p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
               <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                 <Gamepad2 size={32} />
               </div>
@@ -220,7 +220,7 @@ export default function PublisherPage() {
             </GlassCard>
           </Link>
           <Link href="/publisher/upload?category=Music&price=0" className="group">
-            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+            <GlassCard className="flex items-center gap-4 md:gap-6 p-5 md:p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
               <div className="w-16 h-16 rounded-2xl bg-pink-500/10 flex items-center justify-center text-pink-500 group-hover:scale-110 transition-transform">
                 <Music size={32} />
               </div>
@@ -231,7 +231,7 @@ export default function PublisherPage() {
             </GlassCard>
           </Link>
           <Link href="/publisher/upload?category=Books&price=0" className="group">
-            <GlassCard className="flex items-center gap-6 p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
+            <GlassCard className="flex items-center gap-4 md:gap-6 p-5 md:p-8 hover:bg-surface-low transition-all cursor-pointer border-2 border-transparent hover:border-primary/20">
               <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
                 <BookOpen size={32} />
               </div>
@@ -298,10 +298,10 @@ export default function PublisherPage() {
             <div className="grid grid-cols-1 gap-4">
               {filteredApps.map((app, i) => (
                 <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                  <GlassCard className="flex flex-col transition-all overflow-hidden relative group">
-                    <div className="flex justify-between items-center z-10 relative">
-                      <div className="flex items-center gap-6">
-                        <div className={`relative w-14 h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>
+                  <GlassCard className="flex flex-col transition-all overflow-hidden relative group p-4 md:p-6">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-0 z-10 relative">
+                      <div className="flex items-center gap-4 md:gap-6">
+                        <div className={`relative w-12 h-12 md:w-14 md:h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-xl md:text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>
                           {app.icon_url ? (
                             <Image 
                               src={app.icon_url} 
@@ -335,9 +335,9 @@ export default function PublisherPage() {
                           </div>
                         </div>
                       </div>
-                        <div className="flex items-center gap-4">
-                          {!app.icon_url && (
-                            <div className="relative group/upload">
+                      <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-2 md:mt-0">
+                        {!app.icon_url && (
+                          <div className="relative group/upload w-full sm:w-auto">
                               <input 
                                 type="file" 
                                 accept="image/*" 
@@ -365,9 +365,9 @@ export default function PublisherPage() {
                           )}
                           <button
                             onClick={() => setGrantingAppId(grantingAppId === app.id ? null : app.id)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
+                            className={`flex-1 sm:flex-none justify-center px-3 py-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${grantingAppId === app.id ? "bg-primary text-on-primary" : "bg-surface-low text-on-surface hover:text-primary"}`}
                           >
-                            <Lock size={14} /> Grant Access
+                            <Lock size={14} /> Grant
                           </button>
                         </div>
                     </div>
