@@ -243,6 +243,8 @@ button, a, .interactive {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
+  /* Eliminate 300ms tap delay on mobile */
+  touch-action: manipulation;
 }
 
 button:active, a:active, .interactive:active {

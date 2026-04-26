@@ -46,7 +46,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     style={{ willChange: "transform, opacity" }}
                     className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 transform-gpu"
                 >
-                <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2.5 border border-white/20 rounded-full md:rounded-[2rem]">
+                <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2.5 border border-white/20 rounded-full md:rounded-[2rem]" style={{ isolation: "isolate" }}>
                     <Link href="/" className="flex items-center gap-1.5 md:gap-2">
                         <div className="relative w-8 h-8 md:w-10 md:h-10 overflow-hidden">
                             <Image src="/paw-logo.png" alt="Panda Store Logo" fill className="object-contain" priority sizes="(max-width: 768px) 32px, 40px" />
@@ -94,12 +94,18 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             </div>
 
                             <div className="flex items-center gap-0 sm:gap-2">
-                                <button onClick={() => setSearchOpen(true)} className="p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Open search">
-                                    <Search size={20} className="w-5 h-5 md:w-6 md:h-6" />
+                                <button onClick={() => setSearchOpen(true)}
+                                    className="p-2.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors touch-manipulation"
+                                    aria-label="Open search"
+                                    style={{ touchAction: "manipulation" }}>
+                                    <Search size={20} className="w-5 h-5 md:w-[18px] md:h-[18px]" />
                                 </button>
                                 {mounted && session && (
-                                    <Link href="/messages" className="p-2 text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Messages">
-                                        <MessageCircle size={20} className="w-5 h-5 md:w-6 md:h-6" />
+                                    <Link href="/messages"
+                                        className="p-2.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
+                                        aria-label="Messages"
+                                        style={{ touchAction: "manipulation" }}>
+                                        <MessageCircle size={20} className="w-5 h-5 md:w-[18px] md:h-[18px]" />
                                     </Link>
                                 )}
                                 <div className="hidden xl:flex items-center gap-1.5">
@@ -124,7 +130,11 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 <Link href="/profile" className="flex w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group ml-1" aria-label="View profile">
                                     <User size={16} className="md:size-[18px] group-hover:text-primary transition-colors" />
                                 </Link>
-                                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 ml-1 text-on-surface-variant hover:text-primary transition-colors" aria-label="Toggle menu">
+                                <button
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    className="lg:hidden p-2.5 ml-1 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
+                                    aria-label="Toggle menu"
+                                    style={{ touchAction: "manipulation" }}>
                                     <AnimatePresence mode="wait" initial={false}>
                                         <motion.span key={mobileMenuOpen ? "x" : "m"}
                                             initial={{ opacity: 0, rotate: -45, scale: 0.6 }}

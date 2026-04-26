@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Bell, CheckCheck, X } from "lucide-react";
+import { Bell, CheckCheck, X, MessageCircle, Users, ShieldCheck, Zap, Package } from "lucide-react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,216 +16,253 @@ interface Notification {
   created_at: string;
 }
 
-interface ApiError {
-  response?: { status?: number };
-}
+const SPRING = { type: "spring", stiffness: 520, damping: 36, mass: 0.5 } as const;
+
+const timeAgo = (date: string) => {
+  const d = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (d < 60)    return "just now";
+  if (d < 3600)  return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  return new Date(date).toLocaleDateString("en", { month: "short", day: "numeric" });
+};
+
+const notifIcon = (title: string) => {
+  if (title?.includes("Message"))  return <MessageCircle size={16} className="text-primary" />;
+  if (title?.includes("Follow"))   return <Users         size={16} className="text-green-500" />;
+  if (title?.includes("Request"))  return <Users         size={16} className="text-amber-500" />;
+  if (title?.includes("Admin"))    return <ShieldCheck   size={16} className="text-red-500" />;
+  if (title?.includes("App"))      return <Package       size={16} className="text-purple-500" />;
+  return                                  <Zap           size={16} className="text-primary" />;
+};
 
 export function NotificationBell() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]     = useState(false);
   const [unread, setUnread] = useState(0);
   const [userId, setUserId] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
+  // ── Auth ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    api.get("/users/me")
-      .then(res => setUserId(res.data.id))
-      .catch(() => {});
+    api.get("/users/me").then(r => setUserId(r.data.id)).catch(() => {});
   }, []);
 
   const { useEvent } = useRealtime(userId || undefined);
 
-  // Request notification permission on mount
+  // ── Native notification permission ────────────────────────────────────────
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-    }
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default")
+      Notification.requestPermission();
   }, []);
 
-  // Subscribe to real-time NOTIFICATION events (called at top level — proper hook usage)
+  // ── Real-time push ────────────────────────────────────────────────────────
   useEvent("NOTIFICATION", (data) => {
-    const newNotif: Notification = {
-      id: data.id || Math.random(),
-      title: data.title,
-      message: data.message,
-      is_read: false,
-      created_at: data.created_at || new Date().toISOString()
+    const n: Notification = {
+      id:         data.id || Date.now(),
+      title:      data.title,
+      message:    data.message,
+      is_read:    false,
+      created_at: data.created_at || new Date().toISOString(),
     };
-    setNotifications(prev => [newNotif, ...prev]);
+    setNotifications(prev => [n, ...prev]);
     setUnread(prev => prev + 1);
-    
-    // Show instant toast notification globally
-    toast(data.title, {
-      description: data.message,
-    });
 
-    // Native notification
-    if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-      new window.Notification(data.title, {
-        body: data.message,
-        icon: "/panda-logo.png"
-      });
-    }
+    toast(data.title, { description: data.message });
+
+    if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted")
+      new window.Notification(data.title, { body: data.message, icon: "/panda-logo.png" });
   });
 
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await api.get("/notifications/");
       setNotifications(res.data);
       setUnread(res.data.filter((n: Notification) => !n.is_read).length);
-    } catch (err: unknown) {
-      const error = err as ApiError;
-      if (error.response?.status !== 401) {
-        console.error("Failed to fetch notifications");
-      }
-    }
+    } catch {}
   }, []);
 
-  // Fetch once on mount, then poll every 60s
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60_000);
-    return () => clearInterval(interval);
+    const iv = setInterval(fetchNotifications, 60_000);
+    return () => clearInterval(iv);
   }, [fetchNotifications]);
 
-  // Close on outside click
+  // ── Outside click close ───────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // ── Actions ───────────────────────────────────────────────────────────────
   const markRead = async (id: number) => {
     await api.post(`/notifications/${id}/read`).catch(() => {});
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-    );
-    setUnread((prev) => Math.max(0, prev - 1));
+    setNotifications(p => p.map(n => n.id === id ? { ...n, is_read: true } : n));
+    setUnread(p => Math.max(0, p - 1));
   };
 
   const markAllRead = async () => {
     await api.post("/notifications/read-all").catch(() => {});
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setNotifications(p => p.map(n => ({ ...n, is_read: true })));
     setUnread(0);
   };
 
-  const handleNotificationClick = (n: Notification) => {
+  const handleClick = (n: Notification) => {
     if (!n.is_read) markRead(n.id);
     setOpen(false);
 
-    // New message → open the conversation directly
-    if (n.title === "New Message") {
-      const match = n.message.match(/@([\w\-.]+)/);
-      if (match?.[1]) {
-        router.push(`/messages/${match[1]}`);
-        return;
-      }
-    }
+    const match = n.message?.match(/@([\w\-.]+)/);
+    const uname = match?.[1];
 
-    // Follow / request → go to that user's profile
-    if (n.title === "New Follower" || n.title === "Follow Request" || n.title === "Request Accepted") {
-      const match = n.message.match(/@([\w\-.]+)/);
-      if (match?.[1]) {
-        router.push(`/users/${match[1]}`);
-        return;
-      }
+    if (n.title === "New Message"   && uname) { router.push(`/messages/${uname}`);   return; }
+    if ((n.title === "New Follower" || n.title === "Follow Request" || n.title === "Request Accepted") && uname) {
+      router.push(`/users/${uname}`); return;
     }
-
-    // Publisher nudge
-    if (n.title === "App Nudge!") {
-      router.push("/publisher");
-      return;
-    }
-
-    // Support feedback → admin panel
-    if (n.title?.startsWith("Support Feedback")) {
-      router.push("/admin");
-      return;
-    }
+    if (n.title === "App Nudge!")                   { router.push("/publisher"); return; }
+    if (n.title?.startsWith("Support Feedback"))    { router.push("/admin");     return; }
+    router.push("/profile/notifications");
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="relative p-2 text-on-surface-variant hover:text-primary transition-colors"
+    // IMPORTANT: position:static on the bell container — the dropdown is
+    // portaled via fixed positioning so it escapes any overflow:hidden parent.
+    <div ref={ref} className="relative" style={{ isolation: "isolate" }}>
+
+      {/* ── Bell button ── */}
+      <motion.button
+        onClick={() => setOpen(o => !o)}
+        whileTap={{ scale: 0.88 }}
+        transition={{ duration: 0.08 }}
+        className="relative p-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
         aria-label="Notifications"
+        style={{ willChange: "transform" }}
       >
         <Bell size={20} />
-        {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 animate-pulse">
-            {unread > 9 ? "9+" : unread}
-          </span>
-        )}
-      </button>
+        <AnimatePresence>
+          {unread > 0 && (
+            <motion.span
+              key="badge"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{   scale: 0, opacity: 0 }}
+              transition={SPRING}
+              className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5 shadow-sm shadow-red-500/30"
+              style={{ willChange: "transform, opacity" }}
+            >
+              {unread > 9 ? "9+" : unread}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
 
+      {/* ── Dropdown — fixed so it escapes navbar overflow clipping ── */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-[calc(100%+0.75rem)] w-80 glass border border-outline-variant rounded-2xl shadow-2xl z-50 overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/50">
-              <span className="font-bold text-sm text-on-surface">Notifications</span>
-              <div className="flex items-center gap-2">
-                {unread > 0 && (
-                  <button
-                    onClick={markAllRead}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <CheckCheck size={14} /> All read
-                  </button>
-                )}
-                <button onClick={() => setOpen(false)} aria-label="Close notifications" className="text-on-surface-variant hover:text-on-surface">
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
+          <>
+            {/* Backdrop (mobile full-screen tap-to-close) */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              className="fixed inset-0 z-[90] md:hidden"
+              onClick={() => setOpen(false)}
+            />
 
-            {/* List */}
-            <div className="max-h-80 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="py-10 text-center text-on-surface-variant">
-                  <Bell size={28} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No notifications yet</p>
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0,  scale: 1    }}
+              exit={{   opacity: 0, y: -8,  scale: 0.96 }}
+              transition={SPRING}
+              style={{ willChange: "transform, opacity" }}
+              /* Fixed keeps it out of any overflow:hidden container */
+              className={[
+                "fixed z-[100]",
+                /* Desktop: anchor to right side of bell */
+                "md:absolute md:right-0 md:top-[calc(100%+10px)]",
+                /* Mobile: full-width sheet near top */
+                "top-20 left-4 right-4 md:left-auto md:w-96",
+              ].join(" ")}
+            >
+              <div className="bottom-nav-glass rounded-3xl shadow-2xl overflow-hidden border border-white/50">
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/20">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-sm text-on-surface">Notifications</span>
+                    {unread > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-black">
+                        {unread}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {unread > 0 && (
+                      <button onClick={markAllRead}
+                        className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline px-2 py-1 rounded-lg hover:bg-primary/8 transition-colors">
+                        <CheckCheck size={13} /> Mark all read
+                      </button>
+                    )}
+                    <button onClick={() => setOpen(false)} aria-label="Close"
+                      className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-low transition-colors">
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                notifications.map((n) => (
-                  <button
-                    key={n.id}
-                    onClick={() => handleNotificationClick(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-outline-variant/30 hover:bg-surface-low transition-colors ${
-                      n.is_read ? "opacity-60" : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {!n.is_read && (
-                        <span className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                      )}
-                      <div className={!n.is_read ? "" : "pl-4"}>
-                        <p className="text-sm font-bold text-on-surface">{n.title}</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{n.message}</p>
-                        <p className="text-[10px] text-on-surface-variant/50 mt-1">
-                          {new Date(n.created_at).toLocaleDateString()}
-                        </p>
+
+                {/* List */}
+                <div className="max-h-[70vh] md:max-h-80 overflow-y-auto overscroll-contain" style={{ scrollbarWidth: "none" }}>
+                  {notifications.length === 0 ? (
+                    <div className="py-14 flex flex-col items-center gap-3 text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-surface-low border border-outline-variant/30 flex items-center justify-center">
+                        <Bell size={24} className="text-on-surface-variant/30" />
                       </div>
+                      <p className="text-sm font-semibold text-on-surface-variant/60">You're all caught up!</p>
                     </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </motion.div>
+                  ) : (
+                    <AnimatePresence initial={false}>
+                      {notifications.map((n, i) => (
+                        <motion.button
+                          key={n.id}
+                          layout
+                          initial={{ opacity: 0, x: 12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ ...SPRING, delay: i * 0.02 }}
+                          onClick={() => handleClick(n)}
+                          className={`w-full text-left flex items-start gap-3 px-5 py-3.5 border-b border-white/10 transition-colors active:scale-[0.98] ${
+                            n.is_read ? "opacity-55 hover:opacity-80 hover:bg-white/5" : "hover:bg-primary/5"
+                          }`}
+                        >
+                          {/* Icon circle */}
+                          <div className="flex-shrink-0 w-9 h-9 rounded-2xl bg-surface-low border border-outline-variant/20 flex items-center justify-center mt-0.5 shadow-inner">
+                            {notifIcon(n.title)}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <p className="text-[13px] font-bold text-on-surface truncate">{n.title}</p>
+                              <span className="text-[10px] text-on-surface-variant/50 flex-shrink-0">
+                                {timeAgo(n.created_at)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{n.message}</p>
+                          </div>
+
+                          {/* Unread dot */}
+                          {!n.is_read && (
+                            <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2" />
+                          )}
+                        </motion.button>
+                      ))}
+                    </AnimatePresence>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
