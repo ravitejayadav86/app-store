@@ -147,9 +147,9 @@ def get_apps(
             "icon_url": app.icon_url,
             "screenshot_urls": app.screenshot_urls,
             "created_at": app.created_at,
-            "rating": round(float(avg_rating), 1),
-            "reviews_count": int(reviews_count),
-            "downloads_count": int(downloads_count),
+            "rating": round(float(avg_rating or 0.0), 1),
+            "reviews_count": int(reviews_count or 0),
+            "downloads_count": int(downloads_count or 0),
             "maturity_rating": maturity,
             "file_size": app.file_size or "Varies"
         }
