@@ -460,16 +460,6 @@ def grant_access(
         db.commit()
     return {"message": f"Access granted to {username}"}
 
-@router.get("/{app_id}", response_model=schemas.AppOut)
-def get_app(app_id: int, db: Session = Depends(get_db)):
-    app = db.query(models.App).filter(
-        models.App.id == app_id,
-        models.App.is_active == True
-    ).first()
-    if not app:
-        raise HTTPException(404, "App not found or has been removed")
-    return attach_stats(app, db)
-
 @router.post("/generate-signature")
 def generate_signature(
     params: dict,
@@ -495,6 +485,16 @@ def generate_signature(
         "api_key": os.getenv("CLOUDINARY_API_KEY"),
         "cloud_name": os.getenv("CLOUDINARY_CLOUD_NAME")
     }
+
+@router.get("/{app_id}", response_model=schemas.AppOut)
+def get_app(app_id: int, db: Session = Depends(get_db)):
+    app = db.query(models.App).filter(
+        models.App.id == app_id,
+        models.App.is_active == True
+    ).first()
+    if not app:
+        raise HTTPException(404, "App not found or has been removed")
+    return attach_stats(app, db)
 
 @router.delete("/{app_id}")
 def delete_app(
