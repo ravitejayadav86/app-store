@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { UILayoutWrapper } from "@/components/layout/UILayoutWrapper";
-import { Copilot } from "@/components/Copilot";
+
 import { Toaster } from "sonner";
 import Providers from "@/components/Providers";
 
@@ -95,7 +95,7 @@ export default function RootLayout({
             {children}
           </UILayoutWrapper>
           <Footer />
-          <Copilot />
+
           <Toaster position="bottom-right" theme="dark" richColors />
         </Providers>
       </body>
