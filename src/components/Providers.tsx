@@ -2,6 +2,7 @@
 import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import api from "@/lib/api";
+import { GlobalRealtimeListener } from "./realtime/GlobalRealtimeListener";
 
 function TokenSync() {
   const { data: session, status } = useSession();
@@ -52,6 +53,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <TokenSync />
+      <GlobalRealtimeListener />
       {children}
     </SessionProvider>
   );
