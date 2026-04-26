@@ -46,9 +46,10 @@ export default function MessagesPage() {
     try {
       const res = await api.get("/social/conversations");
       setConversations(res.data);
-    } catch {
-      toast.error("Please sign in to view messages");
-      router.push("/login");
+    } catch (err: any) {
+      console.error("fetchConversations failed:", err);
+      toast.error("Could not load conversations: " + (err.response?.data?.detail || err.message));
+      // router.push("/login"); // Don't redirect immediately so we can see the error
     } finally {
       setLoading(false);
     }
@@ -57,9 +58,10 @@ export default function MessagesPage() {
   useEffect(() => {
     api.get("/users/me")
       .then(res => setCurrentUserId(res.data.id))
-      .catch(() => {
-         toast.error("Please sign in to view messages");
-         router.push("/login");
+      .catch((err: any) => {
+         console.error("users/me failed:", err);
+         toast.error("Please sign in: " + (err.response?.data?.detail || err.message));
+         // router.push("/login");
       });
   }, [router]);
 
