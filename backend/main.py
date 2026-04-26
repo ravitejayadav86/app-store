@@ -20,17 +20,53 @@ def init_db():
         print(f"Table sync error: {e}")
 
 def run_migrations():
-    # Data migration for file_size
+    # Data migration for real file_size
+    import requests
+    import math
+    
+    def format_size(size_bytes):
+        if size_bytes <= 0: return "Varies"
+        size_name = ("B", "KB", "MB", "GB", "TB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 1)
+        return f"{s} {size_name[i]}"
+
     db = SessionLocal()
     try:
-        apps_to_update = db.query(models.App).filter(models.App.file_size == None).all()
+        # Update apps that don't have a "real" size yet (looking for estimates or None)
+        # We assume sizes like '256 MB', '12 MB', '45 MB' were estimates from previous migration
+        apps_to_update = db.query(models.App).all()
         for app in apps_to_update:
-            if app.category and app.category.lower() == "games": app.file_size = "256 MB"
-            elif app.category and app.category.lower() in ["productivity", "utilities"]: app.file_size = "12 MB"
-            else: app.file_size = "45 MB"
+            if not app.file_path:
+                continue
+            
+            real_size = None
+            # 1. Check Remote (Cloudinary)
+            if app.file_path.startswith("http"):
+                try:
+                    # Use a short timeout to not block startup too long
+                    response = requests.head(app.file_path, allow_redirects=True, timeout=2)
+                    if response.status_code == 200:
+                        size = response.headers.get('Content-Length')
+                        if size:
+                            real_size = format_size(int(size))
+                except Exception:
+                    pass
+            # 2. Check Local
+            elif os.path.exists(app.file_path.lstrip('/')):
+                try:
+                    size = os.path.getsize(app.file_path.lstrip('/'))
+                    real_size = format_size(size)
+                except Exception:
+                    pass
+            
+            if real_size:
+                app.file_size = real_size
+        
         db.commit()
     except Exception as e:
-        print(f"Data migration error: {e}")
+        print(f"Real size migration error: {e}")
         db.rollback()
     finally:
         db.close()
