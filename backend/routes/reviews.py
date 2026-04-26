@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List
 from sqlalchemy.orm import Session
 import models, schemas, auth
 from database import get_db
 from realtime import manager
-import asyncio
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -23,6 +22,7 @@ def get_reviews(app_id: int, db: Session = Depends(get_db)):
 def submit_review(
     app_id: int,
     review: schemas.ReviewCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -42,7 +42,7 @@ def submit_review(
         db.refresh(existing)
         
         # Broadcast update
-        asyncio.create_task(manager.broadcast({
+        background_tasks.add_task(manager.broadcast, {
             "type": "NEW_REVIEW",
             "app_id": app_id,
             "review": {
@@ -52,7 +52,7 @@ def submit_review(
                 "created_at": existing.created_at.isoformat(),
                 "user_id": existing.user_id
             }
-        }))
+        })
         
         return existing
     db_review = models.Review(
@@ -66,7 +66,7 @@ def submit_review(
     db.refresh(db_review)
 
     # Broadcast review event for realtime UI
-    asyncio.create_task(manager.broadcast({
+    background_tasks.add_task(manager.broadcast, {
         "type": "NEW_REVIEW",
         "app_id": app_id,
         "review": {
@@ -76,6 +76,6 @@ def submit_review(
             "created_at": db_review.created_at.isoformat(),
             "user_id": db_review.user_id
         }
-    }))
+    })
 
     return db_review

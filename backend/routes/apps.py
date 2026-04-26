@@ -417,6 +417,7 @@ async def download_file(
 @router.post("/{app_id}/nudge")
 async def nudge_publisher(
     app_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -442,12 +443,11 @@ async def nudge_publisher(
     
     # Real-time notification if developer is online
     from realtime import manager
-    import asyncio
-    asyncio.create_task(manager.send_to_user(developer.id, {
+    background_tasks.add_task(manager.send_to_user, developer.id, {
         "type": "NOTIFICATION",
         "title": notif.title,
         "message": notif.message
-    }))
+    })
 
     return {"message": "Nudge sent to publisher!"}
 
@@ -455,6 +455,7 @@ async def nudge_publisher(
 def grant_access(
     app_id: int,
     payload: dict,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -473,11 +474,10 @@ def grant_access(
         
         # Broadcast download event for realtime UI
         from realtime import manager
-        import asyncio
-        asyncio.create_task(manager.broadcast({
+        background_tasks.add_task(manager.broadcast, {
             "type": "APP_DOWNLOADED",
             "app_id": app_id
-        }))
+        })
         
     return {"message": f"Access granted to {username}"}
 

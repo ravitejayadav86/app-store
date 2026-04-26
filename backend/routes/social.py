@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas, auth
@@ -155,6 +155,7 @@ def get_profile(
 @router.post("/follow/{username}")
 async def toggle_follow(
     username: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -192,14 +193,13 @@ async def toggle_follow(
         db.refresh(notif)
         
         # Push via WebSocket
-        import asyncio
-        asyncio.create_task(manager.send_to_user(user.id, {
+        background_tasks.add_task(manager.send_to_user, user.id, {
             "type": "NOTIFICATION",
             "id": notif.id,
             "title": notif.title,
             "message": notif.message,
             "created_at": notif.created_at.isoformat()
-        }))
+        })
         
         return {"following": is_accepted, "status": "following" if is_accepted else "requested"}
 
@@ -323,6 +323,7 @@ def send_support_feedback(
 @router.post("/messages/{username}/read")
 async def mark_read(
     username: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -338,17 +339,17 @@ async def mark_read(
     db.commit()
     
     # Notify sender that their messages were read
-    import asyncio
-    asyncio.create_task(manager.send_to_user(other.id, {
+    background_tasks.add_task(manager.send_to_user, other.id, {
         "type": "MESSAGES_READ",
         "by": current_user.username
-    }))
+    })
     
     return {"status": "ok"}
 
 @router.post("/follow/accept/{follower_id}")
 async def accept_follow_request(
     follower_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -374,14 +375,13 @@ async def accept_follow_request(
     db.refresh(notif)
     
     # WebSocket
-    import asyncio
-    asyncio.create_task(manager.send_to_user(follower_id, {
+    background_tasks.add_task(manager.send_to_user, follower_id, {
         "type": "NOTIFICATION",
         "id": notif.id,
         "title": notif.title,
         "message": notif.message,
         "created_at": notif.created_at.isoformat()
-    }))
+    })
     
     return {"status": "accepted"}
 
@@ -389,6 +389,7 @@ async def accept_follow_request(
 async def send_message(
     username: str,
     msg: schemas.MessageCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -430,16 +431,15 @@ async def send_message(
     db.refresh(notif)
     
     # Notify via WebSocket if possible
-    import asyncio
-    asyncio.create_task(manager.send_to_user(receiver.id, payload))
+    background_tasks.add_task(manager.send_to_user, receiver.id, payload)
     # Also notify about the new notification entry
-    asyncio.create_task(manager.send_to_user(receiver.id, {
+    background_tasks.add_task(manager.send_to_user, receiver.id, {
         "type": "NOTIFICATION",
         "id": notif.id,
         "title": notif.title,
         "message": notif.message,
         "created_at": notif.created_at.isoformat()
-    }))
+    })
     
     return payload
 
