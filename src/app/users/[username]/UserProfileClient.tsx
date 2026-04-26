@@ -18,6 +18,7 @@ import {
   Package, 
   Heart, 
   MessageSquare,
+  User,
   ShieldCheck,
   CheckCircle2,
   Mail,
