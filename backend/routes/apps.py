@@ -5,7 +5,6 @@ from typing import List
 import models, schemas, auth
 from database import get_db
 import storage
-import os
 
 router = APIRouter(prefix="/apps", tags=["apps"])
 
@@ -26,16 +25,12 @@ def submit_app(app: schemas.AppCreate, db: Session = Depends(get_db), current_us
     return db_app
 
 @router.post("/{app_id}/upload")
-def upload_file(app_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+def upload_file_route(app_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     app = db.query(models.App).filter(models.App.id == app_id, models.App.developer == current_user.username).first()
     if not app:
         raise HTTPException(404, "App not found")
-    
-    # Delete old file if exists
     if app.file_path and app.file_path.startswith("https://"):
         storage.delete_file(app.file_path)
-    
-    # Upload to Backblaze B2
     file_url = storage.upload_file(file.file, file.filename, file.content_type or "application/octet-stream")
     app.file_path = file_url
     db.commit()
@@ -52,19 +47,16 @@ def grant_access(app_id: int, payload: dict, db: Session = Depends(get_db), curr
         purchase = models.Purchase(user_id=user.id, app_id=app_id)
         db.add(purchase)
         db.commit()
-    return {"message": f"Access granted to {username}"}
+    return {"message": "Access granted to " + str(username)}
 
 @router.get("/{app_id}/download")
 def download_file(app_id: int, db: Session = Depends(get_db)):
     app = db.query(models.App).filter(models.App.id == app_id).first()
     if not app or not app.file_path:
         raise HTTPException(404, "File not found")
-    
-    # Generate signed URL for private bucket
     if app.file_path.startswith("https://"):
         download_url = storage.generate_download_url(app.file_path)
         return RedirectResponse(url=download_url)
-    
     raise HTTPException(404, "File not available")
 
 @router.get("/{app_id}", response_model=schemas.AppOut)
