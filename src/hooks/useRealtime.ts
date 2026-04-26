@@ -118,6 +118,8 @@ function releaseSocket(userId: number) {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useRealtime(userId?: number) {
   const [isConnected, setIsConnected] = useState(false);
+  // Bumped each time a userId successfully connects so useEvent effects re-fire
+  const [connectedVersion, setConnectedVersion] = useState(0);
   const stateRef = useRef<WsState | null>(null);
 
   useEffect(() => {
@@ -127,6 +129,8 @@ export function useRealtime(userId?: number) {
 
     // Track current connection state
     setIsConnected(state.ws?.readyState === WebSocket.OPEN);
+    // Bump version so that useEvent effects re-register their listeners
+    setConnectedVersion((v) => v + 1);
 
     const onConnection = (data: { connected: boolean }) => setIsConnected(data.connected);
     if (!state.listeners.has("CONNECTION")) state.listeners.set("CONNECTION", new Set());
@@ -142,6 +146,9 @@ export function useRealtime(userId?: number) {
   /**
    * useEvent — subscribe to a WebSocket event type.
    * Must be called at the top level of a component (React hook rules).
+   *
+   * `connectedVersion` is included in the dep array so this effect re-runs
+   * after userId loads and stateRef.current is populated.
    */
   const useEvent = useCallback((type: string, callback: EventCallback) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -161,8 +168,12 @@ export function useRealtime(userId?: number) {
         state.listeners.get(type)?.delete(stableCb);
         if (state.listeners.get(type)?.size === 0) state.listeners.delete(type);
       };
-    }, [type]);
-  }, []);
+    // connectedVersion triggers re-registration after userId resolves
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [type, connectedVersion]);
+  // connectedVersion must be in the outer closure for the dep array above
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectedVersion]);
 
   /**
    * sendEvent — send a message through the shared WebSocket.

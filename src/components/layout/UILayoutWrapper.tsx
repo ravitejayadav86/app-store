@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Navbar } from "./Navbar";
 import { BottomNav } from "./BottomNav";
 import { usePathname } from "next/navigation";
@@ -10,90 +10,136 @@ interface UILayoutWrapperProps {
   children: React.ReactNode;
 }
 
+const AUTO_HIDE_DELAY = 4000;
+
+// 120 Hz springs
+const SPRING_PAGE = { type: "spring", stiffness: 480, damping: 38, mass: 0.6 } as const;
+const SPRING_HINT = { type: "spring", stiffness: 400, damping: 30, mass: 0.5 } as const;
+
 export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
-  const [uiHiddenOverride, setUiHiddenOverride] = useState<boolean | null>(null);
   const pathname = usePathname();
+  const [panelsVisible, setPanelsVisible] = useState(true);
+  const [showHint, setShowHint] = useState(false);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isDetailPage = pathname?.startsWith("/apps/") || 
-                       pathname?.startsWith("/game/") || 
-                       pathname?.startsWith("/users/") ||
-                       pathname?.startsWith("/profile");
-                       
-  // Reset override on navigation
+  const scheduleHide = useCallback(() => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      setPanelsVisible(false);
+      setShowHint(true);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => setShowHint(false), 3000);
+    }, AUTO_HIDE_DELAY);
+  }, []);
+
+  // Reset on navigation
   useEffect(() => {
-    setUiHiddenOverride(null);
-  }, [pathname]);
+    setPanelsVisible(true);
+    scheduleHide();
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    };
+  }, [pathname, scheduleHide]);
 
-  const effectiveHidden = uiHiddenOverride !== null ? uiHiddenOverride : isDetailPage;
-
+  // Activity keeps panels alive
   useEffect(() => {
-    let lastTapTime = 0;
-    
-    // Support both mouse double-click and touch double-tap
-    const handleDoubleTap = (e: Event) => {
-      const target = e.target as HTMLElement;
+    const onActivity = () => { if (panelsVisible) scheduleHide(); };
+    window.addEventListener("mousemove", onActivity, { passive: true });
+    window.addEventListener("scroll",    onActivity, { passive: true });
+    window.addEventListener("keydown",   onActivity, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onActivity);
+      window.removeEventListener("scroll",    onActivity);
+      window.removeEventListener("keydown",   onActivity);
+    };
+  }, [panelsVisible, scheduleHide]);
+
+  // Double-click / double-tap toggle
+  useEffect(() => {
+    let lastTap = 0;
+
+    const toggle = (e: Event) => {
+      const t = e.target as HTMLElement;
       if (
-        target.tagName === "BUTTON" || 
-        target.tagName === "A" || 
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.closest("button") || 
-        target.closest("a") ||
-        target.closest(".interactive")
-      ) {
-        return;
-      }
-      
-      // Prevent selection on double click
-      if (e.type === "dblclick") {
-        window.getSelection()?.removeAllRanges();
-      }
+        t.tagName === "BUTTON" || t.tagName === "A" ||
+        t.tagName === "INPUT"  || t.tagName === "TEXTAREA" ||
+        t.tagName === "SELECT" ||
+        t.closest("button") || t.closest("a") ||
+        t.closest("input")  || t.closest("textarea") ||
+        t.closest(".interactive")
+      ) return;
 
-      setUiHiddenOverride(prev => {
-        const currentlyHidden = prev !== null ? prev : isDetailPage;
-        return !currentlyHidden;
+      if (e.type === "dblclick") window.getSelection()?.removeAllRanges();
+
+      setPanelsVisible(prev => {
+        const next = !prev;
+        if (next) {
+          setShowHint(false);
+          scheduleHide();
+        }
+        return next;
       });
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTapTime;
-      if (tapLength < 300 && tapLength > 0) {
-        handleDoubleTap(e);
-        e.preventDefault();
-      }
-      lastTapTime = currentTime;
+    const onTouchStart = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTap < 300 && now - lastTap > 0) { toggle(e); e.preventDefault(); }
+      lastTap = now;
     };
 
-    window.addEventListener("dblclick", handleDoubleTap);
-    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("dblclick",    toggle);
+    window.addEventListener("touchstart",  onTouchStart, { passive: false });
     return () => {
-      window.removeEventListener("dblclick", handleDoubleTap);
-      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("dblclick",   toggle);
+      window.removeEventListener("touchstart", onTouchStart);
     };
-  }, [isDetailPage]);
+  }, [scheduleHide]);
 
   return (
     <>
-      <Navbar isHidden={effectiveHidden} />
-      <main className={`flex-grow transition-all duration-300 overflow-x-hidden ${effectiveHidden ? "pt-0 pb-0" : "pt-24 pb-24 md:pb-0"}`}>
+      <Navbar isHidden={!panelsVisible} />
+
+      <main className={`flex-grow overflow-x-hidden transition-[padding] duration-300 ease-out ${
+        panelsVisible ? "pt-24 pb-24 md:pb-0" : "pt-0 pb-0"
+      }`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, y: 5 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ 
-              duration: 0.25, 
-              ease: "easeOut"
-            }}
-            className="w-full h-full transform-gpu will-change-transform"
+            exit={{   opacity: 0         }}
+            transition={SPRING_PAGE}
+            style={{ willChange: "transform, opacity" }}
+            className="w-full h-full transform-gpu"
           >
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
-      <BottomNav isHidden={effectiveHidden} />
+
+      <BottomNav isHidden={!panelsVisible} />
+
+      {/* Hint pill */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0,  scale: 1    }}
+            exit={{   opacity: 0, y: 12,  scale: 0.92 }}
+            transition={SPRING_HINT}
+            style={{ willChange: "transform, opacity" }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] pointer-events-none"
+          >
+            <div className="hint-pill">
+              <span className="text-white/85 text-[11px] font-semibold tracking-wide select-none">
+                Double-tap to show navigation
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

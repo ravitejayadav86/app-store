@@ -2,11 +2,17 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Send, Lock, Image as ImageIcon, Check, CheckCheck, FileText, Loader2, X, Download } from "lucide-react";
+import {
+  ArrowLeft, Send, Lock, Image as ImageIcon,
+  Check, CheckCheck, FileText, Loader2, X, Download, Paperclip
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRealtime } from "@/hooks/useRealtime";
 
+/* ─────────────────────────────────────────────────────────────────────────── */
 interface Message {
   id: number;
   sender_id: number;
@@ -22,566 +28,467 @@ interface Message {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com";
 
-const resolveMediaUrl = (url: string | null | undefined, forDownload = false) => {
+const resolveMedia = (url: string | null | undefined, dl = false) => {
   if (!url) return "";
-  let finalUrl = url;
-  if (!(url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:"))) {
-    finalUrl = `${API_BASE}${url}`;
-  }
-  
-  if (forDownload && finalUrl.includes("cloudinary.com")) {
-    return finalUrl.replace("/upload/", "/upload/fl_attachment/");
-  }
-  return finalUrl;
+  const final = url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")
+    ? url : `${API_BASE}${url}`;
+  return dl && final.includes("cloudinary.com")
+    ? final.replace("/upload/", "/upload/fl_attachment/")
+    : final;
 };
 
-import { useRealtime } from "@/hooks/useRealtime";
+const timeAgo = (date: string) => {
+  const d = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (d < 60)    return "just now";
+  if (d < 3600)  return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  return new Date(date).toLocaleDateString("en", { month: "short", day: "numeric" });
+};
 
+const SPRING_MSG = { type: "spring", stiffness: 520, damping: 38, mass: 0.5 } as const;
+
+/* ─────────────────────────────────────────────────────────────────────────── */
 export default function ChatClient({ username: propUsername }: { username?: string }) {
-  const params = useParams();
-  const username = propUsername || params.username as string;
-  const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const params   = useParams();
+  const username = (propUsername || params.username) as string;
+  const router   = useRouter();
 
-  const [recipientProfile, setRecipientProfile] = useState<{avatar_url?: string | null} | null>(null);
-  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const { isConnected: connected, useEvent, sendEvent } = useRealtime(currentUserId || undefined);
-
-  const [hasMore, setHasMore] = useState(true);
-  const [fetchingMore, setFetchingMore] = useState(false);
+  const [messages,       setMessages]       = useState<Message[]>([]);
+  const [newMessage,     setNewMessage]     = useState("");
+  const [sending,        setSending]        = useState(false);
+  const [currentUserId,  setCurrentUserId]  = useState<number | null>(null);
+  const [currentUsername,setCurrentUsername]= useState<string | null>(null);
+  const [recipientAvatar,setRecipientAvatar]= useState<string | null>(null);
+  const [filesToUpload,  setFilesToUpload]  = useState<File[]>([]);
+  const [filePreviews,   setFilePreviews]   = useState<string[]>([]);
+  const [uploading,      setUploading]      = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const atBottomRef = useRef(true);
+  const [hasMore,        setHasMore]        = useState(true);
+  const [fetchingMore,   setFetchingMore]   = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bottomRef    = useRef<HTMLDivElement>(null);
+  const scrollRef    = useRef<HTMLDivElement>(null);
+  const atBottom     = useRef(true);
+  const textareaRef  = useRef<HTMLTextAreaElement>(null);
+
+  const { isConnected, useEvent, sendEvent } = useRealtime(currentUserId || undefined);
+
+  /* ── Auth ── */
   useEffect(() => {
     api.get("/users/me")
-      .then(res => {
-        setCurrentUserId(res.data.id);
-        setCurrentUsername(res.data.username);
-      })
-      .catch(() => {
-        toast.error("Please sign in to message");
-        router.push("/login");
-      });
-    
-    // Request notification permission
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-    }
+      .then(r => { setCurrentUserId(r.data.id); setCurrentUsername(r.data.username); })
+      .catch(() => { toast.error("Please sign in"); router.push("/login"); });
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default")
+      Notification.requestPermission();
   }, [router]);
 
-  const markAsRead = useCallback(async () => {
-    try {
-      await api.post(`/social/messages/${username}/read`);
-      sendEvent({
-        type: "READ",
-        to: username
-      });
-    } catch (err) {
-      console.error("Failed to mark messages as read", err);
-    }
+  /* ── Mark read ── */
+  const markRead = useCallback(async () => {
+    try { await api.post(`/social/messages/${username}/read`); sendEvent({ type: "READ", to: username }); }
+    catch {}
   }, [username, sendEvent]);
 
+  /* ── Fetch ── */
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await api.get(`/social/messages/${username}?limit=50`);
-      setMessages(res.data);
-      if (res.data.length < 50) setHasMore(false);
-      // Mark as read when messages are loaded
-      markAsRead();
-    } catch {
-      toast.error("Failed to load messages");
-    }
-  }, [username, markAsRead]);
+      const r = await api.get(`/social/messages/${username}?limit=50`);
+      setMessages(r.data);
+      if (r.data.length < 50) setHasMore(false);
+      markRead();
+    } catch { toast.error("Failed to load messages"); }
+  }, [username, markRead]);
 
-  const loadMoreMessages = async () => {
+  const loadMore = async () => {
     if (!hasMore || fetchingMore || messages.length === 0) return;
     setFetchingMore(true);
     try {
-      const beforeId = messages[0].id;
-      const res = await api.get(`/social/messages/${username}?limit=50&before_id=${beforeId}`);
-      if (res.data.length < 50) setHasMore(false);
-      setMessages(prev => [...res.data, ...prev]);
-    } catch {
-      console.error("Failed to load more messages");
-    } finally {
-      setFetchingMore(false);
-    }
+      const r = await api.get(`/social/messages/${username}?limit=50&before_id=${messages[0].id}`);
+      if (r.data.length < 50) setHasMore(false);
+      setMessages(p => [...r.data, ...p]);
+    } catch {} finally { setFetchingMore(false); }
   };
 
   useEffect(() => {
-    if (currentUserId) fetchMessages();
-    
-    // Fetch recipient profile for avatar
-    if (username) {
-      api.get(`/social/profile/${username}`)
-        .then(res => setRecipientProfile(res.data))
-        .catch(() => {});
-    }
+    if (!currentUserId) return;
+    fetchMessages();
+    api.get(`/social/profile/${username}`).then(r => setRecipientAvatar(r.data.avatar_url)).catch(() => {});
   }, [currentUserId, fetchMessages, username]);
 
-  // WebSocket connection using the shared hook
-  useEvent("MESSAGES_READ", () => {
-    setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
-  });
-
-  useEvent("NEW_MESSAGE", (msg) => {
-    // Ignore notifications in the chat list
-    if (msg.type === "NOTIFICATION") return;
-
-    setMessages(prev => {
-      // Verify this message belongs to the current conversation
-      const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
-      const isFromRecipient = msg.sender_username === username;
-
-      if (!isFromMe && !isFromRecipient) {
-        return prev; // Ignore messages from other users in this chat window
-      }
-
-      const exists = prev.some(m => m.id === msg.id);
-      if (exists) return prev;
-
-      // Deduplicate optimistic messages
-      if (isFromMe) {
-        const optIdx = prev.findIndex(m => m.id < 0 && m.content === msg.content);
-        if (optIdx !== -1) {
-          const next = [...prev];
-          next[optIdx] = msg;
-          return next;
-        }
-      }
-      
-      // Mark incoming messages as read immediately
-      if (isFromRecipient) {
-        sendEvent({ type: "READ", to: username });
-        // Native push notification when tab is hidden
-        if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-          new window.Notification(`New message from @${username}`, {
-            body: msg.content || "📎 Attachment",
-            icon: "/panda-logo.png",
-            tag: `msg-${username}`, // dedup: only one notif per sender
-          });
-        }
-      }
-
-      return [...prev, msg];
-    });
-
-    // Auto-scroll: always for own messages, for received when near bottom
-    const isOwn = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
-    if (isOwn || atBottomRef.current) {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
-    }
-  });
-
-
+  /* ── Scroll ── */
   useEffect(() => {
-    // Initial scroll to bottom on first load
-    if (messages.length > 0 && messages.length <= 50 && !fetchingMore) {
+    if (messages.length > 0 && messages.length <= 50 && !fetchingMore)
       bottomRef.current?.scrollIntoView({ behavior: "auto" });
-    }
   }, [messages.length, fetchingMore]);
 
-  // Track whether user is near the bottom
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
-    atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-    if (el.scrollTop === 0 && hasMore && !fetchingMore) {
-      loadMoreMessages();
-    }
+    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (el.scrollTop === 0 && hasMore && !fetchingMore) loadMore();
   };
 
+  /* ── Real-time ── */
+  useEvent("MESSAGES_READ", () =>
+    setMessages(p => p.map(m => ({ ...m, is_read: true })))
+  );
 
+  useEvent("NEW_MESSAGE", (msg) => {
+    if (msg.type === "NOTIFICATION") return;
+    const isMe   = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+    const isFrom = msg.sender_username === username;
+    if (!isMe && !isFrom) return;
+    setMessages(p => {
+      if (p.some(m => m.id === msg.id)) return p;
+      if (isMe) {
+        const oi = p.findIndex(m => m.id < 0 && m.content === msg.content);
+        if (oi !== -1) { const n = [...p]; n[oi] = msg; return n; }
+      }
+      if (isFrom) {
+        sendEvent({ type: "READ", to: username });
+        if (document.hidden && Notification.permission === "granted")
+          new window.Notification(`@${username}`, { body: msg.content || "📎", icon: "/panda-logo.png", tag: `msg-${username}` });
+      }
+      return [...p, msg];
+    });
+    if (isMe || atBottom.current)
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  });
+
+  /* ── Files ── */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length === 0) return;
-    
-    setFilesToUpload(prev => [...prev, ...selectedFiles]);
-    
-    const newPreviews = selectedFiles.map(file => {
-      // Only create preview URLs for actual images/videos to avoid crashing the browser
-      if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
-        return URL.createObjectURL(file);
-      }
-      // Return empty string for APKs, ZIPs, etc so it falls back to the FileText icon
-      return "";
-    });
-    
-    setFilePreviews(prev => [...prev, ...newPreviews]);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setFilesToUpload(p => [...p, ...files]);
+    setFilePreviews(p => [...p, ...files.map(f =>
+      f.type.startsWith("image/") || f.type.startsWith("video/") ? URL.createObjectURL(f) : ""
+    )]);
   };
 
-  const removeFile = (index: number) => {
-    setFilesToUpload(prev => prev.filter((_, i) => i !== index));
-    setFilePreviews(prev => {
-      // Revoke the object URL to prevent memory leaks
-      if (prev[index]) {
-        URL.revokeObjectURL(prev[index]);
-      }
-      return prev.filter((_, i) => i !== index);
-    });
-    if (filesToUpload.length === 1 && fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const removeFile = (i: number) => {
+    setFilesToUpload(p => p.filter((_, j) => j !== i));
+    setFilePreviews(p => { if (p[i]) URL.revokeObjectURL(p[i]); return p.filter((_, j) => j !== i); });
+    if (filesToUpload.length === 1 && fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const clearAllFiles = () => {
-    setFilesToUpload([]);
-    filePreviews.forEach(url => {
-      if (url) URL.revokeObjectURL(url);
-    });
-    setFilePreviews([]);
+  const clearFiles = () => {
+    filePreviews.forEach(u => { if (u) URL.revokeObjectURL(u); });
+    setFilesToUpload([]); setFilePreviews([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  /* ── Auto-resize textarea ── */
+  const resizeTextarea = () => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 120) + "px";
+  };
+
+  /* ── Send ── */
   const handleSend = async () => {
     if (!newMessage.trim() && filesToUpload.length === 0) return;
     setSending(true);
-
-    const textContent = newMessage.trim();
-    setNewMessage("");
+    const text  = newMessage.trim();
     const files = [...filesToUpload];
-    clearAllFiles();
+    setNewMessage(""); clearFiles();
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     try {
       if (files.length === 0) {
-        // Optimistic: show message immediately (negative ID indicates optimistic)
-        const optimisticId = -Date.now();
-        const optimistic: Message = {
-          id: optimisticId,
-          sender_id: currentUserId!,
-          receiver_id: 0,
-          content: textContent,
-          is_read: false,
-          created_at: new Date().toISOString(),
-          sender_username: currentUsername!,
-        };
-        setMessages(prev => [...prev, optimistic]);
+        const optId = -Date.now();
+        setMessages(p => [...p, {
+          id: optId, sender_id: currentUserId!, receiver_id: 0, content: text,
+          is_read: false, created_at: new Date().toISOString(), sender_username: currentUsername!
+        }]);
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-
-        // Send via WS or REST
-        const sentViaWs = sendEvent({ to: username, content: textContent, media_url: null, media_type: null });
-        if (!sentViaWs) {
-          const res = await api.post(`/social/messages/${username}`, { content: textContent, media_url: null, media_type: null });
-          // Replace optimistic message with server-confirmed one
-          setMessages(prev => prev.map(m => m.id === optimisticId ? { ...res.data, sender_id: currentUserId!, sender_username: currentUsername! } : m));
-        } else {
-          // WS echo will arrive; remove optimistic duplicate when it does
-          // (handled in NEW_MESSAGE dedup by id)
+        const ok = sendEvent({ to: username, content: text, media_url: null, media_type: null });
+        if (!ok) {
+          const r = await api.post(`/social/messages/${username}`, { content: text, media_url: null, media_type: null });
+          setMessages(p => p.map(m => m.id === optId
+            ? { ...r.data, sender_id: currentUserId!, sender_username: currentUsername! } : m));
         }
       } else {
-        // File uploads
+        setUploading(true);
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (file.size > 500 * 1024 * 1024) {
-            toast.error(`File ${file.name} is too large. Max 500MB.`);
-            continue;
-          }
-
-          setUploading(true);
+          if (file.size > 500 * 1024 * 1024) { toast.error(`${file.name} is too large`); continue; }
           setUploadProgress(0);
-          const formData = new FormData();
-          formData.append("file", file);
-
+          const fd = new FormData(); fd.append("file", file);
           try {
-            const res = await api.post(`/social/messages/${username}/upload`, formData, {
+            const r = await api.post(`/social/messages/${username}/upload`, fd, {
               headers: { "Content-Type": "multipart/form-data" },
-              onUploadProgress: (e) => {
-                if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
-              },
+              onUploadProgress: (e) => { if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total)); }
             });
-
-            const msgContent = (i === 0 && textContent) ? textContent : "";
-            const sentViaWs = sendEvent({ to: username, content: msgContent, media_url: res.data.media_url, media_type: res.data.media_type });
-            if (!sentViaWs) {
-              await api.post(`/social/messages/${username}`, { content: msgContent, media_url: res.data.media_url, media_type: res.data.media_type });
-            }
+            const content = i === 0 && text ? text : "";
+            const ok = sendEvent({ to: username, content, media_url: r.data.media_url, media_type: r.data.media_type });
+            if (!ok) await api.post(`/social/messages/${username}`, { content, media_url: r.data.media_url, media_type: r.data.media_type });
             setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-          } catch (err) {
-            console.error("Upload error:", err);
-            toast.error(`Failed to upload ${file.name}`);
-          }
+          } catch { toast.error(`Failed to upload ${file.name}`); }
         }
-        setUploading(false);
-        setUploadProgress(0);
+        setUploading(false); setUploadProgress(0);
       }
-    } catch {
-      toast.error("Failed to send message.");
-    } finally {
-      setSending(false);
-      setUploading(false);
-    }
+    } catch { toast.error("Failed to send"); }
+    finally { setSending(false); setUploading(false); }
   };
 
-  const emitMessage = async (content: string, media_url: string | null, media_type: string | null) => {
-    const sentViaWs = sendEvent({
-      to: username,
-      content,
-      media_url,
-      media_type
-    });
-    
-    if (!sentViaWs) {
-      const res = await api.post(`/social/messages/${username}`, { 
-        content,
-        media_url,
-        media_type
-      });
-      setMessages(prev => [...prev, {
-        ...res.data,
-        sender_id: currentUserId!,
-        sender_username: currentUsername!,
-        receiver_id: 0,
-        is_read: false
-      }]);
-    }
-  };
-
-  const timeAgo = (date: string) => {
-    const diff = Date.now() - new Date(date).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return new Date(date).toLocaleDateString();
-  };
-
-
+  /* ─────────────────────────────────── RENDER ─────────────────────────── */
+  /* Group messages by date */
+  const messageGroups: { date: string; msgs: Message[] }[] = [];
+  messages.forEach(m => {
+    const day = new Date(m.created_at).toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" });
+    const last = messageGroups[messageGroups.length - 1];
+    if (!last || last.date !== day) messageGroups.push({ date: day, msgs: [m] });
+    else last.msgs.push(m);
+  });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] mt-20 md:mt-24">
-      {/* Header */}
-      <div className="mx-4 my-2 px-3 py-2 liquid-glass flex items-center gap-3 sticky top-24 z-20 border border-white/20">
-        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-primary/5 transition-colors">
-          <ArrowLeft size={18} />
+    <div className="flex flex-col h-[calc(100dvh-0px)] max-h-[100dvh]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <div className="bottom-nav-glass border-b border-white/40 px-3 py-2.5 flex items-center gap-3 z-20 flex-shrink-0">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-xl hover:bg-primary/8 active:scale-90 transition-all text-on-surface-variant"
+          aria-label="Back"
+        >
+          <ArrowLeft size={20} />
         </button>
-        <Link href={`/users/${username}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-1">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-sm overflow-hidden shadow-inner border border-primary/5">
-            {recipientProfile?.avatar_url 
-              ? <img src={resolveMediaUrl(recipientProfile.avatar_url)} alt={username as string} className="w-full h-full object-cover" />
-              : (username as string)?.[0]?.toUpperCase()}
+
+        <Link href={`/users/${username}`} className="flex items-center gap-2.5 flex-1 min-w-0 group">
+          {/* Avatar */}
+          <div className="relative w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10 flex-shrink-0">
+            {recipientAvatar
+              ? <img src={resolveMedia(recipientAvatar)} alt={username} className="w-full h-full object-cover" />
+              : username[0]?.toUpperCase()}
+            {/* Online dot */}
+            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isConnected ? "bg-green-400" : "bg-on-surface-variant/20"}`} />
           </div>
+
           <div className="min-w-0">
-            <p className="font-bold text-on-surface text-sm truncate">@{username}</p>
-            <div className="flex items-center gap-1">
-              <div className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-green-500 animate-pulse" : "bg-on-surface-variant/30"}`} />
-              <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">{connected ? "Online" : "Offline"}</p>
-            </div>
+            <p className="font-bold text-on-surface text-sm truncate group-hover:text-primary transition-colors">@{username}</p>
+            <p className="text-[10px] font-semibold text-on-surface-variant/70 uppercase tracking-wider">
+              {isConnected ? "Active now" : "Offline"}
+            </p>
           </div>
         </Link>
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 text-[9px] font-bold uppercase tracking-widest text-primary">
-          <Lock size={10} /> Secure
+
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 text-[9px] font-bold uppercase tracking-widest flex-shrink-0">
+          <Lock size={9} /> Secure
         </div>
       </div>
 
-      {/* Messages */}
-      <div 
+      {/* ── Messages ──────────────────────────────────────────────────────── */}
+      <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30 overscroll-contain"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="flex-1 overflow-y-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         onScroll={handleScroll}
       >
+        <div className="px-4 py-4 space-y-1 min-h-full flex flex-col justify-end">
 
-        {hasMore && (
-          <div className="flex justify-center py-2">
-            <button 
-              onClick={loadMoreMessages}
-              disabled={fetchingMore}
-              className="text-[10px] font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors flex items-center gap-2"
-            >
-              {fetchingMore ? <Loader2 size={12} className="animate-spin" /> : "Load older messages"}
-            </button>
-          </div>
-        )}
-
-        {messages.length === 0 && !fetchingMore && (
-          <div className="flex flex-col items-center justify-center h-full text-on-surface-variant space-y-4 opacity-40">
-            <div className="p-4 rounded-3xl bg-surface-low border border-outline-variant/50">
-              <Lock size={40} />
+          {/* Load more */}
+          {hasMore && (
+            <div className="flex justify-center py-3">
+              <button onClick={loadMore} disabled={fetchingMore}
+                className="text-[10px] font-bold uppercase tracking-widest text-primary/50 hover:text-primary transition-colors flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5">
+                {fetchingMore ? <Loader2 size={11} className="animate-spin" /> : "Load older"}
+              </button>
             </div>
-            <p className="text-sm font-medium">Messages are end-to-end encrypted.</p>
-          </div>
-        )}
-        {messages.map((msg, i) => {
-          const isMe = msg.sender_id === currentUserId ||
-            msg.sender_username === currentUsername;
-          const showAvatar = !isMe && (i === 0 || messages[i-1].sender_id !== msg.sender_id);
-          
-          return (
-            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2 px-1`}>
-              {!isMe && (
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 overflow-hidden mb-1 border border-primary/5">
-                  {showAvatar ? (
-                    msg.sender_avatar_url 
-                      ? <img src={resolveMediaUrl(msg.sender_avatar_url)} alt={msg.sender_username} className="w-full h-full object-cover" />
-                      : msg.sender_username?.[0]?.toUpperCase()
-                  ) : null}
-                </div>
-              )}
-              <div className={`max-w-[85%] px-4 py-2.5 shadow-md ${
-                isMe
-                  ? "bg-primary text-white rounded-2xl rounded-br-none shadow-primary/20"
-                  : "glass bg-white/60 text-on-surface rounded-2xl rounded-bl-none border-white/30"
-              } transition-all duration-300`}>
-                {msg.media_url && (
-                  <div className="mb-2 rounded-2xl overflow-hidden mt-1 group/media relative bg-black/5 min-h-[120px] flex items-center justify-center">
-                    {msg.media_type === "image" ? (
-                      <>
-                        <img 
-                          src={resolveMediaUrl(msg.media_url)} 
-                          alt="attachment" 
-                          className="w-full h-auto max-h-80 object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300" 
-                          onClick={() => window.open(resolveMediaUrl(msg.media_url), '_blank')}
-                          onLoad={(e) => (e.currentTarget.parentElement!.style.minHeight = '0')}
-                        />
-                        <div className="p-2 border-t border-white/10 flex justify-end w-full">
-                          <a 
-                            href={resolveMediaUrl(msg.media_url, true)} 
-                            download 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isMe ? "bg-white/10 hover:bg-white/20 text-white" : "bg-primary/10 hover:bg-primary/20 text-primary"}`}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Download size={12} /> Download
-                          </a>
+          )}
+
+          {/* Empty state */}
+          {messages.length === 0 && !fetchingMore && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-3xl bg-surface-low border border-outline-variant/30 flex items-center justify-center mb-4 shadow-inner">
+                <Lock size={28} className="text-on-surface-variant/30" />
+              </div>
+              <p className="text-sm font-semibold text-on-surface-variant/60">Messages are end-to-end encrypted</p>
+              <p className="text-xs text-on-surface-variant/40 mt-1">Say hello to @{username}!</p>
+            </div>
+          )}
+
+          {/* Date-grouped messages */}
+          {messageGroups.map(({ date, msgs }) => (
+            <div key={date}>
+              {/* Date divider */}
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px bg-outline-variant/30" />
+                <span className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-wider px-2">{date}</span>
+                <div className="flex-1 h-px bg-outline-variant/30" />
+              </div>
+
+              <div className="space-y-1">
+                {msgs.map((msg, i) => {
+                  const isMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+                  const isFirst = i === 0 || msgs[i - 1].sender_username !== msg.sender_username;
+                  const isLast  = i === msgs.length - 1 || msgs[i + 1].sender_username !== msg.sender_username;
+
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={SPRING_MSG}
+                      style={{ willChange: "transform, opacity" }}
+                      className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
+                    >
+                      {/* Recipient avatar — only on last bubble in a group */}
+                      {!isMe && (
+                        <div className={`w-7 h-7 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10 flex-shrink-0 ${isLast ? "visible" : "invisible"}`}>
+                          {recipientAvatar
+                            ? <img src={resolveMedia(recipientAvatar)} alt={username} className="w-full h-full object-cover" />
+                            : username[0]?.toUpperCase()}
                         </div>
-                      </>
-                    ) : msg.media_type === "video" ? (
-                      <div className="relative group/vid flex flex-col w-full">
-                        <video src={resolveMediaUrl(msg.media_url)} controls className="w-full h-auto max-h-80 object-cover rounded-2xl" />
-                        <div className="p-2 flex justify-end">
-                          <a 
-                            href={resolveMediaUrl(msg.media_url, true)} 
-                            download 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isMe ? "bg-white/10 hover:bg-white/20 text-white" : "bg-primary/10 hover:bg-primary/20 text-primary"}`}
-                          >
-                            <Download size={12} /> Download
-                          </a>
+                      )}
+
+                      {/* Bubble */}
+                      <div className={`relative max-w-[78%] md:max-w-[60%] ${
+                        isMe
+                          ? `bg-primary text-on-primary shadow-lg shadow-primary/20 ${isFirst && isLast ? "rounded-2xl" : isFirst ? "rounded-2xl rounded-br-md" : isLast ? "rounded-2xl rounded-tr-md" : "rounded-2xl rounded-r-md"}`
+                          : `glass border-white/30 text-on-surface shadow-sm ${isFirst && isLast ? "rounded-2xl" : isFirst ? "rounded-2xl rounded-bl-md" : isLast ? "rounded-2xl rounded-tl-md" : "rounded-2xl rounded-l-md"}`
+                      } overflow-hidden`}>
+
+                        {/* Media */}
+                        {msg.media_url && (
+                          <div className="relative">
+                            {msg.media_type === "image" ? (
+                              <div>
+                                <img
+                                  src={resolveMedia(msg.media_url)} alt="attachment"
+                                  className="w-full max-h-72 object-cover cursor-pointer"
+                                  onClick={() => window.open(resolveMedia(msg.media_url), "_blank")}
+                                />
+                                <a href={resolveMedia(msg.media_url, true)} download target="_blank" rel="noopener noreferrer"
+                                  className={`absolute bottom-2 right-2 p-1.5 rounded-xl backdrop-blur-md text-white shadow-lg ${isMe ? "bg-black/30 hover:bg-black/50" : "bg-black/20 hover:bg-black/40"} transition-colors`}
+                                  onClick={e => e.stopPropagation()}>
+                                  <Download size={13} />
+                                </a>
+                              </div>
+                            ) : msg.media_type === "video" ? (
+                              <div>
+                                <video src={resolveMedia(msg.media_url)} controls className="w-full max-h-72 object-cover" />
+                              </div>
+                            ) : (
+                              <a href={resolveMedia(msg.media_url, true)} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center gap-2.5 p-3 ${isMe ? "bg-white/15 hover:bg-white/25" : "bg-primary/8 hover:bg-primary/15"} transition-colors`}>
+                                <div className={`p-2 rounded-xl ${isMe ? "bg-white/20" : "bg-primary/10"}`}><FileText size={18} /></div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold truncate">Download File</p>
+                                </div>
+                                <Download size={14} />
+                              </a>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Text */}
+                        {msg.content && (
+                          <p className="px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        )}
+
+                        {/* Meta */}
+                        <div className={`flex items-center gap-1 pb-1.5 pr-2 ${msg.content ? "px-3.5" : "px-3.5"} ${isMe ? "justify-end" : "justify-start"}`}>
+                          <span className={`text-[9px] font-medium ${isMe ? "text-on-primary/55" : "text-on-surface-variant/60"}`}>
+                            {timeAgo(msg.created_at)}
+                          </span>
+                          {isMe && (
+                            msg.is_read
+                              ? <CheckCheck size={11} className="text-on-primary/70" />
+                              : <Check      size={11} className="text-on-primary/40" />
+                          )}
                         </div>
                       </div>
-                    ) : (
-                      <a href={resolveMediaUrl(msg.media_url, true)} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-2xl w-full ${isMe ? "bg-white/20 hover:bg-white/30" : "bg-outline-variant/20 hover:bg-outline-variant/30"} transition-colors`}>
-                        <FileText size={20} />
-                        <span className="text-sm font-bold truncate flex-1">Download File</span>
-                        <Download size={16} />
-                      </a>
-                    )}
-                  </div>
-                )}
-                {msg.content && (
-                  <p className="leading-relaxed text-sm whitespace-pre-wrap">{msg.content}</p>
-                )}
-                <div className={`flex items-center gap-1.5 mt-1.5 ${isMe ? "justify-end" : "justify-start"}`}>
-                   <p className={`text-[10px] font-medium ${isMe ? "text-on-primary/60" : "text-on-surface-variant"}`}>
-                    {timeAgo(msg.created_at)}
-                  </p>
-                  {isMe && (
-                    <span className="flex items-center">
-                      {msg.is_read ? (
-                        <CheckCheck size={12} className="text-on-primary" />
-                      ) : (
-                        <Check size={12} className="text-on-primary/40" />
-                      )}
-                    </span>
-                  )}
-                </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
-        <div ref={bottomRef} />
+          ))}
+
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-4 sticky bottom-8 z-20">
-        <div className="max-w-4xl mx-auto flex flex-col gap-3 liquid-glass p-4 border border-white/20">
-          
+      {/* ── Input bar ─────────────────────────────────────────────────────── */}
+      <div className="bottom-nav-glass border-t border-white/40 px-3 pt-2 flex-shrink-0"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}>
+
+        {/* File previews */}
+        <AnimatePresence>
           {filesToUpload.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
+            >
               {filesToUpload.map((file, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2 pr-4 rounded-2xl bg-surface-low border border-outline-variant relative group">
-                  <button onClick={() => removeFile(idx)} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white hover:scale-110 transition-transform z-10">
+                <div key={idx} className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-surface-low border border-outline-variant/30 group">
+                  <button onClick={() => removeFile(idx)}
+                    className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center text-white z-10 hover:bg-red-500 transition-colors">
                     <X size={10} />
                   </button>
-                  {filePreviews[idx] ? (
-                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/10">
-                      {file.type.startsWith("video/") ? (
-                        <video src={filePreviews[idx]} className="w-full h-full object-cover" />
-                      ) : (
-                        <img src={filePreviews[idx]} alt="preview" className="w-full h-full object-cover" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <FileText size={18} />
-                    </div>
-                  )}
-                  <div className="max-w-[100px]">
-                    <p className="text-[10px] font-bold text-on-surface truncate">{file.name}</p>
-                    <p className="text-[8px] text-on-surface-variant">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
-                  </div>
+                  {filePreviews[idx]
+                    ? file.type.startsWith("video/")
+                      ? <video src={filePreviews[idx]} className="w-full h-full object-cover" />
+                      : <img src={filePreviews[idx]} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-1">
+                        <FileText size={18} className="text-primary" />
+                        <p className="text-[8px] text-on-surface-variant text-center truncate w-full px-1">{file.name}</p>
+                      </div>
+                  }
                 </div>
               ))}
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Upload progress bar */}
-          {uploading && uploadProgress > 0 && (
-            <div className="w-full">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-bold text-on-surface-variant">Uploading...</span>
-                <span className="text-[10px] font-bold text-primary">{uploadProgress}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-surface-low rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-150"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
+        {/* Upload progress */}
+        {uploading && uploadProgress > 0 && (
+          <div className="mb-2">
+            <div className="flex justify-between text-[9px] font-bold mb-0.5">
+              <span className="text-on-surface-variant">Uploading…</span>
+              <span className="text-primary">{uploadProgress}%</span>
             </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <input
-                value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
-                placeholder="Message..."
-                disabled={sending}
-                className="w-full pl-5 pr-12 py-3.5 rounded-3xl bg-surface-low border border-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-inner disabled:opacity-50"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
-                 <button onClick={() => fileInputRef.current?.click()} disabled={sending} className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
-                    <ImageIcon size={18} />
-                 </button>
-              </div>
+            <div className="h-1 bg-surface-low rounded-full overflow-hidden">
+              <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${uploadProgress}%` }} transition={{ duration: 0.2 }} />
             </div>
-            <button
-              onClick={handleSend}
-              disabled={sending || (!newMessage.trim() && filesToUpload.length === 0)}
-              className="w-12 h-12 flex-shrink-0 rounded-2xl bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
-            >
-              {sending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-            </button>
           </div>
+        )}
+
+        {/* Composer */}
+        <div className="flex items-end gap-2 py-1">
+          {/* Attach */}
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
+          <button onClick={() => fileInputRef.current?.click()} disabled={sending}
+            className="flex-shrink-0 p-2.5 rounded-2xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-all disabled:opacity-40 mb-0.5">
+            <Paperclip size={20} />
+          </button>
+
+          {/* Text input */}
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={newMessage}
+              onChange={e => { setNewMessage(e.target.value); resizeTextarea(); }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              placeholder={`Message @${username}…`}
+              disabled={sending}
+              className="w-full px-4 py-3 pr-4 rounded-3xl bg-surface-low border border-outline-variant/40 focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 text-sm text-on-surface placeholder:text-on-surface-variant/50 resize-none leading-snug transition-all disabled:opacity-50"
+              style={{ minHeight: 44, maxHeight: 120 }}
+            />
+          </div>
+
+          {/* Send */}
+          <motion.button
+            onClick={handleSend}
+            disabled={sending || (!newMessage.trim() && filesToUpload.length === 0)}
+            whileTap={{ scale: 0.88 }}
+            transition={{ duration: 0.08 }}
+            className="flex-shrink-0 w-11 h-11 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-35 hover:shadow-primary/50 transition-shadow mb-0.5"
+            style={{ willChange: "transform" }}
+          >
+            {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+          </motion.button>
         </div>
       </div>
     </div>
