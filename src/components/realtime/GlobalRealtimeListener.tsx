@@ -7,7 +7,8 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 export function GlobalRealtimeListener() {
-  const [userId, setUserId] = useState<number | null>(null);
+  const [userId,   setUserId]   = useState<number | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,6 +17,7 @@ export function GlobalRealtimeListener() {
       try {
         const res = await api.get("/users/me");
         setUserId(res.data.id);
+        setUsername(res.data.username);
       } catch (err) {
         // Not logged in or error
       }
@@ -50,15 +52,17 @@ export function GlobalRealtimeListener() {
     // Play a subtle sound if possible (optional)
   });
 
-  // Listen for NEW_MESSAGE events to show chat notifications
+  // Show toast for incoming messages — never for the sender's own messages
   useEvent("NEW_MESSAGE", (data) => {
-    // Don't show toast if we are already on the chat page for this user
-    if (window.location.pathname.includes(`/messages/${data.sender_username}`)) {
-        return;
-    }
+    // Skip if this message was sent by the current user
+    if (data.sender_username === username) return;
+
+    // Skip if already viewing that conversation
+    const path = window.location.pathname;
+    if (path.includes(`/messages/${data.sender_username}`)) return;
 
     toast(`Message from @${data.sender_username}`, {
-      description: data.content,
+      description: data.content || "📎 Attachment",
       action: {
         label: "Reply",
         onClick: () => router.push(`/messages/${data.sender_username}`),

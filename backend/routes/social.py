@@ -722,8 +722,8 @@ async def websocket_endpoint(
                         "is_read": False
                     }
 
+                    # Only push to receiver — sender already has optimistic UI
                     await manager.send_to_user(receiver.id, payload)
-                    await manager.send_to_user(user_id, payload)
 
                     # Also notify about the new notification record
                     await manager.send_to_user(receiver.id, {
