@@ -107,7 +107,13 @@ function AdminContent() {
   };
   const deleteApp = async (id: number, name: string) => {
     if (!confirm(`Delete "${name}" permanently?`)) return;
-    try { setActionId(id); await api.delete(`/admin/apps/${id}`); toast.success(`"${name}" deleted.`); load(); }
+    try { 
+      setActionId(id); 
+      await api.delete(`/admin/apps/${id}`); 
+      toast.success(`"${name}" deleted.`); 
+      load(); 
+      if (tab === "health") loadHealth();
+    }
     catch (e: any) { toast.error(e.response?.data?.detail || "Failed"); } finally { setActionId(null); }
   };
   const toggleUser = async (userId: number, action: string) => {
@@ -414,6 +420,11 @@ function AdminContent() {
                   }`}>{f.status}</span>
                   <span className="text-on-surface-variant">{f.developer}</span>
                 </div>
+                <button onClick={() => deleteApp(f.id, f.name)} disabled={actionId === f.id}
+                  className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50 shrink-0 ml-auto md:ml-0"
+                  title="Delete App Permanently">
+                  <Trash2 size={18} />
+                </button>
               </GlassCard>
             ))}
           </div>

@@ -5,6 +5,7 @@ from sqlalchemy import func
 import models, schemas, auth
 from database import get_db
 import os
+import storage
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -208,13 +209,16 @@ def delete_app(
     
     # Hard delete logic
     # 1. Delete associated files
-    if app.file_path and app.file_path.startswith("/uploads/"):
-        local = app.file_path.lstrip("/")
-        if os.path.exists(local):
-            try:
-                os.remove(local)
-            except Exception as e:
-                print(f"Error deleting file: {e}")
+    if app.file_path:
+        if app.file_path.startswith("http"):
+            storage.delete_file(app.file_path)
+        elif app.file_path.startswith("/uploads/"):
+            local = app.file_path.lstrip("/")
+            if os.path.exists(local):
+                try:
+                    os.remove(local)
+                except Exception as e:
+                    print(f"Error deleting file: {e}")
             
     # 2. Delete associated records
     db.query(models.Review).filter(models.Review.app_id == app_id).delete()
@@ -308,6 +312,18 @@ def reject_app(
             message=f"Your submission '{app_name}' was reviewed but did not meet our guidelines and was not approved at this time."
         )
         db.add(notif)
+    # Delete associated files before rejecting
+    if app.file_path:
+        if app.file_path.startswith("http"):
+            storage.delete_file(app.file_path)
+        elif app.file_path.startswith("/uploads/"):
+            local = app.file_path.lstrip("/")
+            if os.path.exists(local):
+                try:
+                    os.remove(local)
+                except Exception:
+                    pass
+
     db.delete(app)
     db.commit()
     return {"message": "App rejected and removed"}
