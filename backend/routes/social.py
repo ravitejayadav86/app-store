@@ -579,10 +579,9 @@ def get_conversations(
 ):
     # Use a more efficient query to get conversations with user details joined
     from sqlalchemy import or_, and_, desc, func, case
-    
-    # Subquery to get the latest message ID for each conversation partner
-    subquery = db.query(
-        func.max(models.Message.id).label("max_id")
+    # Get latest message IDs for each conversation
+    latest_msg_ids = db.query(
+        func.max(models.Message.id)
     ).filter(
         or_(
             models.Message.sender_id == current_user.id,
@@ -593,11 +592,19 @@ def get_conversations(
             (models.Message.sender_id == current_user.id, models.Message.receiver_id),
             else_=models.Message.sender_id
         )
-    )
+    ).all()
+    
+    # Flatten list of tuples
+    ids = [r[0] for r in latest_msg_ids]
+    print(f"DEBUG: get_conversations for user {current_user.username} (id: {current_user.id}). Found {len(ids)} unique conversation IDs: {ids}")
+
+    if not ids:
+        return []
 
     latest_messages = db.query(models.Message).filter(
-        models.Message.id.in_(subquery)
+        models.Message.id.in_(ids)
     ).order_by(models.Message.created_at.desc()).all()
+    print(f"DEBUG: Fetched {len(latest_messages)} latest message objects")
 
     conversations = []
     for m in latest_messages:
