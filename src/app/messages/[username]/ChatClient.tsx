@@ -151,6 +151,16 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
       const exists = prev.some(m => m.id === msg.id);
       if (exists) return prev;
+
+      // Deduplicate optimistic messages
+      if (isFromMe) {
+        const optIdx = prev.findIndex(m => m.id < 0 && m.content === msg.content);
+        if (optIdx !== -1) {
+          const next = [...prev];
+          next[optIdx] = msg;
+          return next;
+        }
+      }
       
       // Mark incoming messages as read immediately
       if (isFromRecipient) {
@@ -247,8 +257,8 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
     try {
       if (files.length === 0) {
-        // Optimistic: show message immediately
-        const optimisticId = Date.now();
+        // Optimistic: show message immediately (negative ID indicates optimistic)
+        const optimisticId = -Date.now();
         const optimistic: Message = {
           id: optimisticId,
           sender_id: currentUserId!,

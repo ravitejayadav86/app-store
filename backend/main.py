@@ -68,6 +68,23 @@ def run_migrations():
 async def lifespan(app: FastAPI):
     init_db()
     run_migrations()
+    
+    # Simple cleanup task for temporary or old chat files
+    try:
+        import time
+        chat_dir = "uploads/chat"
+        if os.path.exists(chat_dir):
+            now = time.time()
+            # Clean files older than 30 days
+            limit = 30 * 24 * 60 * 60 
+            for f in os.listdir(chat_dir):
+                fpath = os.path.join(chat_dir, f)
+                if os.stat(fpath).st_mtime < now - limit:
+                    os.remove(fpath)
+                    print(f"Cleaned up old chat file: {f}")
+    except Exception as e:
+        print(f"Cleanup error: {e}")
+        
     yield
 
 app = FastAPI(title="PandaStore API", version="2.0.0", lifespan=lifespan)

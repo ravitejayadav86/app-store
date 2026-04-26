@@ -48,7 +48,7 @@ def keyword_filter(msg: str) -> list[str]:
 def search_apps(db: Session, keywords: list[str] = None, category: str = None,
                 sort_by: str = "downloads", limit: int = 5):
     """Search published apps with optional keyword and category filters."""
-    q = db.query(models.App).filter(models.App.status == "published")
+    q = db.query(models.App).filter(models.App.is_approved == True, models.App.is_active == True)
 
     if category:
         if category == "__not_games_music_books__":

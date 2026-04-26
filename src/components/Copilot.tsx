@@ -48,7 +48,7 @@ function renderMarkdown(text: string) {
     if (numMatch) {
       return (
         <div key={i} className="flex gap-2 items-start">
-          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-300 text-[10px] font-bold flex items-center justify-center mt-0.5">{numMatch[1]}</span>
+          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-bold flex items-center justify-center mt-0.5">{numMatch[1]}</span>
           <span>{applyInline(numMatch[2])}</span>
         </div>
       );
@@ -57,7 +57,7 @@ function renderMarkdown(text: string) {
     if (line.match(/^[•\-\*]\s/)) {
       return (
         <div key={i} className="flex gap-2 items-start">
-          <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-violet-400 mt-2" />
+          <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-sky-400 mt-2" />
           <span>{applyInline(line.replace(/^[•\-\*]\s/, ""))}</span>
         </div>
       );
@@ -199,13 +199,13 @@ export const Copilot = () => {
                 <button
                   onClick={resetChat}
                   title="New chat"
-                  className="p-2 text-violet-400/60 hover:text-violet-300 hover:bg-violet-500/10 transition-colors rounded-xl"
+                  className="p-2 text-sky-400/60 hover:text-sky-300 hover:bg-sky-500/10 transition-colors rounded-xl"
                 >
                   <RefreshCw size={14} />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-violet-400/60 hover:text-white hover:bg-white/5 transition-colors rounded-xl"
+                  className="p-2 text-sky-400/60 hover:text-white hover:bg-white/5 transition-colors rounded-xl"
                 >
                   <X size={15} />
                 </button>
@@ -227,13 +227,13 @@ export const Copilot = () => {
                 >
                   <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl"
-                    style={{ background: "linear-gradient(135deg, #8b5cf6, #6d28d9)", boxShadow: "0 8px 32px rgba(139,92,246,0.4)" }}
+                    style={{ background: "linear-gradient(135deg, #0ea5e9, #2563eb)", boxShadow: "0 8px 32px rgba(14,165,233,0.4)" }}
                   >
                     <Sparkles size={28} className="text-white" />
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-base">Hi, I'm Panda AI! 🐼</h4>
-                    <p className="text-xs text-violet-300/60 mt-1 leading-relaxed max-w-[260px]">
+                    <p className="text-xs text-sky-300/60 mt-1 leading-relaxed max-w-[260px]">
                       Your intelligent guide to PandaStore. Ask me about apps, publishing, messaging, account settings — anything!
                     </p>
                   </div>
@@ -248,7 +248,7 @@ export const Copilot = () => {
                   transition={{ delay: 0.12 }}
                   className="flex flex-col gap-2 mt-1"
                 >
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400/50 px-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-sky-400/50 px-1">
                     Quick questions
                   </p>
                   <div className="grid grid-cols-2 gap-2">
@@ -256,18 +256,18 @@ export const Copilot = () => {
                       <button
                         key={s.query}
                         onClick={() => sendMessage(s.query)}
-                        className="text-left px-3 py-2.5 rounded-xl text-xs font-medium text-violet-200/80 transition-all hover:text-white hover:shadow-md"
+                        className="text-left px-3 py-2.5 rounded-xl text-xs font-medium text-sky-200/80 transition-all hover:text-white hover:shadow-md"
                         style={{
-                          background: "rgba(139, 92, 246, 0.08)",
-                          border: "1px solid rgba(139, 92, 246, 0.18)",
+                          background: "rgba(14, 165, 233, 0.08)",
+                          border: "1px solid rgba(14, 165, 233, 0.18)",
                         }}
                         onMouseEnter={e => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(139, 92, 246, 0.18)";
-                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139, 92, 246, 0.4)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(14, 165, 233, 0.18)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(14, 165, 233, 0.4)";
                         }}
                         onMouseLeave={e => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(139, 92, 246, 0.08)";
-                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(139, 92, 246, 0.18)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(14, 165, 233, 0.08)";
+                          (e.currentTarget as HTMLElement).style.borderColor = "rgba(14, 165, 233, 0.18)";
                         }}
                       >
                         {s.label}
@@ -291,7 +291,7 @@ export const Copilot = () => {
                     className="flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center mt-0.5"
                     style={
                       msg.sender === "bot"
-                        ? { background: "linear-gradient(135deg, #8b5cf6, #6d28d9)", boxShadow: "0 4px 12px rgba(139,92,246,0.3)" }
+                        ? { background: "linear-gradient(135deg, #0ea5e9, #2563eb)", boxShadow: "0 4px 12px rgba(14,165,233,0.3)" }
                         : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }
                     }
                   >
@@ -384,7 +384,7 @@ export const Copilot = () => {
                         animate={{ y: [0, -5, 0], opacity: [0.4, 1, 0.4] }}
                         transition={{ repeat: Infinity, duration: 0.75, delay }}
                         className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: "#8b5cf6" }}
+                        style={{ background: "#0ea5e9" }}
                       />
                     ))}
                   </div>
@@ -397,7 +397,7 @@ export const Copilot = () => {
             {/* Input */}
             <div
               className="px-3 py-3 border-t"
-              style={{ borderColor: "rgba(139, 92, 246, 0.15)", background: "rgba(0,0,0,0.2)" }}
+              style={{ borderColor: "rgba(14, 165, 233, 0.15)", background: "rgba(0,0,0,0.2)" }}
             >
               <form onSubmit={handleSend} className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -411,10 +411,10 @@ export const Copilot = () => {
                     className="w-full pl-4 pr-4 py-2.5 text-sm text-white/90 outline-none transition-all disabled:opacity-50 placeholder:text-white/20 rounded-2xl"
                     style={{
                       background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(139, 92, 246, 0.2)",
+                      border: "1px solid rgba(14, 165, 233, 0.2)",
                     }}
-                    onFocus={e => { e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.5)"; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.2)"; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = "rgba(14, 165, 233, 0.5)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "rgba(14, 165, 233, 0.2)"; }}
                   />
                 </div>
                 <button
@@ -422,8 +422,8 @@ export const Copilot = () => {
                   disabled={!input.trim() || isLoading}
                   className="w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-30"
                   style={{
-                    background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
-                    boxShadow: "0 4px 16px rgba(139,92,246,0.35)",
+                    background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+                    boxShadow: "0 4px 16px rgba(14,165,233,0.35)",
                   }}
                 >
                   <Send size={15} className="text-white" />
@@ -448,8 +448,8 @@ export const Copilot = () => {
             : "bottom-24 md:bottom-6 opacity-100"
         } ${pathname === "/profile" ? "hidden md:flex" : "flex"}`}
         style={{
-          background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
-          boxShadow: "0 8px 32px rgba(139,92,246,0.5), 0 0 0 1px rgba(139,92,246,0.3)",
+          background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+          boxShadow: "0 8px 32px rgba(14,165,233,0.5), 0 0 0 1px rgba(14,165,233,0.3)",
           border: "1px solid rgba(255,255,255,0.15)",
         }}
         title="Open Panda AI"
