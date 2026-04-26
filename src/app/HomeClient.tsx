@@ -23,16 +23,16 @@ const CONTAINER_VARIANTS = {
     opacity: 1,
     transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
-};
+} as const;
 
 const ITEM_VARIANTS = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { type: "spring", stiffness: 300, damping: 25 } 
+    transition: { type: "spring", stiffness: 300, damping: 25 } as const
   }
-};
+} as const;
 
 export default function Home() {
   const categories = ["Games", "Productivity", "Graphics", "Utilities", "Social", "Development"];
