@@ -201,18 +201,27 @@ export default function ChatClient({ username: propUsername }: { username?: stri
     
     setFilesToUpload(prev => [...prev, ...selectedFiles]);
     
-    selectedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreviews(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
+    const newPreviews = selectedFiles.map(file => {
+      // Only create preview URLs for actual images/videos to avoid crashing the browser
+      if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+        return URL.createObjectURL(file);
+      }
+      // Return empty string for APKs, ZIPs, etc so it falls back to the FileText icon
+      return "";
     });
+    
+    setFilePreviews(prev => [...prev, ...newPreviews]);
   };
 
   const removeFile = (index: number) => {
     setFilesToUpload(prev => prev.filter((_, i) => i !== index));
-    setFilePreviews(prev => prev.filter((_, i) => i !== index));
+    setFilePreviews(prev => {
+      // Revoke the object URL to prevent memory leaks
+      if (prev[index]) {
+        URL.revokeObjectURL(prev[index]);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
     if (filesToUpload.length === 1 && fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -220,6 +229,9 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
   const clearAllFiles = () => {
     setFilesToUpload([]);
+    filePreviews.forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
     setFilePreviews([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
