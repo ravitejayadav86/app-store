@@ -13,8 +13,8 @@ interface UILayoutWrapperProps {
 const AUTO_HIDE_DELAY = 4000;
 
 // 120 Hz springs
-const SPRING_PAGE = { type: "spring", stiffness: 480, damping: 38, mass: 0.6 } as const;
-const SPRING_HINT = { type: "spring", stiffness: 400, damping: 30, mass: 0.5 } as const;
+const SPRING_PAGE = { type: "spring", stiffness: 380, damping: 34, mass: 0.5 } as const;
+const SPRING_HINT = { type: "spring", stiffness: 450, damping: 30, mass: 0.5 } as const;
 
 export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
   const pathname = usePathname();

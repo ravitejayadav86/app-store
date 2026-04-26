@@ -65,7 +65,7 @@ class AppOut(AppBase):
     reviews_count: int = 0
     downloads_count: int = 0
     maturity_rating: str = "3+"
-    file_size: str = "Varies"
+    file_size: Optional[str] = "Varies"
     model_config = {"from_attributes": True}
 
 class GrantAccessInput(BaseModel):

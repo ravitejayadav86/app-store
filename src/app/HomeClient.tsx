@@ -17,6 +17,23 @@ interface App {
   icon_url?: string | null;
 }
 
+const CONTAINER_VARIANTS = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+  }
+};
+
+const ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 300, damping: 25 } 
+  }
+};
+
 export default function Home() {
   const categories = ["Games", "Productivity", "Graphics", "Utilities", "Social", "Development"];
   const [apps, setApps] = useState<App[]>([]);
@@ -44,9 +61,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col gap-12 pb-24">
+    <motion.div 
+      initial="hidden" 
+      animate="visible" 
+      variants={CONTAINER_VARIANTS}
+      className="flex flex-col gap-12 pb-24"
+    >
       {/* Hero Section */}
-      <section className="px-4 md:px-8">
+      <motion.section variants={ITEM_VARIANTS} className="px-4 md:px-8">
         <div
           className="relative h-[380px] md:h-[450px] w-full max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden bg-linear-to-br from-[#0058bb] via-[#0070f3] to-[#4f46e5] p-8 md:p-12 text-on-primary flex flex-col justify-end gap-4 shadow-2xl shadow-primary/20"
         >
@@ -82,27 +104,26 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Categories Chips */}
-      <section className="px-4 md:px-8 overflow-x-auto no-scrollbar py-2">
+      <motion.section variants={ITEM_VARIANTS} className="px-4 md:px-8 overflow-x-auto no-scrollbar py-2">
         <div className="flex gap-2.5 max-w-7xl mx-auto">
           {categories.map((cat, i) => (
             <motion.button
               key={cat}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 + i * 0.05, type: "spring", damping: 20 }}
+              whileHover={{ y: -2, scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="px-6 py-2 liquid-glass text-xs font-bold hover:text-primary transition-all whitespace-nowrap"
             >
               {cat}
             </motion.button>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* Featured Collections */}
-      <section className="px-4 md:px-8">
+      <motion.section variants={ITEM_VARIANTS} className="px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-6">
             <div>
@@ -117,13 +138,14 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {apps.map((app, index) => (
+          <motion.div 
+            variants={CONTAINER_VARIANTS}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {apps.map((app) => (
               <motion.div
                 key={app.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
+                variants={ITEM_VARIANTS}
               >
                 <Link href={`/apps/${app.id}`}>
                   <GlassCard className="flex flex-col gap-4 h-full transition-all group p-4 md:p-6 transform-gpu will-change-transform border-white/60">
@@ -154,10 +176,9 @@ export default function Home() {
                 </Link>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
-
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }

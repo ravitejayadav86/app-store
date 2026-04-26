@@ -33,14 +33,15 @@
   --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Liquid Glass tokens ──────────────────────────────────────────────── */
-  --glass-bg:           rgba(255, 255, 255, 0.68);
-  --glass-border:       rgba(255, 255, 255, 0.90);
-  --glass-border-inner: rgba(255, 255, 255, 0.50);
-  --glass-blur:         28px;
-  --glass-saturate:     190%;
-  --glass-shadow-outer: 0 16px 48px rgba(0, 0, 0, 0.09), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --glass-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.75),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  --glass-bg:           rgba(255, 255, 255, 0.72);
+  --glass-border:       rgba(255, 255, 255, 0.95);
+  --glass-border-inner: rgba(255, 255, 255, 0.60);
+  --glass-blur:         32px;
+  --glass-saturate:     210%;
+  --glass-shadow-outer: 0 16px 48px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.03);
+  --glass-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+  --glass-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* ── 120 Hz optimizations ─────────────────────────────────────────────────
@@ -97,10 +98,13 @@ html {
 body {
   /* Subtle mesh gradient — fixed so it doesn't scroll/repaint */
   background:
-    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(0, 88, 187, 0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 110%, rgba(79, 70, 229, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% -10%, rgba(0, 88, 187, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 110%, rgba(79, 70, 229, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
     linear-gradient(160deg, #f7f6fb 0%, #eceaf6 100%);
   background-attachment: fixed;
+  background-size: 200% 200%;
+  animation: meshGradient 20s ease-in-out infinite;
   color: var(--foreground);
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
@@ -111,6 +115,11 @@ body {
   -webkit-touch-callout: none;
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
+}
+
+@keyframes meshGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* ── GPU promotion helper ─────────────────────────────────────────────────
@@ -155,11 +164,22 @@ nav[class*="fixed"],
     var(--glass-shadow-outer),
     var(--glass-shadow-inner);
 
+  /* Subtle noise texture — the "Acrylic" secret */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--glass-noise);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+  }
+
   /* Transitions: only compositor-safe props */
   transition:
-    opacity   var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow 200ms var(--ease-out);
+    opacity   var(--dur-normal) var(--ease-out),
+    transform var(--dur-normal) var(--ease-out),
+    box-shadow 300ms var(--ease-out);
 
   /* Own compositor layer */
   transform: translateZ(0);
@@ -284,6 +304,39 @@ input:focus-visible, textarea:focus-visible,
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ── Modern Custom Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+  background-clip: content-box;
+}
+
+/* Dark mode scrollbar (if detected via parent class or system) */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.20);
+  }
 }
 
 .page-transition-container {

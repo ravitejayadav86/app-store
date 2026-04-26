@@ -1,17 +1,29 @@
-import sqlite3
+import sys
 import os
 
-db_path = "backend/appstore.db"
-if not os.path.exists(db_path):
-    print(f"Database not found at {db_path}")
-else:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT name, category, icon_url FROM apps LIMIT 5")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
-    except Exception as e:
-        print(f"Error: {e}")
-    conn.close()
+# Add the backend directory to the path so we can import modules
+sys.path.append(os.path.abspath('c:/Users/ravit/OneDrive/Desktop/app-store/backend'))
+
+try:
+    from database import SessionLocal
+    import models
+    from sqlalchemy import func
+
+    db = SessionLocal()
+    print("Database connection: OK")
+    
+    user_count = db.query(models.User).count()
+    print(f"User count: {user_count}")
+    
+    app_count = db.query(models.App).count()
+    print(f"App count: {app_count}")
+    
+    revenue = db.query(func.sum(models.App.price)).join(
+        models.Purchase, models.Purchase.app_id == models.App.id
+    ).scalar()
+    print(f"Revenue: {revenue}")
+    
+    db.close()
+    print("Database check complete.")
+except Exception as e:
+    print(f"Error checking database: {e}")
