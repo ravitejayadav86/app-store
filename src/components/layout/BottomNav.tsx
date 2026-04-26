@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { name: "Books",    icon: <Book     size={22} />, href: "/books"     },
   { name: "You",      icon: <User     size={22} />, href: "/profile"   },
   { name: "Settings", icon: <Settings size={22} />, href: "/settings"  },
-] as const;
+];
 
 export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
   const pathname = usePathname();
