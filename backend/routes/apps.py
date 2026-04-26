@@ -278,26 +278,26 @@ async def upload_file(
                 logger.info(f"Zipped APK for Cloudinary: {final_filename}")
 
             try:
-                # 1. Attempt Cloudflare R2 Upload (Ideal for large app binaries)
-                from storage import get_r2_client, upload_file_to_r2
+                # 1. Attempt Firebase Storage Upload (Ideal for large app binaries)
+                from storage import get_firebase_app, upload_file_to_firebase
                 
-                if get_r2_client() is not None:
+                if get_firebase_app() is not None:
                     from fastapi.concurrency import run_in_threadpool
-                    logger.info(f"Attempting Cloudflare R2 upload for {final_filename}")
+                    logger.info(f"Attempting Firebase upload for {final_filename}")
                     
-                    r2_object_name = f"apps/app_{app_id}_{final_filename}"
+                    fb_object_name = f"apps/app_{app_id}_{final_filename}"
                     public_url = await run_in_threadpool(
-                        upload_file_to_r2,
+                        upload_file_to_firebase,
                         upload_path,
-                        r2_object_name
+                        fb_object_name
                     )
                     app.file_path = public_url
-                    logger.info(f"R2 upload successful: {app.file_path}")
+                    logger.info(f"Firebase upload successful: {app.file_path}")
                 else:
-                    raise Exception("R2 not configured.")
+                    raise Exception("Firebase not configured.")
                     
-            except Exception as r2_e:
-                logger.info(f"R2 skipped/failed ({str(r2_e)}). Falling back to Cloudinary/Local.")
+            except Exception as fb_e:
+                logger.info(f"Firebase skipped/failed ({str(fb_e)}). Falling back to Cloudinary/Local.")
                 
                 try:
                     # Skip Cloudinary for files > 100MB to avoid timeout
