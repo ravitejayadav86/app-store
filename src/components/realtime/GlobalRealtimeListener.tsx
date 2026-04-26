@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -30,10 +30,10 @@ export function GlobalRealtimeListener() {
     return () => window.removeEventListener("auth-synced", fetchUser);
   }, []);
 
-  const { useEvent } = useRealtime(userId || undefined);
+  useRealtime(userId || undefined);
 
   // Listen for global NOTIFICATION events
-  useEvent("NOTIFICATION", (data) => {
+  useRealtimeEvent(userId || undefined, "NOTIFICATION", (data) => {
     console.log("Global Notification Received:", data);
     toast(data.title || "Notification", {
       description: data.message,
@@ -48,12 +48,10 @@ export function GlobalRealtimeListener() {
         },
       },
     });
-    
-    // Play a subtle sound if possible (optional)
   });
 
   // Show toast for incoming messages — never for the sender's own messages
-  useEvent("NEW_MESSAGE", (data) => {
+  useRealtimeEvent(userId || undefined, "NEW_MESSAGE", (data) => {
     // Skip if this message was sent by the current user
     if (data.sender_username === username) return;
 

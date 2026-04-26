@@ -8,7 +8,7 @@ import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp, Sear
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import api from "@/lib/api";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 
 interface Reply {
   id: number;
@@ -49,16 +49,16 @@ export default function CommunityPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   // Real-time Integration
-  const { useEvent } = useRealtime(currentUserId || undefined);
+  useRealtime(currentUserId || undefined);
 
-  useEvent("NEW_POST", (data) => {
+  useRealtimeEvent(currentUserId || undefined, "NEW_POST", (data) => {
     setPosts(prev => {
       if (prev.find(p => p.id === data.post.id)) return prev;
       return [data.post, ...prev];
     });
   });
 
-  useEvent("NEW_REPLY", (data) => {
+  useRealtimeEvent(currentUserId || undefined, "NEW_REPLY", (data) => {
     setPosts(prev => prev.map(p => {
       if (p.id === data.reply.post_id) {
         if (p.replies.find(r => r.id === data.reply.id)) return p;

@@ -12,7 +12,7 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 import { useSession } from "next-auth/react";
 
 interface AppData {
@@ -116,15 +116,15 @@ function AppDetailContent({ id: propId }: { id?: string }) {
     api.get("/users/me").then(res => setCurrentUser(res.data)).catch(() => {});
   }, []);
 
-  const { useEvent } = useRealtime(currentUser?.id);
+  useRealtime(currentUser?.id);
 
-  useEvent("APP_DOWNLOADED", (data) => {
+  useRealtimeEvent(currentUser?.id, "APP_DOWNLOADED", (data) => {
     if (data.app_id === app?.id) {
       setApp(prev => prev ? { ...prev, downloads_count: (prev.downloads_count || 0) + 1 } : null);
     }
   });
 
-  useEvent("NEW_REVIEW", (data) => {
+  useRealtimeEvent(currentUser?.id, "NEW_REVIEW", (data) => {
     if (data.app_id === app?.id) {
       setReviews(prev => {
         const exists = prev.find(r => r.id === data.review.id);

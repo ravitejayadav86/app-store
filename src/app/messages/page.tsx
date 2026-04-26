@@ -10,7 +10,7 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 
 interface Conversation {
   username: string;
@@ -50,7 +50,7 @@ export default function MessagesPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const router = useRouter();
 
-  const { useEvent } = useRealtime(currentUserId || undefined);
+  useRealtime(currentUserId || undefined);
 
   const fetchConversations = async () => {
     try {
@@ -71,13 +71,13 @@ export default function MessagesPage() {
 
   useEffect(() => { if (currentUserId) fetchConversations(); }, [currentUserId]);
 
-  useEvent("MESSAGES_READ", (msg) => {
+  useRealtimeEvent(currentUserId || undefined, "MESSAGES_READ", (msg) => {
     setConversations(prev =>
       prev.map(c => c.username === msg.by ? { ...c, unread_count: 0 } : c)
     );
   });
 
-  useEvent("NEW_MESSAGE", (msg) => {
+  useRealtimeEvent(currentUserId || undefined, "NEW_MESSAGE", (msg) => {
     if (!msg.content) return;
     setConversations(prev => {
       const idx = prev.findIndex(c => c.username === msg.sender_username);

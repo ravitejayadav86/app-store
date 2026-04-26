@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Gamepad2, Grid, Music, Book, User, Users, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 import api from "@/lib/api";
 
 // 120 Hz spring — settles in ~220 ms, zero overshoot
@@ -37,9 +37,9 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
     }).catch(() => {});
   }, []);
 
-  const { useEvent } = useRealtime(userId || undefined);
+  useRealtime(userId || undefined);
 
-  useEvent("NEW_MESSAGE", () => {
+  useRealtimeEvent(userId || undefined, "NEW_MESSAGE", () => {
     if (!pathname?.startsWith("/messages")) setUnreadMessages(p => p + 1);
   });
 

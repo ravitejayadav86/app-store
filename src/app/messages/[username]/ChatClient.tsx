@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 interface Message {
@@ -72,7 +72,7 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const atBottom     = useRef(true);
   const textareaRef  = useRef<HTMLTextAreaElement>(null);
 
-  const { isConnected, useEvent, sendEvent } = useRealtime(currentUserId || undefined);
+  const { isConnected, sendEvent } = useRealtime(currentUserId || undefined);
 
   /* ── Auth ── */
   useEffect(() => {
@@ -128,11 +128,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   };
 
   /* ── Real-time ── */
-  useEvent("MESSAGES_READ", () =>
+  useRealtimeEvent(currentUserId || undefined, "MESSAGES_READ", () =>
     setMessages(p => p.map(m => ({ ...m, is_read: true })))
   );
 
-  useEvent("NEW_MESSAGE", (msg) => {
+  useRealtimeEvent(currentUserId || undefined, "NEW_MESSAGE", (msg) => {
     if (msg.type === "NOTIFICATION") return;
     const isMe   = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
     const isFrom = msg.sender_username === username;

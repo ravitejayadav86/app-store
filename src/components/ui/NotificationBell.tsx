@@ -5,7 +5,7 @@ import { Bell, CheckCheck, X, MessageCircle, Users, ShieldCheck, Zap, Package } 
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRealtime } from "@/hooks/useRealtime";
+import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
 import { toast } from "sonner";
 
 interface Notification {
@@ -48,7 +48,7 @@ export function NotificationBell() {
     api.get("/users/me").then(r => setUserId(r.data.id)).catch(() => {});
   }, []);
 
-  const { useEvent } = useRealtime(userId || undefined);
+  const { isConnected } = useRealtime(userId || undefined);
 
   // ── Native notification permission ────────────────────────────────────────
   useEffect(() => {
@@ -57,7 +57,7 @@ export function NotificationBell() {
   }, []);
 
   // ── Real-time push ────────────────────────────────────────────────────────
-  useEvent("NOTIFICATION", (data) => {
+  useRealtimeEvent(userId || undefined, "NOTIFICATION", (data) => {
     const n: Notification = {
       id:         data.id || Date.now(),
       title:      data.title,
