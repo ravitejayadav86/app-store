@@ -405,7 +405,24 @@ async def download_file(
     if url.startswith("/uploads/"):
         local_path = url.lstrip("/")
         if not os.path.exists(local_path):
-            raise HTTPException(404, f"The file for '{app.name}' is missing on the server. Please contact the developer to re-upload.")
+            # Auto-nudge the publisher since the file is missing (likely Render ephemeral storage wipe)
+            publisher = db.query(models.User).filter(models.User.username == app.developer).first()
+            if publisher:
+                notif = models.Notification(
+                    user_id=publisher.id,
+                    title="⚠️ Critical: App File Missing",
+                    message=f"The file for your app '{app.name}' is missing from the server (possibly due to a system restart). Please re-upload it immediately to restore downloads."
+                )
+                db.add(notif)
+                db.commit()
+                # Real-time alert
+                background_tasks.add_task(manager.send_to_user, publisher.id, {
+                    "type": "NOTIFICATION",
+                    "title": notif.title,
+                    "message": notif.message
+                })
+
+            raise HTTPException(404, f"The file for '{app.name}' is missing on the server. We have automatically notified the developer to re-upload it. Please try again later.")
         
         # Use the request's base URL to build an absolute redirect
         base_url = str(request.base_url).rstrip("/")
