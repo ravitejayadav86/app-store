@@ -3,8 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text, inspect
-from database import engine, Base
+from sqlalchemy import text, inspect, create_engine
+from database import engine, Base, SessionLocal
+import models
 from routes import auth, apps, users, admin, reviews, notifications, community, social
 from security import limiter, add_security_headers
 from slowapi import _rate_limit_exceeded_handler
