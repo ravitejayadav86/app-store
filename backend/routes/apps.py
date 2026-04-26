@@ -53,6 +53,12 @@ def attach_stats(app: models.App, db: Session):
         elif app.category and app.category.lower() in ["productivity", "utilities"]: file_size = "12 MB"
         else: file_size = "45 MB"
 
+    # Render Ephemeral Storage Check: If file is local and missing from disk, treat as None
+    file_path = app.file_path
+    if file_path and file_path.startswith("/uploads/"):
+        if not os.path.exists(file_path.lstrip("/")):
+            file_path = None
+
     return {
         "id": app.id,
         "name": app.name,
@@ -63,7 +69,7 @@ def attach_stats(app: models.App, db: Session):
         "developer": app.developer,
         "is_active": app.is_active,
         "is_approved": app.is_approved,
-        "file_path": app.file_path,
+        "file_path": file_path,
         "icon_url": app.icon_url,
         "screenshot_urls": app.screenshot_urls,
         "created_at": app.created_at,
@@ -137,7 +143,7 @@ def get_apps(
             "developer": app.developer,
             "is_active": app.is_active,
             "is_approved": app.is_approved,
-            "file_path": app.file_path,
+            "file_path": app.file_path if not (app.file_path and app.file_path.startswith("/uploads/") and not os.path.exists(app.file_path.lstrip("/"))) else None,
             "icon_url": app.icon_url,
             "screenshot_urls": app.screenshot_urls,
             "created_at": app.created_at,
