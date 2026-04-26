@@ -260,6 +260,10 @@ async def upload_file(
                 logger.info(f"Zipped APK for Cloudinary: {final_filename}")
 
             try:
+                # Skip Cloudinary for files > 100MB to avoid timeout
+                if os.path.getsize(upload_path) > 100 * 1024 * 1024:
+                    raise Exception("File too large for Cloudinary, saving locally directly.")
+                    
                 # Try Cloudinary upload - using run_in_threadpool because upload_large is blocking
                 from fastapi.concurrency import run_in_threadpool
                 logger.info(f"Attempting Cloudinary upload for {final_filename}")

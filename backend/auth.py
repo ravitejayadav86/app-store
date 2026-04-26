@@ -11,7 +11,8 @@ import os
 
 SECRET_KEY  = os.getenv("SECRET_KEY", "fallback-secret")
 ALGORITHM   = os.getenv("ALGORITHM", "HS256")
-EXPIRE_MINS = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+EXPIRE_MINS = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 10080))  # Default: 7 days
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)

@@ -3,8 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, Grid, Music, Book, User, Users, Settings } from "lucide-react";
+import { Gamepad2, Grid, Music, Book, User, Users, Settings, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtime } from "@/hooks/useRealtime";
+import api from "@/lib/api";
 
 const NAV_ITEMS = [
   { name: "Games", icon: <Gamepad2 size={24} />, href: "/games" },
@@ -18,10 +20,34 @@ const NAV_ITEMS = [
 export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
+  const [userId, setUserId] = React.useState<number | null>(null);
+  const [unreadMessages, setUnreadMessages] = React.useState(0);
 
   React.useEffect(() => {
     setMounted(true);
+    // Fetch userId and initial unread count silently
+    api.get("/users/me").then(res => setUserId(res.data.id)).catch(() => {});
+    api.get("/social/conversations").then(res => {
+      const total = res.data.reduce((sum: number, c: any) => sum + (c.unread_count || 0), 0);
+      setUnreadMessages(total);
+    }).catch(() => {});
   }, []);
+
+  const { useEvent } = useRealtime(userId || undefined);
+
+  // Increment badge on new message, reset when on messages page
+  useEvent("NEW_MESSAGE", (msg) => {
+    if (!pathname?.startsWith("/messages")) {
+      setUnreadMessages(prev => prev + 1);
+    }
+  });
+
+  // Clear badge when user navigates to messages
+  React.useEffect(() => {
+    if (pathname?.startsWith("/messages")) {
+      setUnreadMessages(0);
+    }
+  }, [pathname]);
 
   if (!mounted) return null;
 
@@ -72,6 +98,13 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
+
+                {/* Unread message badge on Hub (community/messages) */}
+                {item.href === "/community" && unreadMessages > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 animate-pulse">
+                    {unreadMessages > 9 ? "9+" : unreadMessages}
+                  </span>
+                )}
               </div>
               
               <span className={`text-[10px] font-bold tracking-tight transition-all ${
@@ -94,3 +127,4 @@ export const BottomNav = ({ isHidden = false }: { isHidden?: boolean }) => {
     </AnimatePresence>
   );
 };
+

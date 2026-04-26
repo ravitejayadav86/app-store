@@ -59,6 +59,8 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
   const [hasMore, setHasMore] = useState(true);
   const [fetchingMore, setFetchingMore] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const atBottomRef = useRef(true);
 
   useEffect(() => {
     api.get("/users/me")
@@ -150,32 +152,48 @@ export default function ChatClient({ username: propUsername }: { username?: stri
       const exists = prev.some(m => m.id === msg.id);
       if (exists) return prev;
       
-      // If we receive a message from the recipient while in the chat, mark it as read immediately
+      // Mark incoming messages as read immediately
       if (isFromRecipient) {
-         sendEvent({ type: "READ", to: username });
-      } else if (isFromMe && typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
-         // Optional: Handle own messages in other tabs if needed
+        sendEvent({ type: "READ", to: username });
+        // Native push notification when tab is hidden
+        if (typeof window !== "undefined" && document.hidden && Notification.permission === "granted") {
+          new window.Notification(`New message from @${username}`, {
+            body: msg.content || "📎 Attachment",
+            icon: "/panda-logo.png",
+            tag: `msg-${username}`, // dedup: only one notif per sender
+          });
+        }
       }
-      
+
       return [...prev, msg];
     });
 
-    // Scroll logic for incoming messages
-    // Always scroll for own messages, or if near bottom for others
-    const isFromMe = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
-    if (isFromMe) {
+    // Auto-scroll: always for own messages, for received when near bottom
+    const isOwn = msg.sender_id === currentUserId || msg.sender_username === currentUsername;
+    if (isOwn || atBottomRef.current) {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      }, 50);
     }
   });
 
+
   useEffect(() => {
-    // Initial scroll to bottom
+    // Initial scroll to bottom on first load
     if (messages.length > 0 && messages.length <= 50 && !fetchingMore) {
       bottomRef.current?.scrollIntoView({ behavior: "auto" });
     }
   }, [messages.length, fetchingMore]);
+
+  // Track whether user is near the bottom
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (el.scrollTop === 0 && hasMore && !fetchingMore) {
+      loadMoreMessages();
+    }
+  };
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -217,10 +235,32 @@ export default function ChatClient({ username: propUsername }: { username?: stri
 
     try {
       if (files.length === 0) {
-        // Just text message
-        await emitMessage(textContent, null, null);
+        // Optimistic: show message immediately
+        const optimisticId = Date.now();
+        const optimistic: Message = {
+          id: optimisticId,
+          sender_id: currentUserId!,
+          receiver_id: 0,
+          content: textContent,
+          is_read: false,
+          created_at: new Date().toISOString(),
+          sender_username: currentUsername!,
+        };
+        setMessages(prev => [...prev, optimistic]);
+        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+        // Send via WS or REST
+        const sentViaWs = sendEvent({ to: username, content: textContent, media_url: null, media_type: null });
+        if (!sentViaWs) {
+          const res = await api.post(`/social/messages/${username}`, { content: textContent, media_url: null, media_type: null });
+          // Replace optimistic message with server-confirmed one
+          setMessages(prev => prev.map(m => m.id === optimisticId ? { ...res.data, sender_id: currentUserId!, sender_username: currentUsername! } : m));
+        } else {
+          // WS echo will arrive; remove optimistic duplicate when it does
+          // (handled in NEW_MESSAGE dedup by id)
+        }
       } else {
-        // Send files one by one
+        // File uploads
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (file.size > 500 * 1024 * 1024) {
@@ -229,23 +269,31 @@ export default function ChatClient({ username: propUsername }: { username?: stri
           }
 
           setUploading(true);
+          setUploadProgress(0);
           const formData = new FormData();
           formData.append("file", file);
-          
+
           try {
             const res = await api.post(`/social/messages/${username}/upload`, formData, {
-              headers: { "Content-Type": "multipart/form-data" }
+              headers: { "Content-Type": "multipart/form-data" },
+              onUploadProgress: (e) => {
+                if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
+              },
             });
-            
-            // For the first file, attach the text message if any
+
             const msgContent = (i === 0 && textContent) ? textContent : "";
-            await emitMessage(msgContent, res.data.media_url, res.data.media_type);
+            const sentViaWs = sendEvent({ to: username, content: msgContent, media_url: res.data.media_url, media_type: res.data.media_type });
+            if (!sentViaWs) {
+              await api.post(`/social/messages/${username}`, { content: msgContent, media_url: res.data.media_url, media_type: res.data.media_type });
+            }
+            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
           } catch (err) {
             console.error("Upload error:", err);
             toast.error(`Failed to upload ${file.name}`);
           }
         }
         setUploading(false);
+        setUploadProgress(0);
       }
     } catch {
       toast.error("Failed to send message.");
@@ -322,13 +370,9 @@ export default function ChatClient({ username: propUsername }: { username?: stri
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-surface/30 overscroll-contain"
         style={{ WebkitOverflowScrolling: "touch" }}
-        onScroll={(e) => {
-          const target = e.currentTarget;
-          if (target.scrollTop === 0 && hasMore && !fetchingMore) {
-            loadMoreMessages();
-          }
-        }}
+        onScroll={handleScroll}
       >
+
         {hasMore && (
           <div className="flex justify-center py-2">
             <button 
@@ -472,6 +516,22 @@ export default function ChatClient({ username: propUsername }: { username?: stri
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Upload progress bar */}
+          {uploading && uploadProgress > 0 && (
+            <div className="w-full">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold text-on-surface-variant">Uploading...</span>
+                <span className="text-[10px] font-bold text-primary">{uploadProgress}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-surface-low rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-150"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
             </div>
           )}
 

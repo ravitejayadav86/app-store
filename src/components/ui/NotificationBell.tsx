@@ -78,33 +78,18 @@ export function NotificationBell() {
       setUnread(res.data.filter((n: Notification) => !n.is_read).length);
     } catch (err: unknown) {
       const error = err as ApiError;
-      // 401 = not logged in, silently skip
       if (error.response?.status !== 401) {
         console.error("Failed to fetch notifications");
       }
     }
   }, []);
 
+  // Fetch once on mount, then poll every 60s
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await api.get("/notifications/");
-        if (!cancelled) {
-          setNotifications(res.data);
-          setUnread(res.data.filter((n: Notification) => !n.is_read).length);
-        }
-      } catch (err: unknown) {
-        const error = err as ApiError;
-        if (error.response?.status !== 401) {
-          console.error("Failed to fetch notifications");
-        }
-      }
-    };
-    load();
-    const interval = setInterval(load, 30000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, []);
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   // Close on outside click
   useEffect(() => {
@@ -132,22 +117,36 @@ export function NotificationBell() {
   };
 
   const handleNotificationClick = (n: Notification) => {
-    if (!n.is_read) {
-      markRead(n.id);
+    if (!n.is_read) markRead(n.id);
+    setOpen(false);
+
+    // New message → open the conversation directly
+    if (n.title === "New Message") {
+      const match = n.message.match(/@([\w\-.]+)/);
+      if (match?.[1]) {
+        router.push(`/messages/${match[1]}`);
+        return;
+      }
     }
 
-    // Route to user profile if message contains "@username"
-    const match = n.message.match(/@([\w\-\.]+)/);
-    if (match && match[1]) {
-      router.push(`/users/${match[1]}`);
-      setOpen(false);
+    // Follow / request → go to that user's profile
+    if (n.title === "New Follower" || n.title === "Follow Request" || n.title === "Request Accepted") {
+      const match = n.message.match(/@([\w\-.]+)/);
+      if (match?.[1]) {
+        router.push(`/users/${match[1]}`);
+        return;
+      }
+    }
+
+    // Publisher nudge
+    if (n.title === "App Nudge!") {
+      router.push("/publisher");
       return;
     }
 
-    // Route to publisher dashboard for app nudges
-    if (n.title === "App Nudge!") {
-      router.push("/publisher");
-      setOpen(false);
+    // Support feedback → admin panel
+    if (n.title?.startsWith("Support Feedback")) {
+      router.push("/admin");
       return;
     }
   };

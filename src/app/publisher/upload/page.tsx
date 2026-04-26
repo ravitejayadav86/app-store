@@ -255,15 +255,7 @@ function UploadFormContent() {
       let iconUrl = "";
       let screenshotUrls: string[] = [];
 
-      // 1. Main File Task
-      if (file) {
-        uploadTasks.push(
-          uploadToCloudinary(file, "pandastore/apps", (p) => setUploadProgress(p))
-            .then(url => { mainFileUrl = url; })
-        );
-      }
-
-      // 2. Icon Task
+      // 1. Icon Task
       if (iconFile) {
         uploadTasks.push(
           uploadToCloudinary(iconFile, "pandastore/icons")
@@ -271,7 +263,7 @@ function UploadFormContent() {
         );
       }
 
-      // 3. Screenshots Tasks (Parallel)
+      // 2. Screenshots Tasks (Parallel)
       screenshots.forEach((s, i) => {
         uploadTasks.push(
           uploadToCloudinary(s, `pandastore/screenshots/${appId}`)
@@ -279,15 +271,35 @@ function UploadFormContent() {
         );
       });
 
-      // Wait for all parallel uploads to complete
+      // 3. Main File Task (Direct to backend to support large files)
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const fileUploadPromise = api.post(`/apps/${appId}/upload`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (e) => {
+            if (e.total) {
+              setUploadProgress(Math.round((e.loaded * 100) / e.total));
+            }
+          }
+        }).then(res => {
+          if (res.data?.file_path) {
+            mainFileUrl = res.data.file_path;
+          }
+        });
+        uploadTasks.push(fileUploadPromise);
+      }
+
+      // Wait for all uploads to complete
       await Promise.all(uploadTasks);
 
       // Finalize with backend
-      await api.post(`/apps/${appId}/upload`, {
-        file_path: mainFileUrl,
-        icon_url: iconUrl,
-        screenshot_urls: JSON.stringify(screenshotUrls.filter(Boolean))
-      });
+      const payload: any = {};
+      if (mainFileUrl) payload.file_path = mainFileUrl;
+      if (iconUrl) payload.icon_url = iconUrl;
+      if (screenshotUrls.length > 0) payload.screenshot_urls = JSON.stringify(screenshotUrls.filter(Boolean));
+
+      await api.post(`/apps/${appId}/upload`, payload);
 
       toast.success("Application is now live!");
       setStep(3);

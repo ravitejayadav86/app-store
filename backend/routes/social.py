@@ -7,10 +7,14 @@ from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict, List
 import json
 import os
+import time
 import cloudinary
 import cloudinary.uploader
+import logging
 
 from realtime import manager
+
+logger = logging.getLogger(__name__)
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -19,6 +23,7 @@ cloudinary.config(
 )
 
 router = APIRouter(prefix="/social", tags=["social"])
+
 
 @router.get("/search")
 def search_users(q: str, db: Session = Depends(get_db)):
@@ -627,86 +632,106 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_text()
-            msg_data = json.loads(data)
-            
-            msg_type = msg_data.get("type", "MESSAGE")
-            
-            if msg_type == "READ":
-                # Handle read confirmation
-                other_username = msg_data.get("to")
-                other = db.query(models.User).filter(models.User.username == other_username).first()
-                if other:
-                    db.query(models.Message).filter(
-                        models.Message.sender_id == other.id,
-                        models.Message.receiver_id == user_id,
-                        models.Message.is_read == False
-                    ).update({"is_read": True})
-                    db.commit()
-                    
-                    await manager.send_to_user(other.id, {
-                        "type": "MESSAGES_READ",
-                        "by_id": user_id
-                    })
+
+            # Per-message error isolation — a bad payload won't kill the connection
+            try:
+                msg_data = json.loads(data)
+            except json.JSONDecodeError:
+                logger.warning(f"Invalid JSON from user {user_id}: {data[:80]}")
                 continue
 
-            receiver = db.query(models.User).filter(
-                models.User.username == msg_data.get("to")
-            ).first()
-            
-            if receiver:
-                sender = db.query(models.User).filter(
-                    models.User.id == user_id
-                ).first()
-                
-                message = models.Message(
-                    sender_id=user_id,
-                    receiver_id=receiver.id,
-                    content=msg_data.get("content", ""),
-                    media_url=msg_data.get("media_url"),
-                    media_type=msg_data.get("media_type")
-                )
-                db.add(message)
-                db.commit()
-                db.refresh(message)
+            msg_type = msg_data.get("type", "MESSAGE")
 
-                # Persistent Notification for the receiver
-                notif = models.Notification(
-                    user_id=receiver.id,
-                    title="New Message",
-                    message=f"@{sender.username if sender else 'Someone'} sent you a message."
-                )
-                db.add(notif)
-                db.commit()
-                db.refresh(notif)
-                
-                payload = {
-                    "type": "MESSAGE",
-                    "id": message.id,
-                    "sender_id": user_id,
-                    "receiver_id": receiver.id,
-                    "content": message.content,
-                    "media_url": message.media_url,
-                    "media_type": message.media_type,
-                    "created_at": message.created_at.isoformat(),
-                    "sender_username": sender.username if sender else "Unknown",
-                    "sender_avatar_url": sender.avatar_url if sender else None,
-                    "is_read": False
-                }
-                
-                await manager.send_to_user(receiver.id, payload)
-                await manager.send_to_user(user_id, payload)
-                
-                # Also notify about the new notification record
-                await manager.send_to_user(receiver.id, {
-                    "type": "NOTIFICATION",
-                    "id": notif.id,
-                    "title": notif.title,
-                    "message": notif.message,
-                    "created_at": notif.created_at.isoformat()
-                })
-                
+            # Handle ping/pong keepalive
+            if msg_type == "PING":
+                await websocket.send_text(json.dumps({"type": "PONG"}))
+                continue
+
+            if msg_type == "READ":
+                try:
+                    other_username = msg_data.get("to")
+                    other = db.query(models.User).filter(models.User.username == other_username).first()
+                    if other:
+                        db.query(models.Message).filter(
+                            models.Message.sender_id == other.id,
+                            models.Message.receiver_id == user_id,
+                            models.Message.is_read == False
+                        ).update({"is_read": True})
+                        db.commit()
+                        await manager.send_to_user(other.id, {
+                            "type": "MESSAGES_READ",
+                            "by_id": user_id
+                        })
+                except Exception as e:
+                    logger.error(f"WS READ error for user {user_id}: {e}")
+                    db.rollback()
+                continue
+
+            try:
+                receiver = db.query(models.User).filter(
+                    models.User.username == msg_data.get("to")
+                ).first()
+
+                if receiver:
+                    sender = db.query(models.User).filter(
+                        models.User.id == user_id
+                    ).first()
+
+                    message = models.Message(
+                        sender_id=user_id,
+                        receiver_id=receiver.id,
+                        content=msg_data.get("content", ""),
+                        media_url=msg_data.get("media_url"),
+                        media_type=msg_data.get("media_type")
+                    )
+                    db.add(message)
+                    db.commit()
+                    db.refresh(message)
+
+                    # Persistent Notification for the receiver
+                    notif = models.Notification(
+                        user_id=receiver.id,
+                        title="New Message",
+                        message=f"@{sender.username if sender else 'Someone'} sent you a message."
+                    )
+                    db.add(notif)
+                    db.commit()
+                    db.refresh(notif)
+
+                    payload = {
+                        "type": "MESSAGE",
+                        "id": message.id,
+                        "sender_id": user_id,
+                        "receiver_id": receiver.id,
+                        "content": message.content,
+                        "media_url": message.media_url,
+                        "media_type": message.media_type,
+                        "created_at": message.created_at.isoformat(),
+                        "sender_username": sender.username if sender else "Unknown",
+                        "sender_avatar_url": sender.avatar_url if sender else None,
+                        "is_read": False
+                    }
+
+                    await manager.send_to_user(receiver.id, payload)
+                    await manager.send_to_user(user_id, payload)
+
+                    # Also notify about the new notification record
+                    await manager.send_to_user(receiver.id, {
+                        "type": "NOTIFICATION",
+                        "id": notif.id,
+                        "title": notif.title,
+                        "message": notif.message,
+                        "created_at": notif.created_at.isoformat()
+                    })
+
+            except Exception as e:
+                logger.error(f"WS MESSAGE error for user {user_id}: {e}")
+                db.rollback()
+
     except WebSocketDisconnect:
+        logger.info(f"WS normal disconnect: user_id={user_id}")
         manager.disconnect(websocket, user_id)
     except Exception as e:
-        print(f"WS Error: {e}")
-        manager.disconnect(websocket, user_id)
+        logger.error(f"WS fatal error for user {user_id}: {e}")
+        manager.disconnect(websocket, user_id)
+

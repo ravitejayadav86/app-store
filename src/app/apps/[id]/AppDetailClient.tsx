@@ -347,23 +347,34 @@ function AppDetailContent({ id: propId }: { id?: string }) {
         </div>
 
         {/* Screenshots Section */}
-        {app.screenshot_urls && JSON.parse(app.screenshot_urls).length > 0 && (
-          <div className="mb-12">
-            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-              {JSON.parse(app.screenshot_urls).map((url: string, i: number) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="shrink-0 w-44 sm:w-64 aspect-[9/16] rounded-2xl overflow-hidden liquid-glass border-white/20 shadow-lg"
-                >
-                  <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
-                </motion.div>
-              ))}
+        {(() => {
+          let screenshots: string[] = [];
+          try {
+            if (app.screenshot_urls) {
+              screenshots = JSON.parse(app.screenshot_urls);
+            }
+          } catch {
+            screenshots = [];
+          }
+          return screenshots.length > 0 ? (
+            <div className="mb-12">
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                {screenshots.map((url: string, i: number) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="shrink-0 w-44 sm:w-64 aspect-[9/16] rounded-2xl overflow-hidden liquid-glass border-white/20 shadow-lg"
+                  >
+                    <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          ) : null;
+        })()}
+
 
         {/* About Section */}
         <section className="mb-12">

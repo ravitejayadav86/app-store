@@ -6,99 +6,171 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "wss://pandas-store-api.onrende
 
 type EventCallback = (data: any) => void;
 
-export function useRealtime(userId?: number) {
-  const socketRef = useRef<WebSocket | null>(null);
-  const listenersRef = useRef<Map<string, Set<EventCallback>>>(new Map());
-  const [isConnected, setIsConnected] = useState(false);
+// ─── Global singleton per userId ─────────────────────────────────────────────
+// Keeps ONE WebSocket open even if multiple components call useRealtime().
+interface WsState {
+  ws: WebSocket;
+  listeners: Map<string, Set<EventCallback>>;
+  refCount: number;
+  pingTimer: ReturnType<typeof setInterval> | null;
+  reconnectTimer: ReturnType<typeof setTimeout> | null;
+  reconnectDelay: number; // ms — exponential backoff
+  intentionalClose: boolean;
+}
 
-  useEffect(() => {
-    if (!userId) return;
+const connections = new Map<number, WsState>();
 
-    let reconnectTimer: ReturnType<typeof setTimeout>;
-    let intentionalClose = false;
+function getOrCreate(userId: number): WsState {
+  if (connections.has(userId)) {
+    const state = connections.get(userId)!;
+    state.refCount++;
+    return state;
+  }
+  const state: WsState = {
+    ws: null as any,
+    listeners: new Map(),
+    refCount: 1,
+    pingTimer: null,
+    reconnectTimer: null,
+    reconnectDelay: 1000,
+    intentionalClose: false,
+  };
+  connections.set(userId, state);
+  connectSocket(userId, state);
+  return state;
+}
 
-    const connect = () => {
+function connectSocket(userId: number, state: WsState) {
+  try {
+    const ws = new WebSocket(`${WS_URL}/social/ws/${userId}`);
+    state.ws = ws;
+
+    ws.onopen = () => {
+      state.reconnectDelay = 1000; // reset backoff on success
+
+      // Dispatch to a special "CONNECTION" type so hooks can track status
+      dispatch(state, "CONNECTION", { connected: true });
+
+      // Heartbeat — send PING every 25s to keep the server from timing us out
+      state.pingTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "PING" }));
+        }
+      }, 25_000);
+    };
+
+    ws.onmessage = (event: MessageEvent) => {
       try {
-        const url = `${WS_URL}/social/ws/${userId}`;
-        const ws = new WebSocket(url);
-        socketRef.current = ws;
+        const data = JSON.parse(event.data);
+        if (data.type === "PONG") return; // ignore heartbeat responses
 
-        ws.onopen = () => {
-          console.log("Connected to Realtime Server");
-          setIsConnected(true);
-        };
-
-        ws.onmessage = (event: MessageEvent) => {
-          try {
-            const data = JSON.parse(event.data);
-            const type = data.type;
-            if (type && listenersRef.current.has(type)) {
-              listenersRef.current.get(type)!.forEach((cb) => {
-                try { cb(data); } catch (e) { console.error("Event handler error:", e); }
-              });
-            }
-          } catch (e) {
-            console.error("Failed to parse WS message", e);
-          }
-        };
-
-        ws.onclose = () => {
-          setIsConnected(false);
-          if (!intentionalClose) {
-            console.log("Disconnected from Realtime Server. Reconnecting...");
-            reconnectTimer = setTimeout(connect, 3000);
-          }
-        };
-
-        ws.onerror = (err) => {
-          console.error("WebSocket Error:", err);
-        };
-      } catch (err) {
-        console.error("WebSocket connection failed:", err);
-        reconnectTimer = setTimeout(connect, 5000);
+        // Normalise: the backend sends "MESSAGE" from WS but some handlers listen for "NEW_MESSAGE"
+        if (data.type === "MESSAGE") {
+          dispatch(state, "MESSAGE", data);
+          dispatch(state, "NEW_MESSAGE", data); // fire both so legacy handlers work
+        } else if (data.type) {
+          dispatch(state, data.type, data);
+        }
+      } catch {
+        // ignore unparseable frames
       }
     };
 
-    connect();
+    ws.onclose = () => {
+      dispatch(state, "CONNECTION", { connected: false });
+      if (state.pingTimer) { clearInterval(state.pingTimer); state.pingTimer = null; }
+
+      if (!state.intentionalClose && connections.has(userId)) {
+        // Exponential backoff: 1s → 2s → 4s → … → 30s max
+        state.reconnectDelay = Math.min(state.reconnectDelay * 2, 30_000);
+        state.reconnectTimer = setTimeout(() => connectSocket(userId, state), state.reconnectDelay);
+      }
+    };
+
+    ws.onerror = () => {
+      // onclose fires after onerror so reconnect is handled there
+    };
+  } catch {
+    state.reconnectDelay = Math.min(state.reconnectDelay * 2, 30_000);
+    state.reconnectTimer = setTimeout(() => connectSocket(userId, state), state.reconnectDelay);
+  }
+}
+
+function dispatch(state: WsState, type: string, data: any) {
+  state.listeners.get(type)?.forEach((cb) => {
+    try { cb(data); } catch (e) { console.error("WS event handler error:", e); }
+  });
+}
+
+function releaseSocket(userId: number) {
+  const state = connections.get(userId);
+  if (!state) return;
+  state.refCount--;
+  if (state.refCount <= 0) {
+    state.intentionalClose = true;
+    if (state.pingTimer) clearInterval(state.pingTimer);
+    if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
+    state.ws?.close();
+    connections.delete(userId);
+  }
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+export function useRealtime(userId?: number) {
+  const [isConnected, setIsConnected] = useState(false);
+  const stateRef = useRef<WsState | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    const state = getOrCreate(userId);
+    stateRef.current = state;
+
+    // Track current connection state
+    setIsConnected(state.ws?.readyState === WebSocket.OPEN);
+
+    const onConnection = (data: { connected: boolean }) => setIsConnected(data.connected);
+    if (!state.listeners.has("CONNECTION")) state.listeners.set("CONNECTION", new Set());
+    state.listeners.get("CONNECTION")!.add(onConnection);
 
     return () => {
-      intentionalClose = true;
-      clearTimeout(reconnectTimer);
-      socketRef.current?.close();
+      state.listeners.get("CONNECTION")?.delete(onConnection);
+      releaseSocket(userId);
+      stateRef.current = null;
     };
   }, [userId]);
 
   /**
-   * useEvent — a proper React hook for subscribing to WebSocket events.
-   * Must be called at the top level of a component (not inside callbacks).
+   * useEvent — subscribe to a WebSocket event type.
+   * Must be called at the top level of a component (React hook rules).
    */
   const useEvent = useCallback((type: string, callback: EventCallback) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const callbackRef = useRef(callback);
     callbackRef.current = callback;
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
-      const stableCallback: EventCallback = (data) => callbackRef.current(data);
+      const state = stateRef.current;
+      if (!state) return;
 
-      if (!listenersRef.current.has(type)) {
-        listenersRef.current.set(type, new Set());
-      }
-      listenersRef.current.get(type)!.add(stableCallback);
+      const stableCb: EventCallback = (data) => callbackRef.current(data);
+      if (!state.listeners.has(type)) state.listeners.set(type, new Set());
+      state.listeners.get(type)!.add(stableCb);
 
       return () => {
-        listenersRef.current.get(type)?.delete(stableCallback);
-        if (listenersRef.current.get(type)?.size === 0) {
-          listenersRef.current.delete(type);
-        }
+        state.listeners.get(type)?.delete(stableCb);
+        if (state.listeners.get(type)?.size === 0) state.listeners.delete(type);
       };
     }, [type]);
   }, []);
 
   /**
-   * sendEvent — Allows sending a message through the shared WebSocket connection
+   * sendEvent — send a message through the shared WebSocket.
    */
-  const sendEvent = useCallback((data: any) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(data));
+  const sendEvent = useCallback((data: any): boolean => {
+    const state = stateRef.current;
+    if (state?.ws?.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify(data));
       return true;
     }
     return false;
@@ -106,3 +178,4 @@ export function useRealtime(userId?: number) {
 
   return { isConnected, useEvent, sendEvent };
 }
+
