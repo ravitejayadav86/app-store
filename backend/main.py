@@ -19,6 +19,21 @@ def init_db():
         print(f"Table sync error: {e}")
 
 def run_migrations():
+    # Data migration for file_size
+    db = SessionLocal()
+    try:
+        apps_to_update = db.query(models.App).filter(models.App.file_size == None).all()
+        for app in apps_to_update:
+            if app.category and app.category.lower() == "games": app.file_size = "256 MB"
+            elif app.category and app.category.lower() in ["productivity", "utilities"]: app.file_size = "12 MB"
+            else: app.file_size = "45 MB"
+        db.commit()
+    except Exception as e:
+        print(f"Data migration error: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
     try:
         with engine.connect() as conn:
             inspector = inspect(engine)

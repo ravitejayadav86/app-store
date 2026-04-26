@@ -46,6 +46,13 @@ def attach_stats(app: models.App, db: Session):
     if app.category.lower() in ["games", "social"]:
         maturity = "12+" if any(x in app.name.lower() or x in (app.description or "").lower() for x in ["battle", "fight", "war"]) else "7+"
     
+    # Better fallback for file_size if not set
+    file_size = app.file_size
+    if not file_size:
+        if app.category and app.category.lower() == "games": file_size = "256 MB"
+        elif app.category and app.category.lower() in ["productivity", "utilities"]: file_size = "12 MB"
+        else: file_size = "45 MB"
+
     return {
         "id": app.id,
         "name": app.name,
@@ -64,7 +71,7 @@ def attach_stats(app: models.App, db: Session):
         "reviews_count": len(reviews),
         "downloads_count": downloads,
         "maturity_rating": maturity,
-        "file_size": app.file_size or "Varies"
+        "file_size": file_size
     }
 
 from sqlalchemy import func
@@ -120,9 +127,6 @@ def get_apps(
         if app.category.lower() in ["games", "social"]:
             maturity = "12+" if any(x in app.name.lower() or x in (app.description or "").lower() for x in ["battle", "fight", "war"]) else "7+"
         
-        file_size = "Small" if app.category.lower() in ["productivity", "utilities"] else "Standard"
-        if app.category.lower() == "games": file_size = "Large"
-
         app_dict = {
             "id": app.id,
             "name": app.name,
@@ -141,7 +145,7 @@ def get_apps(
             "reviews_count": int(reviews_count),
             "downloads_count": int(downloads_count),
             "maturity_rating": maturity,
-            "file_size": file_size
+            "file_size": app.file_size or "Varies"
         }
         out.append(app_dict)
     
