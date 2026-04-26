@@ -158,25 +158,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Premium Banner */}
-      <section className="px-4 md:px-8">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-7xl mx-auto bg-surface-lowest border border-outline-variant rounded-3xl p-12 relative overflow-hidden flex flex-col items-center text-center gap-6 shadow-sm"
-        >
-          <div className="absolute top-0 inset-x-0 h-1 mb-px bg-linear-to-r from-transparent via-primary/50 to-transparent" />
-          <div className="p-4 rounded-2xl bg-primary/5 text-primary mb-4">
-            <Zap size={32} />
-          </div>
-          <h2 className="text-4xl font-bold">Experience the Premium Store.</h2>
-          <p className="max-w-xl text-on-surface-variant text-lg">
-            Unlock exclusive early access, ad-free browsing, and premium support across all your devices.
-          </p>
-          <Button size="lg" className="mt-4">Join Curator Premium</Button>
-        </motion.div>
-      </section>
     </div>
   );
 }
