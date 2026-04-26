@@ -278,32 +278,54 @@ async def upload_file(
                 logger.info(f"Zipped APK for Cloudinary: {final_filename}")
 
             try:
-                # Skip Cloudinary for files > 100MB to avoid timeout
-                if os.path.getsize(upload_path) > 100 * 1024 * 1024:
-                    raise Exception("File too large for Cloudinary, saving locally directly.")
-                    
-                # Try Cloudinary upload - using run_in_threadpool because upload_large is blocking
-                from fastapi.concurrency import run_in_threadpool
-                logger.info(f"Attempting Cloudinary upload for {final_filename}")
+                # 1. Attempt Cloudflare R2 Upload (Ideal for large app binaries)
+                from storage import get_r2_client, upload_file_to_r2
                 
-                result = await run_in_threadpool(
-                    cloudinary.uploader.upload_large,
-                    upload_path,
-                    resource_type="raw",
-                    folder="pandastore/apps",
-                    public_id=f"app_{app_id}_{final_filename}",
-                    overwrite=True
-                )
-                app.file_path = result["secure_url"]
-                logger.info(f"Cloudinary upload successful: {app.file_path}")
-            except Exception as e:
-                logger.error(f"Cloudinary upload failed: {str(e)}. Falling back to local storage.")
-                # Fallback to local storage
-                os.makedirs("uploads", exist_ok=True)
-                dest_path = f"uploads/app_{app_id}_{safe_name}"
-                shutil.copy2(tmp_path, dest_path)
-                app.file_path = f"/{dest_path}"
-                logger.info(f"Local fallback successful: {app.file_path}")
+                if get_r2_client() is not None:
+                    from fastapi.concurrency import run_in_threadpool
+                    logger.info(f"Attempting Cloudflare R2 upload for {final_filename}")
+                    
+                    r2_object_name = f"apps/app_{app_id}_{final_filename}"
+                    public_url = await run_in_threadpool(
+                        upload_file_to_r2,
+                        upload_path,
+                        r2_object_name
+                    )
+                    app.file_path = public_url
+                    logger.info(f"R2 upload successful: {app.file_path}")
+                else:
+                    raise Exception("R2 not configured.")
+                    
+            except Exception as r2_e:
+                logger.info(f"R2 skipped/failed ({str(r2_e)}). Falling back to Cloudinary/Local.")
+                
+                try:
+                    # Skip Cloudinary for files > 100MB to avoid timeout
+                    if os.path.getsize(upload_path) > 100 * 1024 * 1024:
+                        raise Exception("File too large for Cloudinary, saving locally directly.")
+                        
+                    # Try Cloudinary upload - using run_in_threadpool because upload_large is blocking
+                    from fastapi.concurrency import run_in_threadpool
+                    logger.info(f"Attempting Cloudinary upload for {final_filename}")
+                    
+                    result = await run_in_threadpool(
+                        cloudinary.uploader.upload_large,
+                        upload_path,
+                        resource_type="raw",
+                        folder="pandastore/apps",
+                        public_id=f"app_{app_id}_{final_filename}",
+                        overwrite=True
+                    )
+                    app.file_path = result["secure_url"]
+                    logger.info(f"Cloudinary upload successful: {app.file_path}")
+                except Exception as e:
+                    logger.error(f"Cloudinary upload failed: {str(e)}. Falling back to local storage.")
+                    # Fallback to local storage
+                    os.makedirs("uploads", exist_ok=True)
+                    dest_path = f"uploads/app_{app_id}_{safe_name}"
+                    shutil.copy2(tmp_path, dest_path)
+                    app.file_path = f"/{dest_path}"
+                    logger.info(f"Local fallback successful: {app.file_path}")
             finally:
                 # Cleanup temporary files
                 if os.path.exists(tmp_path): 
