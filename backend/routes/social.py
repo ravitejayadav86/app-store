@@ -593,7 +593,7 @@ def get_conversations(
             (models.Message.sender_id == current_user.id, models.Message.receiver_id),
             else_=models.Message.sender_id
         )
-    ).subquery()
+    )
 
     latest_messages = db.query(models.Message).filter(
         models.Message.id.in_(subquery)
