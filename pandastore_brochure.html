@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PandaStore - Premium App Store Solution</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 10mm auto;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e40af;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .feature-card h4 {
+            margin: 0 0 8px 0;
+            color: #0f172a;
+        }
+
+        .feature-card p {
+            margin: 0;
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tech-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .contact-box {
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .contact-box h3 {
+            margin-top: 0;
+            color: #38bdf8;
+        }
+
+        /* Print formatting */
+        @media print {
+            body {
+                background: white;
+            }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <div class="header">
+            <h1 class="title">PandaStore Platform</h1>
+            <p class="subtitle">A Complete, White-Label App Store & Software Distribution Solution</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Overview</h2>
+            <p style="line-height: 1.6; color: #475569;">
+                PandaStore is a premium, fully-customizable application marketplace designed for government bodies, educational institutions, and private enterprises. Built with modern web architecture, it provides a secure, isolated ecosystem to distribute Android APKs, software binaries, and digital assets away from the public Google Play Store.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Core Features</h2>
+            <div class="grid">
+                <div class="feature-card">
+                    <h4>💎 Premium User Interface</h4>
+                    <p>Built with Next.js and Tailwind CSS featuring a modern "Glassmorphism" aesthetic. Provides a world-class browsing experience for users.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🛡️ Advanced Admin Dashboard</h4>
+                    <p>Complete control over your platform. Monitor file health, track total downloads, ban malicious users, and approve or reject publisher apps.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>☁️ Cloud Storage Integration</h4>
+                    <p>Designed to handle massive binary files securely. Integrates seamlessly with Cloudflare R2, Firebase Storage, and AWS S3 for unlimited scaling.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>👥 Publisher Portal</h4>
+                    <p>Dedicated ecosystem for developers to upload their applications, write descriptions, attach screenshots, and track download analytics.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Technology Stack</h2>
+            <p style="font-size: 14px; color: #64748b;">Enterprise-grade architecture capable of handling millions of requests.</p>
+            <div class="tech-stack">
+                <span class="tech-badge">Next.js 14 (React)</span>
+                <span class="tech-badge">Python FastAPI</span>
+                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">Tailwind CSS</span>
+                <span class="tech-badge">JWT Authentication</span>
+                <span class="tech-badge">Firebase Storage</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Why Choose This Solution?</h2>
+            <ul style="line-height: 1.8; color: #475569;">
+                <li><strong>100% Data Sovereignty:</strong> You own the data, the users, and the apps. No reliance on foreign tech giants.</li>
+                <li><strong>Security First:</strong> Role-based access control (Admin vs. Publisher vs. User) ensures no unauthorized uploads.</li>
+                <li><strong>Ready to Deploy:</strong> The software is fully built and ready to be customized with your logo, brand colors, and domain name within 48 hours.</li>
+            </ul>
+        </div>
+
+        <div class="contact-box">
+            <h3>Interested in Acquiring the Platform?</h3>
+            <p>Contact the Lead Developer for a live demonstration, source code pricing, or custom enterprise deployment.</p>
+            <p style="font-size: 18px; font-weight: 600; margin-top: 15px;">Email: <a href="mailto:ravitejaraviteja666@gmail.com" style="color: #38bdf8; text-decoration: none;">ravitejaraviteja666@gmail.com</a></p>
+            <p style="font-size: 14px; font-weight: 400; color: #94a3b8;">*Available for calls upon email request.</p>
+        </div>
+    </div>
+
+</body>
+</html>

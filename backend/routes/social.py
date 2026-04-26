@@ -578,7 +578,7 @@ def get_conversations(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     # Use a more efficient query to get conversations with user details joined
-    from sqlalchemy import or_, and_, desc, func
+    from sqlalchemy import or_, and_, desc, func, case
     
     # Subquery to get the latest message ID for each conversation partner
     subquery = db.query(
@@ -589,7 +589,7 @@ def get_conversations(
             models.Message.receiver_id == current_user.id
         )
     ).group_by(
-        func.case(
+        case(
             (models.Message.sender_id == current_user.id, models.Message.receiver_id),
             else_=models.Message.sender_id
         )
