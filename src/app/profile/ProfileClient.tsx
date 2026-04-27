@@ -213,8 +213,8 @@ export default function ProfileClient() {
     <div className="min-h-screen bg-surface pb-24 sm:pb-0">
       
       {/* 📱 MOBILE UI (Instagram Reference) */}
-      <div className="sm:hidden flex flex-col min-h-screen bg-white">
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+      <div className="sm:hidden flex flex-col min-h-screen bg-transparent">
+        <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} aria-label="Go back" className="text-gray-900">
               <ChevronLeft size={24} />
@@ -234,15 +234,15 @@ export default function ProfileClient() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/publisher")} aria-label="Go to Publisher Hub" className="text-gray-900"><Plus size={24} /></button>
-            <button aria-label="Open Menu" className="text-gray-900"><Menu size={24} /></button>
+            <button onClick={() => router.push("/publisher")} aria-label="Go to Publisher Hub" className="text-on-surface"><Plus size={24} /></button>
+            <button aria-label="Open Menu" className="text-on-surface"><Menu size={24} /></button>
           </div>
         </header>
 
         <div className="px-4 pt-4 flex items-center gap-6">
           <div className="relative">
             <div className="w-20 h-20 rounded-full border-2 border-primary p-0.5">
-              <div className="relative w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-primary font-black text-2xl overflow-hidden border border-white">
+              <div className="relative w-full h-full rounded-full bg-surface-low flex items-center justify-center text-primary font-black text-2xl overflow-hidden border border-surface">
                 {profile?.avatar_url ? (
                   <Image 
                     src={profile.avatar_url} 
@@ -255,7 +255,7 @@ export default function ProfileClient() {
                 ) : profile?.username[0].toUpperCase()}
               </div>
             </div>
-            <label className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full border-2 border-white flex items-center justify-center text-white cursor-pointer shadow-lg">
+            <label className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full border-2 border-surface flex items-center justify-center text-white cursor-pointer shadow-lg">
               <Camera size={12} />
               <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
             </label>
@@ -278,8 +278,8 @@ export default function ProfileClient() {
 
         <div className="px-4 mt-3 space-y-0.5">
           <p className="font-bold text-sm">{profile?.full_name || profile?.username}</p>
-          <p className="text-xs text-gray-400">Developer</p>
-          <p className="text-sm text-gray-800 leading-tight">
+          <p className="text-xs text-on-surface-variant">Developer</p>
+          <p className="text-sm text-on-surface leading-tight">
             {profile?.bio || "A panda of few words, but infinite innovations."}
           </p>
           {profile?.is_publisher && (
@@ -291,21 +291,21 @@ export default function ProfileClient() {
         </div>
 
         <div className="px-4 mt-4 grid grid-cols-2 gap-2">
-          <button onClick={() => setEditing(true)} className="py-2 bg-gray-100 text-gray-900 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors">Edit Profile</button>
-          <button className="py-2 bg-gray-100 text-gray-900 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors">Share Profile</button>
+          <button onClick={() => setEditing(true)} className="py-2 bg-surface-low text-on-surface font-bold rounded-xl text-sm hover:bg-surface-lowest transition-colors">Edit Profile</button>
+          <button className="py-2 bg-surface-low text-on-surface font-bold rounded-xl text-sm hover:bg-surface-lowest transition-colors">Share Profile</button>
         </div>
 
-        <div className="mt-6 flex border-b border-gray-100">
-          <button aria-label="Grid View" onClick={() => setActiveTab(null)} className={`flex-1 py-3 flex justify-center border-b-2 ${!activeTab ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><GridIcon size={20} /></button>
-          <button aria-label="Installed Apps" onClick={() => setActiveTab("installed")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "installed" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Package size={20} /></button>
-          <button aria-label="Saved Items" onClick={() => setActiveTab("saved")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "saved" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><Bookmark size={20} /></button>
-          <button aria-label="Tagged Posts" onClick={() => setActiveTab("tags")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "tags" ? "border-primary text-primary" : "border-transparent text-gray-400"}`}><UserSquare2 size={20} /></button>
+        <div className="mt-6 flex border-b border-outline-variant">
+          <button aria-label="Grid View" onClick={() => setActiveTab(null)} className={`flex-1 py-3 flex justify-center border-b-2 ${!activeTab ? "border-primary text-primary" : "border-transparent text-on-surface-variant"}`}><GridIcon size={20} /></button>
+          <button aria-label="Installed Apps" onClick={() => setActiveTab("installed")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "installed" ? "border-primary text-primary" : "border-transparent text-on-surface-variant"}`}><Package size={20} /></button>
+          <button aria-label="Saved Items" onClick={() => setActiveTab("saved")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "saved" ? "border-primary text-primary" : "border-transparent text-on-surface-variant"}`}><Bookmark size={20} /></button>
+          <button aria-label="Tagged Posts" onClick={() => setActiveTab("tags")} className={`flex-1 py-3 flex justify-center border-b-2 ${activeTab === "tags" ? "border-primary text-primary" : "border-transparent text-on-surface-variant"}`}><UserSquare2 size={20} /></button>
         </div>
 
-        <div className="flex-1 bg-white">
+        <div className="flex-1 bg-transparent">
           <div className="grid grid-cols-3 gap-0.5">
             {activeTab === null && myApps.map((app, i) => (
-              <div key={app.id} onClick={() => router.push(`/apps/${app.id}`)} className="aspect-square bg-gray-100 relative group overflow-hidden">
+              <div key={app.id} onClick={() => router.push(`/apps/${app.id}`)} className="aspect-square bg-surface-low relative group overflow-hidden">
                 <Image 
                   src={app.icon_url || "/app-placeholder.png"} 
                   alt={app.name}
@@ -320,7 +320,7 @@ export default function ProfileClient() {
               </div>
             ))}
             {activeTab === "installed" && purchasedApps.map((p, i) => (
-              <div key={p.id} onClick={() => router.push(`/apps/${p.app_id}`)} className="aspect-square bg-gray-100 relative overflow-hidden">
+              <div key={p.id} onClick={() => router.push(`/apps/${p.app_id}`)} className="aspect-square bg-surface-low relative overflow-hidden">
                 <Image 
                   src={p.app?.icon_url || "/app-placeholder.png"} 
                   alt={p.app?.name || "App"}
@@ -334,8 +334,8 @@ export default function ProfileClient() {
         </div>
 
         <div className="mt-auto px-4 py-8 space-y-4">
-          <button onClick={() => router.push("/publisher")} className="w-full py-3 bg-gray-50 text-primary font-bold rounded-xl text-sm">Switch to professional account</button>
-          <button onClick={() => setShowPersonalInfo(true)} className="w-full py-3 bg-gray-50 text-primary font-bold rounded-xl text-sm">Personal information settings</button>
+          <button onClick={() => router.push("/publisher")} className="w-full py-3 bg-surface-low text-primary font-bold rounded-xl text-sm">Switch to professional account</button>
+          <button onClick={() => setShowPersonalInfo(true)} className="w-full py-3 bg-surface-low text-primary font-bold rounded-xl text-sm">Personal information settings</button>
         </div>
       </div>
 
@@ -354,7 +354,7 @@ export default function ProfileClient() {
             </button>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-            <GlassCard className="p-10 border-white/60 relative overflow-hidden">
+            <GlassCard className="p-10 border-outline-variant/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 pointer-events-none">
                 <User size={300} className="text-primary" />
               </div>
@@ -362,7 +362,7 @@ export default function ProfileClient() {
               <div className="relative flex flex-col md:flex-row items-center gap-12">
                 <div className="relative group">
                   <div className="relative w-48 h-48 rounded-[2.5rem] bg-linear-to-br from-primary to-primary-container p-1 shadow-2xl shadow-primary/20 transition-transform hover:scale-105 overflow-hidden">
-                    <div className="relative w-full h-full rounded-[2.3rem] bg-white flex items-center justify-center text-primary font-black text-6xl overflow-hidden border-4 border-white shadow-inner">
+                    <div className="relative w-full h-full rounded-[2.3rem] bg-surface flex items-center justify-center text-primary font-black text-6xl overflow-hidden border-4 border-surface shadow-inner">
                       {profile?.avatar_url ? (
                         <Image 
                           src={profile.avatar_url} 
@@ -375,7 +375,7 @@ export default function ProfileClient() {
                       ) : profile?.username[0].toUpperCase()}
                     </div>
                   </div>
-                  <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center text-primary cursor-pointer border border-gray-100 hover:scale-110 active:scale-95 transition-all">
+                  <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-surface rounded-2xl shadow-xl flex items-center justify-center text-primary cursor-pointer border border-outline-variant hover:scale-110 active:scale-95 transition-all">
                     <Camera size={20} />
                     <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
                   </label>
@@ -385,10 +385,10 @@ export default function ProfileClient() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center justify-center md:justify-start gap-3">
-                        <h1 className="text-4xl font-black text-gray-900 tracking-tight">@{profile?.username}</h1>
+                        <h1 className="text-4xl font-black text-on-surface tracking-tight">@{profile?.username}</h1>
                         {profile?.is_publisher && <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">Verified Publisher</span>}
                       </div>
-                      <p className="text-gray-500 font-medium flex items-center justify-center md:justify-start gap-2"><AtSign size={14} /> {profile?.full_name || "Innovator"}</p>
+                      <p className="text-on-surface-variant font-medium flex items-center justify-center md:justify-start gap-2"><AtSign size={14} /> {profile?.full_name || "Innovator"}</p>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => setEditing(true)}><Edit3 size={16} className="mr-2" /> Edit Profile</Button>
@@ -397,7 +397,7 @@ export default function ProfileClient() {
                   </div>
                   
                   <div className="flex gap-3">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant bg-white/50 px-3 py-1.5 rounded-full border border-white/50"><Calendar size={14} /> Joined {profile?.created_at && new Date(profile.created_at).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant bg-surface-low px-3 py-1.5 rounded-full border border-outline-variant/30"><Calendar size={14} /> Joined {profile?.created_at && new Date(profile.created_at).toLocaleDateString()}</span>
                     {profile?.is_publisher && <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">Publisher</span>}
                   </div>
 
@@ -415,10 +415,10 @@ export default function ProfileClient() {
               { label: "Published", value: liveStats.published, icon: Package, href: "/profile/publisher" },
               { label: "Reviews", value: liveStats.reviews, icon: Star, href: "/profile/reviews" },
             ].map((stat, i) => (
-              <GlassCard key={i} className="p-4 text-center hover:bg-white/80 transition-all cursor-pointer" onClick={() => router.push(stat.href)}>
+              <GlassCard key={i} className="p-4 text-center hover:bg-surface-lowest transition-all cursor-pointer" onClick={() => router.push(stat.href)}>
                 <div className="w-10 h-10 rounded-2xl mx-auto mb-2 bg-primary/10 text-primary flex items-center justify-center"><stat.icon size={20} /></div>
-                <p className="text-2xl font-black">{stat.value}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-60">{stat.label}</p>
+                <p className="text-2xl font-black text-on-surface">{stat.value}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60">{stat.label}</p>
               </GlassCard>
             ))}
           </div>
@@ -428,35 +428,35 @@ export default function ProfileClient() {
               <GlassCard className="p-8 border-white/60">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Account Details</h2>
-                  <button onClick={() => setShowPersonalInfo(true)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">Manage</button>
+                  <button onClick={() => setShowPersonalInfo(false)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">Manage</button>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 bg-white/40 rounded-2xl border border-white/60">
+                  <div className="flex items-center gap-4 p-3 bg-surface-low rounded-2xl border border-outline-variant/30">
                     <Mail size={18} className="text-primary" />
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Email</p>
                       <p className="text-sm font-bold">{profile?.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 p-3 bg-white/40 rounded-2xl border border-white/60">
+                  <div className="flex items-center gap-4 p-3 bg-surface-low rounded-2xl border border-outline-variant/30">
                     <Shield size={18} className="text-primary" />
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Visibility</p>
-                      <p className="text-sm font-bold">{profile?.is_private ? "Private" : "Public"}</p>
+                      <p className="text-sm font-bold text-on-surface">{profile?.is_private ? "Private" : "Public"}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 p-3 bg-white/40 rounded-2xl border border-white/60">
+                  <div className="flex items-center gap-4 p-3 bg-surface-low rounded-2xl border border-outline-variant/30">
                     <MapPin size={18} className="text-primary" />
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Billing Address</p>
-                      <p className="text-sm font-bold truncate max-w-[200px]">{profile?.billing_address || "Not set"}</p>
+                      <p className="text-sm font-bold text-on-surface truncate max-w-[200px]">{profile?.billing_address || "Not set"}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 p-3 bg-white/40 rounded-2xl border border-white/60">
+                  <div className="flex items-center gap-4 p-3 bg-surface-low rounded-2xl border border-outline-variant/30">
                     <CreditCard size={18} className="text-primary" />
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Payment Method</p>
-                      <p className="text-sm font-bold">{profile?.payment_method || "Not set"}</p>
+                      <p className="text-sm font-bold text-on-surface">{profile?.payment_method || "Not set"}</p>
                     </div>
                   </div>
                 </div>
@@ -466,19 +466,19 @@ export default function ProfileClient() {
                 <GlassCard className="p-8 border-white/60 flex flex-col justify-between">
                   <div>
                     <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6">Connected Accounts</h2>
-                    <div className="flex items-center gap-4 p-4 bg-gray-900 text-white rounded-3xl">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <div className="flex items-center gap-4 p-4 bg-surface-low text-on-surface rounded-3xl border border-outline-variant/30">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <Code size={20} />
                       </div>
                       <div className="flex-1">
                         <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Github Connected</p>
                         <p className="text-sm font-bold">{(session.user as any).login || session.user.name}</p>
                       </div>
-                      <Check size={20} className="text-green-400" />
+                      <Check size={20} className="text-green-500" />
                     </div>
                   </div>
                   <div className="mt-8">
-                    <button className="w-full py-4 rounded-2xl bg-white border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary hover:border-primary transition-all">Link External Services</button>
+                    <button className="w-full py-4 rounded-2xl bg-surface-low border border-outline-variant text-[10px] font-black uppercase tracking-widest text-on-surface-variant hover:text-primary hover:border-primary transition-all">Link External Services</button>
                   </div>
                 </GlassCard>
               )}
@@ -486,7 +486,7 @@ export default function ProfileClient() {
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black text-gray-900">Recently Published</h2>
+                <h2 className="text-2xl font-black text-on-surface">Recently Published</h2>
                 <button onClick={() => router.push("/publisher")} className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:translate-x-1 transition-transform">Go to Publisher Hub <ChevronRight size={14} /></button>
               </div>
               
@@ -494,7 +494,7 @@ export default function ProfileClient() {
                 {myApps.slice(0, 3).map((app) => (
                   <GlassCard key={app.id} className="p-4 hover:shadow-xl transition-all cursor-pointer group" onClick={() => router.push(`/apps/${app.id}`)}>
                     <div className="flex gap-4">
-                      <div className="relative w-16 h-16 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 group-hover:scale-105 transition-transform">
+                      <div className="relative w-16 h-16 rounded-2xl bg-surface-low overflow-hidden border border-outline-variant group-hover:scale-105 transition-transform">
                         <Image 
                           src={app.icon_url || "/app-placeholder.png"} 
                           alt={app.name}
@@ -504,8 +504,8 @@ export default function ProfileClient() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
-                        <p className="text-xs text-gray-500">{app.category}</p>
+                        <h3 className="font-bold text-on-surface truncate">{app.name}</h3>
+                        <p className="text-xs text-on-surface-variant">{app.category}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-md">{app.price === 0 ? "FREE" : `$${app.price}`}</span>
                         </div>
@@ -529,10 +529,10 @@ export default function ProfileClient() {
       <AnimatePresence>
         {editing && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl">
-              <header className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="text-xl font-black text-gray-900">Edit Profile</h2>
-                <button onClick={() => setEditing(false)} aria-label="Close edit profile" className="text-gray-400 hover:text-gray-900"><X size={24} /></button>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-lg bg-surface rounded-[2.5rem] overflow-hidden shadow-2xl border border-outline-variant/30">
+              <header className="px-8 py-6 border-b border-outline-variant px-4 py-3 flex items-center justify-between">
+                <h2 className="text-xl font-black text-on-surface">Edit Profile</h2>
+                <button onClick={() => setEditing(false)} aria-label="Close edit profile" className="text-on-surface-variant hover:text-on-surface"><X size={24} /></button>
               </header>
               <div className="p-8 space-y-6">
                 <div className="space-y-1.5">
@@ -543,10 +543,10 @@ export default function ProfileClient() {
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Bio</label>
                   <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium text-gray-900 min-h-[100px] resize-none" />
                 </div>
-                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl">
+                <div className="flex items-center justify-between p-6 bg-surface-low rounded-3xl">
                   <div>
-                    <p className="font-bold text-gray-900">Private Account</p>
-                    <p className="text-xs text-gray-500">Hide your library from others</p>
+                    <p className="font-bold text-on-surface">Private Account</p>
+                    <p className="text-xs text-on-surface-variant">Hide your library from others</p>
                   </div>
                   <input type="checkbox" checked={formData.is_private} onChange={e => setFormData({ ...formData, is_private: e.target.checked })} className="w-6 h-6 accent-primary" />
                 </div>
@@ -568,10 +568,10 @@ export default function ProfileClient() {
             animate={{ opacity: 1, x: 0 }} 
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[110] bg-white flex flex-col sm:max-w-md sm:ml-auto sm:shadow-2xl sm:border-l sm:border-gray-100"
+            className="fixed inset-0 z-[110] bg-surface flex flex-col sm:max-w-md sm:ml-auto sm:shadow-2xl sm:border-l sm:border-outline-variant"
           >
-            <header className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-white sticky top-0 z-10">
-              <button onClick={() => setShowPersonalInfo(false)} aria-label="Go back" className="p-2 -ml-2 text-gray-500 hover:text-black transition-colors">
+            <header className="px-4 py-3 flex items-center justify-between border-b border-outline-variant bg-surface sticky top-0 z-10">
+              <button onClick={() => setShowPersonalInfo(false)} aria-label="Go back" className="p-2 -ml-2 text-on-surface-variant hover:text-on-surface transition-colors">
                 <ChevronLeft size={24} />
               </button>
               <h2 className="font-bold text-lg">Personal Information</h2>
@@ -581,8 +581,8 @@ export default function ProfileClient() {
             </header>
 
             <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8 pb-32">
-              <div className="bg-gray-50 p-5 rounded-3xl flex items-center gap-4">
-                <div className="relative w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary font-black text-xl overflow-hidden">
+              <div className="bg-surface-low p-5 rounded-3xl flex items-center gap-4">
+                <div className="relative w-14 h-14 rounded-2xl bg-surface shadow-sm flex items-center justify-center text-primary font-black text-xl overflow-hidden">
                   {profile?.avatar_url ? (
                     <Image 
                       src={profile.avatar_url} 
@@ -594,8 +594,8 @@ export default function ProfileClient() {
                   ) : profile?.username[0].toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">@{profile?.username}</p>
-                  <p className="text-xs text-gray-500">{profile?.email}</p>
+                  <p className="font-bold text-on-surface">@{profile?.username}</p>
+                  <p className="text-xs text-on-surface-variant">{profile?.email}</p>
                 </div>
               </div>
 
@@ -603,12 +603,12 @@ export default function ProfileClient() {
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Billing & Payment</h3>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-500 flex items-center gap-2"><MapPin size={12} /> Billing Address</label>
+                    <label className="text-xs font-bold text-on-surface-variant flex items-center gap-2"><MapPin size={12} /> Billing Address</label>
                     <textarea 
                       value={formData.billing_address} 
                       onChange={(e) => setFormData({...formData, billing_address: e.target.value})}
                       placeholder="Street, City, State, ZIP"
-                      className="w-full px-4 py-3 bg-gray-100 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none resize-none min-h-[80px]"
+                      className="w-full px-4 py-3 bg-surface-low border-none rounded-2xl text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none resize-none min-h-[80px]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -632,10 +632,10 @@ export default function ProfileClient() {
               <div className="space-y-4">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Security & Preferences</h3>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                  <div className="flex items-center justify-between p-4 bg-surface-low rounded-2xl">
                     <div className="flex items-center gap-3">
-                      <Shield size={18} className="text-gray-400" />
-                      <span className="text-sm font-medium">Safe Browsing</span>
+                      <Shield size={18} className="text-on-surface-variant" />
+                      <span className="text-sm font-medium text-on-surface">Safe Browsing</span>
                     </div>
                     <input 
                       type="checkbox" 
@@ -644,10 +644,10 @@ export default function ProfileClient() {
                       className="w-5 h-5 accent-primary" 
                     />
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                  <div className="flex items-center justify-between p-4 bg-surface-low rounded-2xl">
                     <div className="flex items-center gap-3">
-                      <Smartphone size={18} className="text-gray-400" />
-                      <span className="text-sm font-medium">Biometric Login</span>
+                      <Smartphone size={18} className="text-on-surface-variant" />
+                      <span className="text-sm font-medium text-on-surface">Biometric Login</span>
                     </div>
                     <input 
                       type="checkbox" 
@@ -667,7 +667,7 @@ export default function ProfileClient() {
                     <select 
                       value={formData.auto_update} 
                       onChange={(e) => setFormData({...formData, auto_update: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-100 border-none rounded-2xl text-sm font-medium outline-none"
+                      className="w-full px-4 py-3 bg-surface-low border-none rounded-2xl text-sm font-medium text-on-surface outline-none"
                     >
                       <option value="Over Wi-Fi only">Over Wi-Fi only</option>
                       <option value="Over any network">Over any network</option>
@@ -690,10 +690,10 @@ export default function ProfileClient() {
               </div>
             </div>
 
-            <div className="p-4 bg-white border-t border-gray-100 sticky bottom-0">
+            <div className="p-4 bg-surface border-t border-outline-variant sticky bottom-0">
                <button 
                  onClick={handleLogout}
-                 className="w-full py-4 text-red-500 font-bold text-sm bg-red-50 rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                 className="w-full py-4 text-red-500 font-bold text-sm bg-red-500/10 rounded-2xl hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
                >
                  <LogOut size={18} /> Sign out of current session
                </button>
@@ -702,7 +702,7 @@ export default function ProfileClient() {
         )}
       </AnimatePresence>
 
-      <div className="bg-white/50 backdrop-blur-xl pointer-events-none fixed bottom-0 left-0 right-0 h-24 z-[90] sm:hidden" />
+      <div className="bg-surface/40 backdrop-blur-xl pointer-events-none fixed bottom-0 left-0 right-0 h-24 z-[90] sm:hidden" />
     </div>
   );
 }

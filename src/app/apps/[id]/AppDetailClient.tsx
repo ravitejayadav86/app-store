@@ -243,11 +243,11 @@ function AppDetailContent({ id: propId }: { id?: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <motion.div
            initial={{ opacity: 0, scale: 0.9 }}
            animate={{ opacity: 1, scale: 1 }}
-           className="bg-white/50 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4"
+           className="bg-surface-low/80 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border border-outline-variant/30 flex flex-col items-center gap-4"
         >
           <Loader2 className="animate-spin text-primary" size={40} />
           <p className="text-sm font-medium text-on-surface-variant">Gathering app details...</p>
@@ -259,7 +259,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
   if (!app) return null;
 
   return (
-    <div className="min-h-screen bg-surface selection:bg-primary/10 pb-32">
+    <div className="min-h-screen bg-transparent selection:bg-primary/20 pb-32">
       {/* Background decoration */}
       <div className={`fixed inset-0 bg-linear-to-b ${getCategoryGradient(app.category)} opacity-30 pointer-events-none`} />
       
@@ -267,7 +267,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="mb-8 p-3 rounded-full bg-surface-lowest/50 backdrop-blur-xl border border-white/20 hover:scale-110 transition-transform active:scale-95"
+          className="mb-8 p-3 rounded-full bg-surface-low/80 backdrop-blur-xl border border-outline-variant/30 hover:scale-110 transition-transform active:scale-95"
         >
           <ArrowLeft size={20} className="text-on-surface" />
         </button>
@@ -278,7 +278,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden liquid-glass border-white/40 shadow-2xl shrink-0"
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-surface-low border border-outline-variant/30 shadow-2xl shrink-0"
           >
             {app.icon_url ? (
               <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
@@ -304,7 +304,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
         </div>
 
         {/* Quick Stats Bar (Play Store Style) */}
-        <div className="flex overflow-x-auto no-scrollbar gap-8 pb-8 mb-8 border-b border-white/10">
+        <div className="flex overflow-x-auto no-scrollbar gap-8 pb-8 mb-8 border-b border-outline-variant/20">
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
             <div className="flex items-center gap-1 font-black text-on-surface mb-1 text-lg">
               {app.rating || "0.0"} <Star size={14} className="fill-current text-primary" />
@@ -325,7 +325,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Rated for {app.maturity_rating}</span>
           </div>
-          <div className="w-px h-8 bg-white/10 self-center" />
+          <div className="w-px h-8 bg-outline-variant/20 self-center" />
           <div className="flex flex-col items-center min-w-[80px] shrink-0">
              <div className="font-black text-on-surface mb-1 text-lg">
                 {app.file_size}
@@ -391,7 +391,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="shrink-0 w-44 sm:w-64 aspect-[9/16] rounded-2xl overflow-hidden liquid-glass border-white/20 shadow-lg"
+                    className="shrink-0 w-44 sm:w-64 aspect-[9/16] rounded-2xl overflow-hidden bg-surface-low border border-outline-variant/30 shadow-lg"
                   >
                     <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
                   </motion.div>
@@ -413,8 +413,8 @@ function AppDetailContent({ id: propId }: { id?: string }) {
           </p>
           
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-black text-on-surface-variant">#TopChoice</span>
-            <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-black text-on-surface-variant">#{app.category}</span>
+            <span className="px-4 py-2 rounded-full bg-surface-low border border-outline-variant/30 text-xs font-black text-on-surface-variant">#TopChoice</span>
+            <span className="px-4 py-2 rounded-full bg-surface-low border border-outline-variant/30 text-xs font-black text-on-surface-variant">#{app.category}</span>
           </div>
         </section>
 
@@ -435,8 +435,8 @@ function AppDetailContent({ id: propId }: { id?: string }) {
             <div className="flex-1 space-y-2">
               {[5, 4, 3, 2, 1].map((star) => (
                 <div key={star} className="flex items-center gap-4">
-                  <span className="text-xs font-black opacity-60 w-2">{star}</span>
-                  <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                  <span className="text-xs font-black opacity-60 w-2 text-on-surface">{star}</span>
+                  <div className="flex-1 h-2 bg-surface-low rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${(reviews.filter(r => r.rating === star).length / (reviews.length || 1)) * 100}%` }}
@@ -469,19 +469,19 @@ function AppDetailContent({ id: propId }: { id?: string }) {
         </section>
 
         {/* Write Review Section */}
-        <section className="p-8 rounded-[2rem] liquid-glass border-white/20 shadow-2xl">
+        <section className="p-8 rounded-[2rem] bg-surface-low/80 backdrop-blur-xl border border-outline-variant/30 shadow-2xl">
           <h3 className="text-xl font-black text-on-surface mb-6">Rate this {app.category === "Games" ? "game" : "app"}</h3>
           <form onSubmit={handleSubmitReview} className="space-y-6">
             <div className="flex flex-col items-center gap-4 py-4">
               <StarRating value={myRating} onChange={setMyRating} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Tap your rating</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40">Tap your rating</span>
             </div>
             <textarea
               value={myComment}
               onChange={(e) => setMyComment(e.target.value)}
               placeholder="Describe your experience (optional)"
               rows={4}
-              className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-primary/50 transition-all font-medium text-sm outline-none resize-none"
+              className="w-full px-5 py-4 rounded-2xl bg-surface/50 border border-outline-variant/30 focus:border-primary/50 text-on-surface transition-all font-medium text-sm outline-none resize-none"
             />
             <Button 
               type="submit" 

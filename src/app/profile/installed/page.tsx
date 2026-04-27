@@ -32,7 +32,7 @@ export default function InstalledAppsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center gap-4">
         <button onClick={() => router.back()} className="p-1 hover:bg-surface-lowest rounded-full transition-colors">

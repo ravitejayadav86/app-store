@@ -613,7 +613,7 @@ export default function SettingsPage() {
           <button
             id="btn-logout"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold text-sm"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-red-500/20 text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm"
           >
             <LogOut size={16} /> Sign Out
           </button>

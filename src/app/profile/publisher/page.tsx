@@ -32,14 +32,14 @@ export default function PublisherAppsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-1">
+          <button onClick={() => router.back()} className="p-1 text-on-surface">
             <ChevronLeft size={24} />
           </button>
-          <h1 className="font-bold text-lg">My Published Apps</h1>
+          <h1 className="font-bold text-lg text-on-surface">My Published Apps</h1>
         </div>
         <button onClick={() => router.push("/publisher/upload")} className="p-2 text-primary">
           <Plus size={24} />
@@ -49,12 +49,12 @@ export default function PublisherAppsPage() {
       {/* Search */}
       <div className="px-4 py-4">
         <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search my apps"
-            className="w-full bg-gray-100 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-surface-low border border-outline-variant rounded-xl pl-10 pr-4 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
       </div>
@@ -67,25 +67,25 @@ export default function PublisherAppsPage() {
           </div>
         ) : filtered.length > 0 ? (
           filtered.map((app) => (
-            <div key={app.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100" onClick={() => router.push(`/apps/${app.id}`)}>
+            <div key={app.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-surface-low border border-outline-variant/30" onClick={() => router.push(`/apps/${app.id}`)}>
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center border border-gray-200">
+                <div className="w-14 h-14 rounded-2xl bg-surface overflow-hidden flex items-center justify-center border border-outline-variant">
                   {app.icon_url ? (
                     <img src={app.icon_url} className="w-full h-full object-cover" />
                   ) : (
-                    <Package size={24} className="text-gray-300" />
+                    <Package size={24} className="text-on-surface-variant/30" />
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-sm">{app.name}</p>
+                  <p className="font-bold text-sm text-on-surface">{app.name}</p>
                   <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{app.category}</p>
                 </div>
               </div>
-              <Button size="xs" variant="tertiary" className="text-gray-400">Manage</Button>
+              <Button size="xs" variant="tertiary" className="text-on-surface-variant/40">Manage</Button>
             </div>
           ))
         ) : (
-          <div className="py-20 text-center text-gray-400 text-sm">
+          <div className="py-20 text-center text-on-surface-variant/40 text-sm">
             You haven't published any apps yet.
           </div>
         )}

@@ -25,13 +25,13 @@ export default function MyReviewsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-1">
+      <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center gap-4">
+        <button onClick={() => router.back()} className="p-1 text-on-surface">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="font-bold text-lg">My Reviews</h1>
+        <h1 className="font-bold text-lg text-on-surface">My Reviews</h1>
       </header>
 
       {/* List */}
@@ -42,26 +42,26 @@ export default function MyReviewsPage() {
           </div>
         ) : reviews.length > 0 ? (
           reviews.map((review) => (
-            <div key={review.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-2">
+            <div key={review.id} className="p-4 rounded-2xl bg-surface-low border border-outline-variant/30 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} size={14} className={s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />
+                    <Star key={s} size={14} className={s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-on-surface-variant/20"} />
                   ))}
                 </div>
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(review.created_at).toLocaleDateString()}</span>
+                <span className="text-[10px] text-on-surface-variant/40 font-bold uppercase tracking-widest">{new Date(review.created_at).toLocaleDateString()}</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 leading-relaxed">{review.comment}</p>
-              <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
-                 <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center border border-gray-200 text-[10px] font-black">
+              <p className="text-sm font-medium text-on-surface leading-relaxed">{review.comment}</p>
+              <div className="pt-2 border-t border-outline-variant/20 flex items-center gap-2">
+                 <div className="w-6 h-6 rounded-lg bg-surface flex items-center justify-center border border-outline-variant/30 text-[10px] font-black text-on-surface-variant">
                    {review.app_id}
                  </div>
-                 <span className="text-xs font-bold text-gray-400">App ID: {review.app_id}</span>
+                 <span className="text-xs font-bold text-on-surface-variant/40">App ID: {review.app_id}</span>
               </div>
             </div>
           ))
         ) : (
-          <div className="py-20 text-center text-gray-400 text-sm">
+          <div className="py-20 text-center text-on-surface-variant/40 text-sm">
             You haven't written any reviews yet.
           </div>
         )}

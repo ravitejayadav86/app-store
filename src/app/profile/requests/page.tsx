@@ -59,24 +59,24 @@ export default function FollowRequestsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-1">
+      <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center gap-4">
+        <button onClick={() => router.back()} className="p-1 text-on-surface">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="font-bold text-lg">Follow Requests</h1>
+        <h1 className="font-bold text-lg text-on-surface">Follow Requests</h1>
       </header>
 
       {/* Search */}
       <div className="px-4 py-4">
         <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search requests"
-            className="w-full bg-gray-100 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-surface-low border border-outline-variant rounded-xl pl-10 pr-4 py-2.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
       </div>
@@ -91,16 +91,16 @@ export default function FollowRequestsPage() {
           filtered.map((user) => (
             <div key={user.id} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push(`/users/${user.username}`)}>
-                <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-100">
+                <div className="w-12 h-12 rounded-full bg-surface-low overflow-hidden flex items-center justify-center border border-outline-variant">
                   {user.avatar_url ? (
                     <img src={user.avatar_url} className="w-full h-full object-cover" />
                   ) : (
-                    <User size={24} className="text-gray-300" />
+                    <User size={24} className="text-on-surface-variant/30" />
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-sm">{user.username}</p>
-                  <p className="text-xs text-gray-500">{user.full_name || "Panda User"}</p>
+                  <p className="font-bold text-sm text-on-surface">{user.username}</p>
+                  <p className="text-xs text-on-surface-variant">{user.full_name || "Panda User"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function FollowRequestsPage() {
                 </button>
                 <button 
                    onClick={() => handleDecline(user.id, user.username)}
-                   className="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full shadow-sm hover:scale-105 transition-transform"
+                   className="w-9 h-9 flex items-center justify-center bg-surface-low text-on-surface-variant rounded-full shadow-sm hover:scale-105 transition-transform border border-outline-variant"
                 >
                   <X size={18} />
                 </button>
@@ -120,7 +120,7 @@ export default function FollowRequestsPage() {
             </div>
           ))
         ) : (
-          <div className="py-20 text-center text-gray-400 text-sm">
+          <div className="py-20 text-center text-on-surface-variant/40 text-sm">
             No pending follow requests.
           </div>
         )}
