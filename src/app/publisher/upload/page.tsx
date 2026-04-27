@@ -252,7 +252,7 @@ function UploadFormContent() {
       if (iconFile) formData.append("icon", iconFile);
       screenshots.forEach((s) => formData.append("screenshots", s));
       if (metadata.external_url && !file) formData.append("external_url", metadata.external_url);
-      await api.post(/apps//upload, formData, {
+      await api.post(`/apps/${appId}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (e: any) => {
           if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
