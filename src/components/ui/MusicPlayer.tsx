@@ -54,19 +54,24 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
 
   const track = queue[idx];
 
-  /* ── Keyboard shortcuts ────────────────────────────────────── */
-  useEffect(() => {
-    const handleKeys = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return;
-      switch (e.code) {
-        case "Space":      e.preventDefault(); togglePlay(); break;
-        case "ArrowRight": nextTrack(); break;
-        case "ArrowLeft":  prevTrack(); break;
-      }
-    };
-    window.addEventListener("keydown", handleKeys);
-    return () => window.removeEventListener("keydown", handleKeys);
-  }, [togglePlay, nextTrack, prevTrack]);
+
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) { audio.pause(); setPlaying(false); }
+    else { audio.play(); setPlaying(true); }
+  }, [playing]);
+
+  const nextTrack = useCallback(() => {
+    if (shuffle) setIdx(Math.floor(Math.random() * queue.length));
+    else setIdx(i => (i + 1) % queue.length);
+  }, [queue.length, shuffle]);
+
+  const prevTrack = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio && current > 3) { audio.currentTime = 0; return; }
+    setIdx(i => (i - 1 + queue.length) % queue.length);
+  }, [queue.length, current]);
 
   /* ── Sync with prop changes ─────────────────────────────────── */
   useEffect(() => {
@@ -131,23 +136,20 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
-  const togglePlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (playing) { audio.pause(); setPlaying(false); }
-    else { audio.play(); setPlaying(true); }
-  }, [playing]);
 
-  const nextTrack = useCallback(() => {
-    if (shuffle) setIdx(Math.floor(Math.random() * queue.length));
-    else setIdx(i => (i + 1) % queue.length);
-  }, [queue.length, shuffle]);
-
-  const prevTrack = useCallback(() => {
-    const audio = audioRef.current;
-    if (audio && current > 3) { audio.currentTime = 0; return; }
-    setIdx(i => (i - 1 + queue.length) % queue.length);
-  }, [queue.length, current]);
+  /* ── Keyboard shortcuts ────────────────────────────────────── */
+  useEffect(() => {
+    const handleKeys = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
+      switch (e.code) {
+        case "Space":      e.preventDefault(); togglePlay(); break;
+        case "ArrowRight": nextTrack(); break;
+        case "ArrowLeft":  prevTrack(); break;
+      }
+    };
+    window.addEventListener("keydown", handleKeys);
+    return () => window.removeEventListener("keydown", handleKeys);
+  }, [togglePlay, nextTrack, prevTrack]);
 
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
