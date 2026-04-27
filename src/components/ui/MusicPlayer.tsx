@@ -191,125 +191,133 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
             transition={SPRING}
             className="fixed inset-0 z-[300] flex flex-col"
             style={{
-              background: `linear-gradient(160deg, ${accent}22 0%, #0a0a0f 55%, #0a0a0f 100%)`,
+              background: `linear-gradient(160deg, #f8faff 0%, #ffffff 100%)`,
               willChange: "transform",
             }}
           >
+            {/* Background Accent Blur */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+              <div className="absolute -top-[20%] -left-[10%] w-[120%] h-[60%] blur-[120px] rounded-full"
+                style={{ background: accent }} />
+            </div>
+
             {/* top bar */}
-            <div className="flex items-center justify-between px-6 pt-14 pb-4">
+            <div className="relative flex items-center justify-between px-6 pt-14 pb-4">
               <button onClick={() => setExpanded(false)}
-                className="p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+                className="p-2 rounded-full text-on-surface-variant/60 hover:text-on-surface hover:bg-black/5 transition-colors">
                 <ChevronDown size={24} />
               </button>
-              <p className="text-xs font-bold uppercase tracking-widest text-white/50">Now Playing</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/40">Now Playing</p>
               <div className="w-10" />
             </div>
 
             {/* album art */}
-            <div className="flex-1 flex items-center justify-center px-10">
+            <div className="relative flex-1 flex items-center justify-center px-10">
               <motion.div
                 animate={{ scale: playing ? 1 : 0.88, rotate: playing ? 360 : 0 }}
-                transition={{ scale: { duration: 0.4 }, rotate: { duration: 20, repeat: Infinity, ease: "linear" } }}
-                className="w-64 h-64 md:w-72 md:h-72 rounded-full shadow-2xl overflow-hidden border-4 border-white/10 flex items-center justify-center"
-                style={{ background: `radial-gradient(circle at 35% 35%, ${accent}cc, ${accent}44)` }}
+                transition={{ scale: { duration: 0.4 }, rotate: { duration: 25, repeat: Infinity, ease: "linear" } }}
+                className="w-64 h-64 md:w-72 md:h-72 rounded-full shadow-2xl overflow-hidden border-4 border-white/80 flex items-center justify-center relative z-10"
+                style={{ background: `radial-gradient(circle at 35% 35%, ${accent}, ${accent}dd)` }}
               >
                 {track.coverUrl
                   ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
                   : <Music2 size={80} className="text-white/60" />
                 }
               </motion.div>
+              {/* shadow glow */}
+              <div className="absolute w-60 h-60 rounded-full blur-[60px] opacity-20" style={{ background: accent }} />
             </div>
 
             {/* info + like */}
-            <div className="px-8 pb-4 flex items-start justify-between">
+            <div className="relative px-8 pb-4 flex items-start justify-between">
               <div className="flex-1 min-w-0 mr-4">
-                <h2 className="text-2xl font-black text-white truncate">{track.title}</h2>
-                <p className="text-white/55 font-medium truncate">{track.artist}</p>
+                <h2 className="text-2xl font-black text-on-surface truncate">{track.title}</h2>
+                <p className="text-on-surface-variant font-medium truncate">{track.artist}</p>
               </div>
               <button onClick={() => setLiked(s => { const n = new Set(s); n.has(track.id) ? n.delete(track.id) : n.add(track.id); return n; })}
-                className="p-2 rounded-full transition-colors">
-                <Heart size={24} fill={liked.has(track.id) ? "#e91e63" : "none"}
-                  className={liked.has(track.id) ? "text-pink-500" : "text-white/40"} />
+                className="p-2 rounded-full transition-colors active:scale-90">
+                <Heart size={24} fill={liked.has(track.id) ? "#ef4444" : "none"}
+                  className={liked.has(track.id) ? "text-red-500" : "text-on-surface-variant/30"} />
               </button>
             </div>
 
             {/* seek bar */}
-            <div className="px-8 pb-2">
-              <div className="relative h-1.5 rounded-full bg-white/15 mb-1">
+            <div className="relative px-8 pb-2">
+              <div className="relative h-1.5 rounded-full bg-on-surface/5 mb-1 overflow-hidden">
                 <div className="absolute left-0 top-0 h-full rounded-full transition-all"
                   style={{ width: `${pct}%`, background: accent }} />
                 <input type="range" min={0} max={duration || 1} step={0.1} value={current}
                   onChange={seek}
                   className="absolute inset-0 w-full opacity-0 cursor-pointer h-full" />
               </div>
-              <div className="flex justify-between text-xs text-white/40 font-mono">
+              <div className="flex justify-between text-[10px] text-on-surface-variant/40 font-mono font-bold">
                 <span>{fmt(current)}</span><span>{fmt(duration)}</span>
               </div>
             </div>
 
             {/* controls */}
-            <div className="px-8 pb-6 flex items-center justify-between">
+            <div className="relative px-8 pb-6 flex items-center justify-between">
               <button onClick={() => setShuffle(s => !s)}
-                className={`p-2 rounded-full transition-colors ${shuffle ? "text-white" : "text-white/30"}`}>
+                className={`p-2 rounded-full transition-colors ${shuffle ? "text-primary" : "text-on-surface-variant/30"}`}>
                 <Shuffle size={20} />
               </button>
-              <button onClick={prevTrack} className="p-3 rounded-full text-white hover:bg-white/10 transition-colors">
-                <SkipBack size={28} fill="white" />
+              <button onClick={prevTrack} className="p-3 rounded-full text-on-surface hover:bg-black/5 transition-colors">
+                <SkipBack size={28} fill="currentColor" />
               </button>
               <button onClick={togglePlay}
-                className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-transform active:scale-95"
+                className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl shadow-primary/20 transition-transform active:scale-95"
                 style={{ background: accent }}>
                 {loading
                   ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   : playing ? <Pause size={28} fill="white" className="text-white" />
                             : <Play  size={28} fill="white" className="text-white ml-1" />}
               </button>
-              <button onClick={nextTrack} className="p-3 rounded-full text-white hover:bg-white/10 transition-colors">
-                <SkipForward size={28} fill="white" />
+              <button onClick={nextTrack} className="p-3 rounded-full text-on-surface hover:bg-black/5 transition-colors">
+                <SkipForward size={28} fill="currentColor" />
               </button>
               <button onClick={() => setRepeat(r => !r)}
-                className={`p-2 rounded-full transition-colors ${repeat ? "text-white" : "text-white/30"}`}>
+                className={`p-2 rounded-full transition-colors ${repeat ? "text-primary" : "text-on-surface-variant/30"}`}>
                 <Repeat size={20} />
               </button>
             </div>
 
             {/* volume + download */}
-            <div className="px-8 pb-8 flex items-center gap-4">
-              <button onClick={() => setMuted(m => !m)} className="text-white/40 hover:text-white transition-colors">
+            <div className="relative px-8 pb-8 flex items-center gap-4">
+              <button onClick={() => setMuted(m => !m)} className="text-on-surface-variant/40 hover:text-on-surface transition-colors">
                 {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
               <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volume}
                 onChange={e => { setVolume(Number(e.target.value)); setMuted(false); }}
-                className="flex-1 h-1 accent-white cursor-pointer" />
+                className="flex-1 h-1 accent-primary cursor-pointer" />
               <button onClick={handleDownload}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-on-surface bg-surface-container-low hover:bg-surface-container transition-colors disabled:opacity-50 border border-black/5"
                 disabled={downloading}>
-                {downloading ? <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
+                {downloading ? <div className="w-3 h-3 border border-primary/30 border-t-primary rounded-full animate-spin" /> : <Download size={14} className="text-primary" />}
                 {downloading ? "Saving..." : "Download"}
               </button>
             </div>
 
             {/* Up Next / Queue */}
-            <div className="flex-1 px-8 overflow-y-auto no-scrollbar pb-10">
+            <div className="relative flex-1 px-8 overflow-y-auto no-scrollbar pb-10">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-white/30">Up Next</h3>
-                <span className="text-[10px] text-white/20 font-mono">{queue.length - idx - 1} tracks left</span>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/30">Up Next</h3>
+                <span className="text-[10px] text-on-surface-variant/20 font-mono font-bold">{queue.length - idx - 1} tracks left</span>
               </div>
               <div className="flex flex-col gap-2">
                 {queue.slice(idx + 1, idx + 6).map((t, i) => (
                   <button key={t.id} onClick={() => setIdx(idx + i + 1)}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors text-left group">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
-                      {t.coverUrl ? <img src={t.coverUrl} alt={t.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /> : <Music2 size={16} className="m-auto text-white/20" />}
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 transition-colors text-left group">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0 border border-black/5">
+                      {t.coverUrl ? <img src={t.coverUrl} alt={t.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /> : <Music2 size={16} className="m-auto text-on-surface-variant/20" />}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white/60 group-hover:text-white transition-colors truncate">{t.title}</p>
-                      <p className="text-xs text-white/30 truncate">{t.artist}</p>
+                      <p className="text-sm font-bold text-on-surface-variant/60 group-hover:text-on-surface transition-colors truncate">{t.title}</p>
+                      <p className="text-xs text-on-surface-variant/30 truncate">{t.artist}</p>
                     </div>
                   </button>
                 ))}
                 {queue.length <= idx + 1 && (
-                  <p className="text-xs text-white/20 italic py-4">End of queue</p>
+                  <p className="text-xs text-on-surface-variant/20 italic py-4">End of queue</p>
                 )}
               </div>
             </div>
@@ -326,41 +334,41 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
           className="fixed bottom-[72px] md:bottom-4 left-2 right-2 md:left-auto md:right-4 md:w-[380px] z-[150]"
           style={{ willChange: "transform" }}
         >
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/20"
-            style={{ background: `linear-gradient(120deg, ${accent}dd, ${accent}99)`, backdropFilter: "blur(20px)" }}>
+          <div className="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/60 bg-white/80 backdrop-blur-xl">
             {/* progress strip */}
-            <div className="h-0.5 bg-white/20">
-              <div className="h-full bg-white/80 transition-all" style={{ width: `${pct}%` }} />
+            <div className="h-0.5 bg-black/5">
+              <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
             </div>
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex items-center gap-2 px-3 py-2.5">
               {/* thumb */}
               <button onClick={() => setExpanded(true)} className="flex-1 flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-white/20">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm" style={{ background: `${accent}22` }}>
                   {track.coverUrl
                     ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
-                    : <Music2 size={18} className="text-white" />}
+                    : <Music2 size={18} style={{ color: accent }} />}
                 </div>
                 <div className="min-w-0 text-left">
-                  <p className="text-sm font-bold text-white truncate">{track.title}</p>
-                  <p className="text-xs text-white/60 truncate">{track.artist}</p>
+                  <p className="text-sm font-bold text-on-surface truncate">{track.title}</p>
+                  <p className="text-[10px] text-on-surface-variant/60 font-medium truncate">{track.artist}</p>
                 </div>
               </button>
               {/* controls */}
-              <button onClick={prevTrack} className="p-1.5 text-white/70 hover:text-white">
-                <SkipBack size={18} />
+              <button onClick={prevTrack} className="p-1.5 text-on-surface-variant/40 hover:text-on-surface">
+                <SkipBack size={18} fill="currentColor" />
               </button>
               <button onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md shadow-primary/10"
+                style={{ background: accent }}>
                 {loading
                   ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   : playing ? <Pause size={16} className="text-white" fill="white" />
                             : <Play  size={16} className="text-white ml-0.5" fill="white" />}
               </button>
-              <button onClick={nextTrack} className="p-1.5 text-white/70 hover:text-white">
-                <SkipForward size={18} />
+              <button onClick={nextTrack} className="p-1.5 text-on-surface-variant/40 hover:text-on-surface">
+                <SkipForward size={18} fill="currentColor" />
               </button>
-              <button onClick={handleDownload} className="p-1.5 text-white/70 hover:text-white disabled:opacity-50" disabled={downloading}>
-                {downloading ? <div className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={16} />}
+              <button onClick={handleDownload} className="p-1.5 text-on-surface-variant/40 hover:text-primary disabled:opacity-50" disabled={downloading}>
+                {downloading ? <div className="w-4 h-4 border border-primary/30 border-t-primary rounded-full animate-spin" /> : <Download size={16} />}
               </button>
             </div>
           </div>
