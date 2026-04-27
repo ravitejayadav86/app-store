@@ -9,7 +9,8 @@ import {
   Download, Star, Shield, LogOut, Camera, ExternalLink, 
   GitFork, Trash2, Code, Sparkles, Plus, Menu, ChevronDown,
   Grid as GridIcon, Bookmark, UserSquare2, AtSign, UserPlus, ChevronRight,
-  CreditCard, MapPin, ChevronLeft, Smartphone, Check
+  CreditCard, MapPin, ChevronLeft, Smartphone, Check, HelpCircle, MessageCircle, Settings, 
+  Share2, ShieldCheck, Heart, Search, Bell
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -96,6 +97,7 @@ export default function ProfileClient() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showActionPanel, setShowActionPanel] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -213,7 +215,10 @@ export default function ProfileClient() {
     <div className="min-h-screen bg-surface pb-24 sm:pb-0">
       
       {/* 📱 MOBILE UI (Instagram Reference) */}
-      <div className="sm:hidden flex flex-col min-h-screen bg-transparent">
+      <div 
+        className="sm:hidden flex flex-col min-h-screen bg-transparent"
+        onDoubleClick={() => setShowActionPanel(true)}
+      >
         <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} aria-label="Go back" className="text-gray-900">
@@ -699,6 +704,77 @@ export default function ProfileClient() {
                </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Action Panel Drawer */}
+      <AnimatePresence>
+        {showActionPanel && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowActionPanel(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] sm:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-2xl rounded-t-[3rem] z-[160] p-8 pb-14 sm:hidden border-t border-outline-variant/30 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]"
+            >
+              <div className="w-12 h-1.5 bg-outline-variant/30 rounded-full mx-auto mb-10" />
+              
+              <div className="flex items-center justify-between mb-8 px-2">
+                <h3 className="text-xl font-black text-on-surface">Quick Actions</h3>
+                <button onClick={() => setShowActionPanel(false)} className="p-2 rounded-full bg-surface-low text-on-surface-variant"><X size={20} /></button>
+              </div>
+
+              <div className="grid grid-cols-4 gap-6">
+                {[
+                  { icon: Settings, label: "Settings", color: "text-blue-500", bg: "bg-blue-500/10", href: "/settings" },
+                  { icon: Edit3, label: "Edit", color: "text-purple-500", bg: "bg-purple-500/10", action: () => setEditing(true) },
+                  { icon: HelpCircle, label: "Support", color: "text-green-500", bg: "bg-green-500/10", href: "/support" },
+                  { icon: Share2, label: "Share", color: "text-orange-500", bg: "bg-orange-500/10", action: () => toast.success("Link copied!") },
+                  { icon: Bell, label: "Notifs", color: "text-rose-500", bg: "bg-rose-500/10", href: "/notifications" },
+                  { icon: MessageCircle, label: "Chats", color: "text-cyan-500", bg: "bg-cyan-500/10", href: "/messages" },
+                  { icon: Search, label: "Search", color: "text-amber-500", bg: "bg-amber-500/10", href: "/" },
+                  { icon: LogOut, label: "Logout", color: "text-red-500", bg: "bg-red-500/10", action: handleLogout },
+                ].map((item, i) => (
+                  <motion.button
+                    key={i}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      if (item.action) item.action();
+                      if (item.href) router.push(item.href);
+                      setShowActionPanel(false);
+                    }}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div className={`w-14 h-14 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center shadow-sm border border-current/10`}>
+                      <item.icon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{item.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+
+              <div className="mt-12 p-4 rounded-[2rem] bg-surface-low/50 border border-outline-variant/30 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface">Panda Premium</p>
+                    <p className="text-[10px] text-on-surface-variant">Unlock infinite innovations</p>
+                  </div>
+                </div>
+                <Button size="sm" className="rounded-full px-4 text-[10px] h-8">Upgrade</Button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

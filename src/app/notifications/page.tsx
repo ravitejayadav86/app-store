@@ -58,8 +58,15 @@ export default function NotificationsPage() {
   };
 
   const deleteNotification = async (id: number) => {
+    // Immediate local update for permanent feel
     setNotifications(p => p.filter(n => n.id !== id));
-    await api.delete("/notifications/" + id).catch(() => {});
+    setUnread(p => notifications.find(n => n.id === id && !n.is_read) ? Math.max(0, p - 1) : p);
+    
+    try {
+      await api.delete(`/notifications/${id}/`);
+    } catch (error) {
+      console.error("Permanent delete failed:", error);
+    }
   };
 
   const markAllRead = async () => {
@@ -119,13 +126,13 @@ export default function NotificationsPage() {
                 transition={{ type: "spring", stiffness: 500, damping: 40 }}
                 className="relative overflow-hidden rounded-2xl"
               >
-                {/* Background delete action */}
-                <div className="absolute inset-0 bg-red-500 flex items-center justify-end px-6">
+                {/* Background delete action - Neutral Glassy Theme */}
+                <div className="absolute inset-0 bg-surface-low flex items-center justify-end px-6">
                   <motion.div 
                     initial={{ scale: 0.5, opacity: 0 }}
                     whileInView={{ scale: 1, opacity: 1 }}
                   >
-                    <Trash2 className="text-white" size={20} />
+                    <Trash2 className="text-on-surface-variant" size={20} />
                   </motion.div>
                 </div>
 
