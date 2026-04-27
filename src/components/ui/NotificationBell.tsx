@@ -135,7 +135,7 @@ export function NotificationBell() {
 
       {/* ── Bell button ── */}
       <motion.button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => router.push("/notifications")}
         whileTap={{ scale: 0.88 }}
         transition={{ duration: 0.08 }}
         className="relative p-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
