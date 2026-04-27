@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface CategoryInfo {
   name: string;
@@ -28,6 +29,7 @@ interface CategoryInfo {
 }
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +80,14 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
+  const handleCategoryClick = (name: string) => {
+    const slug = name.toLowerCase();
+    if (slug === "music") router.push("/music");
+    else if (slug === "games") router.push("/games");
+    else if (slug === "books") router.push("/books");
+    else router.push(`/discover?category=${name}`);
+  };
+
   if (loading) {
      return (
        <div className="min-h-screen flex flex-col items-center justify-center bg-surface">
@@ -122,8 +132,10 @@ export default function CategoriesPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + index * 0.05 }}
+                onClick={() => handleCategoryClick(cat.name)}
+                className="cursor-pointer group"
               >
-                <GlassCard className="h-full flex flex-col items-start gap-8 cursor-pointer group hover:bg-surface-low transition-all">
+                <GlassCard className="h-full flex flex-col items-start gap-8 hover:bg-surface-low transition-all">
                   <div className={`p-5 rounded-2xl ${cat.color} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                     {cat.icon}
                   </div>
