@@ -23,12 +23,16 @@ def upload_music_to_gcp(file_obj, filename, content_type='audio/mpeg'):
         print("GCP not fully configured, falling back to B2 for music upload.")
         return upload_file(file_obj, filename, content_type)
         
-    client = gcp_storage.Client()
-    bucket = client.bucket(GCP_MUSIC_BUCKET)
-    unique_name = f"music/{uuid.uuid4()}_{filename}"
-    blob = bucket.blob(unique_name)
-    blob.upload_from_file(file_obj, content_type=content_type)
-    return f"https://storage.googleapis.com/{GCP_MUSIC_BUCKET}/{unique_name}"
+    try:
+        client = gcp_storage.Client()
+        bucket = client.bucket(GCP_MUSIC_BUCKET)
+        unique_name = f"music/{uuid.uuid4()}_{filename}"
+        blob = bucket.blob(unique_name)
+        blob.upload_from_file(file_obj, content_type=content_type)
+        return f"https://storage.googleapis.com/{GCP_MUSIC_BUCKET}/{unique_name}"
+    except Exception as e:
+        print(f"GCP Upload Error (falling back to B2): {e}")
+        return upload_file(file_obj, filename, content_type)
 
 def upload_file(file_obj, filename, content_type='application/octet-stream'):
     s3 = get_s3_client()
