@@ -22,7 +22,44 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
+
+  // Live Search Logic
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (query.trim().length < 2) {
+        setResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const [appsRes, musicRes] = await Promise.all([
+          api.get("/apps/"),
+          api.get("/music/")
+        ]);
+        
+        const q = query.toLowerCase();
+        const apps = appsRes.data
+          .filter((a: any) => a.name.toLowerCase().includes(q))
+          .map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` }));
+          
+        const music = musicRes.data
+          .filter((m: any) => m.title.toLowerCase().includes(q))
+          .map((m: any) => ({ ...m, name: m.title, type: "music", url: "/music" }));
+          
+        setResults([...apps, ...music].slice(0, 8));
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchResults, 250);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const submit = useCallback(
     (value: string) => {
@@ -36,15 +73,18 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submit(query);
+    if (results.length > 0) {
+      router.push(results[0].url);
+      onClose?.();
+    } else {
+      submit(query);
+    }
   };
 
-  const handleSuggestion = (text: string) => {
-    setQuery(text);
-    submit(text);
+  const handleResultClick = (url: string) => {
+    router.push(url);
+    onClose?.();
   };
-
-  const showPanel = focused || query.length > 0;
 
   return (
     <motion.div
@@ -55,7 +95,6 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
       className="mobile-search-overlay"
       style={{ willChange: "opacity" }}
     >
-      {/* ── Backdrop ─────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -65,7 +104,6 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
         onClick={onClose}
       />
 
-      {/* ── Main card ────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ y: -24, opacity: 0, scale: 0.97 }}
         animate={{ y: 0,   opacity: 1, scale: 1    }}
@@ -74,151 +112,94 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
         className="mobile-search-card"
         style={{ willChange: "transform, opacity" }}
       >
-        {/* ── Search pill ──────────────────────────────────────────────── */}
         <form onSubmit={handleSubmit} className="mobile-search-pill" role="search">
-          {/* Back / close */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="mobile-search-icon-btn"
-            aria-label="Close search"
-          >
+          <button type="button" onClick={onClose} className="mobile-search-icon-btn">
             <ArrowLeft size={20} />
           </button>
 
-          {/* Input */}
-          <label htmlFor="mobile-search-input" className="sr-only">
-            Search PandaStore
-          </label>
           <input
             ref={inputRef}
-            id="mobile-search-input"
             autoFocus
             type="search"
-            inputMode="search"
-            enterKeyHint="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="Search apps, games, music…"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
+            placeholder="Search apps or music..."
             className="mobile-search-input"
-            aria-label="Search PandaStore"
           />
 
-          {/* Clear */}
           <AnimatePresence>
-            {query.length > 0 && (
-              <motion.button
-                key="clear"
-                type="button"
-                onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+            {(query.length > 0 || loading) && (
+              <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{   scale: 0, opacity: 0 }}
-                transition={SPRING_ITEM}
-                className="mobile-search-clear-btn"
-                aria-label="Clear search"
-                style={{ willChange: "transform, opacity" }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="flex items-center gap-2 mr-2"
               >
-                <X size={14} />
-              </motion.button>
+                {loading ? (
+                   <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <button type="button" onClick={() => setQuery("")} className="mobile-search-clear-btn">
+                    <X size={14} />
+                  </button>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="mobile-search-submit-btn"
-            aria-label="Search"
-          >
+          <button type="submit" className="mobile-search-submit-btn">
             <Search size={18} />
           </button>
         </form>
 
-        {/* ── Suggestions panel ────────────────────────────────────────── */}
         <AnimatePresence>
-          {showPanel && (
+          {(query.length >= 2 || focused) && (
             <motion.div
-              key="panel"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              exit={{   opacity: 0, height: 0 }}
+              exit={{ opacity: 0, height: 0 }}
               transition={SPRING_EXPAND}
               className="mobile-search-panel"
-              style={{ willChange: "height, opacity", overflow: "hidden" }}
             >
-              {/* Recent */}
-              {query.length === 0 && RECENT_SEARCHES.length > 0 && (
-                <section className="mobile-search-section">
-                  <h3 className="mobile-search-section-title">
-                    <Clock size={13} className="inline-block mr-1.5 opacity-60" />
-                    Recent
-                  </h3>
-                  <ul>
-                    {RECENT_SEARCHES.map((item, i) => (
-                      <motion.li
-                        key={item}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0  }}
-                        transition={{ ...SPRING_ITEM, delay: i * 0.035 }}
-                        style={{ willChange: "transform, opacity" }}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleSuggestion(item)}
-                          className="mobile-search-row"
-                        >
-                          <Clock size={15} className="text-on-surface-variant opacity-50 shrink-0" />
-                          <span className="mobile-search-row-label">{item}</span>
-                          <ChevronRight size={15} className="text-on-surface-variant opacity-30 ml-auto shrink-0" />
-                        </button>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-
-              {/* Trending / filtered */}
               <section className="mobile-search-section">
                 <h3 className="mobile-search-section-title">
-                  <TrendingUp size={13} className="inline-block mr-1.5 opacity-60" />
-                  {query.length > 0 ? "Suggestions" : "Trending"}
+                  {query.length < 2 ? "Recent" : loading ? "Searching..." : results.length > 0 ? "Results" : "No results found"}
                 </h3>
                 <ul>
-                  {TRENDING
-                    .filter((t) =>
-                      query.length === 0
-                        ? true
-                        : t.toLowerCase().includes(query.toLowerCase())
-                    )
-                    .map((item, i) => (
+                  {query.length < 2 ? (
+                    RECENT_SEARCHES.map((item, i) => (
+                      <li key={item}>
+                        <button onClick={() => setQuery(item)} className="mobile-search-row">
+                          <Clock size={15} className="text-on-surface-variant opacity-50" />
+                          <span className="mobile-search-row-label">{item}</span>
+                          <ChevronRight size={15} className="ml-auto opacity-30" />
+                        </button>
+                      </li>
+                    ))
+                  ) : (
+                    results.map((item, i) => (
                       <motion.li
-                        key={item}
+                        key={item.id + item.type}
                         initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0  }}
-                        transition={{ ...SPRING_ITEM, delay: i * 0.03 }}
-                        style={{ willChange: "transform, opacity" }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
                       >
                         <button
-                          type="button"
-                          onClick={() => handleSuggestion(item)}
+                          onClick={() => handleResultClick(item.url)}
                           className="mobile-search-row"
                         >
-                          <TrendingUp size={15} className="text-primary opacity-60 shrink-0" />
-                          <span className="mobile-search-row-label">
-                            {query.length > 0
-                              ? highlightMatch(item, query)
-                              : item}
-                          </span>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.type === 'music' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}>
+                            {item.type === 'music' ? <TrendingUp size={14} /> : <Search size={14} />}
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-bold truncate">{highlightMatch(item.name, query)}</p>
+                            <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">{item.category || item.type}</p>
+                          </div>
                           <ChevronRight size={15} className="text-on-surface-variant opacity-30 ml-auto shrink-0" />
                         </button>
                       </motion.li>
-                    ))}
+                    ))
+                  )}
                 </ul>
               </section>
             </motion.div>

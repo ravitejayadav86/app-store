@@ -23,14 +23,51 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen]     = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
     const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
 
     React.useEffect(() => { setMounted(true); }, []);
 
+    // Live Search Logic (Shared with Mobile)
+    React.useEffect(() => {
+        const fetchResults = async () => {
+            if (searchQuery.trim().length < 2) {
+                setSearchResults([]);
+                return;
+            }
+            setSearchLoading(true);
+            try {
+                const [appsRes, musicRes] = await Promise.all([
+                    api.get("/apps/"),
+                    api.get("/music/")
+                ]);
+                const q = searchQuery.toLowerCase();
+                const apps = appsRes.data
+                    .filter((a: any) => a.name.toLowerCase().includes(q))
+                    .map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` }));
+                const music = musicRes.data
+                    .filter((m: any) => m.title.toLowerCase().includes(q))
+                    .map((m: any) => ({ ...m, name: m.title, type: "music", url: "/music" }));
+                setSearchResults([...apps, ...music].slice(0, 6));
+            } catch (err) {
+                console.error("Search failed", err);
+            } finally {
+                setSearchLoading(false);
+            }
+        };
+        const timer = setTimeout(fetchResults, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
+        if (searchResults.length > 0) {
+            router.push(searchResults[0].url);
+            setSearchOpen(false);
+            setSearchQuery("");
+        } else if (searchQuery.trim()) {
             router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`);
             setSearchOpen(false);
             setSearchQuery("");
@@ -57,24 +94,76 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     </Link>
 
                     {searchOpen ? (
-                        <motion.form
-                            initial={{ opacity: 0, scaleX: 0.9 }}
-                            animate={{ opacity: 1, scaleX: 1 }}
-                            exit={{   opacity: 0, scaleX: 0.9 }}
-                            transition={FADE_FAST}
-                            onSubmit={handleSearch}
-                            className="flex-1 mx-6 flex items-center gap-2 origin-left"
-                            role="search"
-                            style={{ willChange: "transform, opacity" }}
-                        >
-                            <label htmlFor="nav-search-input" className="sr-only">Search PandaStore</label>
-                            <input autoFocus id="nav-search-input" type="text" value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search apps, games, music..."
-                                className="w-full bg-surface-low border border-outline-variant rounded-full px-5 py-2 text-sm text-on-surface outline-none focus:border-primary transition-colors" />
-                            <button type="submit" className="p-2 text-primary" aria-label="Submit search"><Search size={20} /></button>
-                            <button type="button" onClick={() => setSearchOpen(false)} className="p-2 text-on-surface-variant" aria-label="Close search"><X size={20} /></button>
-                        </motion.form>
+                        <div className="flex-1 mx-6 relative">
+                            <motion.form
+                                initial={{ opacity: 0, scaleX: 0.9 }}
+                                animate={{ opacity: 1, scaleX: 1 }}
+                                exit={{   opacity: 0, scaleX: 0.9 }}
+                                transition={FADE_FAST}
+                                onSubmit={handleSearch}
+                                className="flex items-center gap-2 origin-left"
+                                role="search"
+                                style={{ willChange: "transform, opacity" }}
+                            >
+                                <label htmlFor="nav-search-input" className="sr-only">Search PandaStore</label>
+                                <div className="relative flex-1">
+                                    <input autoFocus id="nav-search-input" type="text" value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search apps or music..."
+                                        className="w-full bg-surface-low border border-outline-variant rounded-full px-5 py-2 text-sm text-on-surface outline-none focus:border-primary transition-colors" />
+                                    {searchLoading && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                    )}
+                                </div>
+                                <button type="submit" className="p-2 text-primary" aria-label="Submit search"><Search size={20} /></button>
+                                <button type="button" onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="p-2 text-on-surface-variant" aria-label="Close search"><X size={20} /></button>
+                            </motion.form>
+
+                            {/* Desktop Search Results Dropdown */}
+                            <AnimatePresence>
+                                {searchQuery.length >= 2 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-surface border border-outline-variant rounded-[2rem] shadow-2xl overflow-hidden z-[60] backdrop-blur-3xl"
+                                    >
+                                        <div className="p-4 max-h-[400px] overflow-y-auto">
+                                            {searchResults.length > 0 ? (
+                                                <div className="space-y-1">
+                                                    {searchResults.map((item) => (
+                                                        <button
+                                                            key={item.id + item.type}
+                                                            onClick={() => {
+                                                                router.push(item.url);
+                                                                setSearchOpen(false);
+                                                                setSearchQuery("");
+                                                            }}
+                                                            className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-surface-low transition-colors text-left"
+                                                        >
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'music' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}>
+                                                                <Search size={18} />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-bold text-on-surface truncate">{item.name}</p>
+                                                                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{item.category || item.type}</p>
+                                                            </div>
+                                                            <div className="text-[10px] font-black bg-surface-low px-2 py-1 rounded-md opacity-50 uppercase tracking-tighter">{item.type}</div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                !searchLoading && (
+                                                    <div className="py-8 text-center text-on-surface-variant">
+                                                        <p className="text-sm font-medium">No matches found for "{searchQuery}"</p>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     ) : (
                         <>
                             <div className="hidden lg:flex items-center gap-1.5">
