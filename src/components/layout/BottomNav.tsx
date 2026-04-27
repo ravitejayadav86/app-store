@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { name: "Apps",     icon: <Grid     size={22} />, href: "/discover"  },
   { name: "Hub",      icon: <Users    size={22} />, href: "/community" },
   { name: "Books",    icon: <Book     size={22} />, href: "/books"     },
-  { name: "You",      icon: <User     size={22} />, href: "/profile"   },
+  { name: "Music",    icon: <Music    size={22} />, href: "/music"     },
   { name: "Settings", icon: <Settings size={22} />, href: "/settings"  },
 ];
 

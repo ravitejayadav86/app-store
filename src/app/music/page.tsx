@@ -7,6 +7,9 @@ import {
   Flame, Radio, Heart, Disc3, Shuffle,
 } from "lucide-react";
 import { MusicPlayer, Track } from "@/components/ui/MusicPlayer";
+import { TELUGU_MOVIES } from "@/data/teluguMovies";
+import { AddMusicModal } from "@/components/ui/AddMusicModal";
+import { fuzzySearch } from "@/lib/search";
 import api from "@/lib/api";
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -95,6 +98,7 @@ export default function MusicPage() {
   const [searchRes, setSearchRes] = useState<Track[]>([]);
   const [searching, setSearching] = useState(false);
   const [liked, setLiked] = useState<Set<number | string>>(new Set());
+  const [isAddMusicOpen, setIsAddMusicOpen] = useState(false);
 
   /* ── Persistence for Likes ────────────────────────────────────── */
   useEffect(() => {
@@ -141,17 +145,52 @@ export default function MusicPage() {
       .finally(() => setLoading(false));
   }, [genre]);
 
-  /* ── Search ───────────────────────────────────────────────────── */
+  /* ── Search ───────────────────────────────────────────── */
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchRes([]); return; }
     setSearching(true);
-    const r = await fetchJamendo("/tracks", { namesearch: q.trim(), limit: "12" });
-    setSearchRes(r.map(jamendoToTrack));
+
+    // 1) Build local corpus: Telugu movies + own tracks
+    const allLocalTracks: Track[] = [
+      ...TELUGU_MOVIES.flatMap(m => m.tracks.map(t => ({ ...t, artist: t.artist || m.title }))),
+      ...ownTracks,
+    ];
+
+    // 2) Fuzzy-search local tracks instantly (no network needed)
+    const localHits = fuzzySearch(
+      allLocalTracks.map(t => ({ ...t, name: t.title, artist_name: t.artist })),
+      q,
+      8
+    ).map(t => ({ ...t, title: t.name ?? t.title } as Track));
+
+    // 3) Search Jamendo API in parallel
+    const [jamendoByName, jamendoByTag] = await Promise.all([
+      fetchJamendo("/tracks", { namesearch: q.trim(), limit: "10" }),
+      fetchJamendo("/tracks", { search: q.trim(),     limit: "10", order: "popularity_week" }),
+    ]);
+
+    // Merge Jamendo results, deduplicate by id
+    const seen = new Set<string>();
+    const jamendoTracks: Track[] = [];
+    for (const t of [...jamendoByName, ...jamendoByTag]) {
+      if (!seen.has(t.id)) {
+        seen.add(t.id);
+        jamendoTracks.push(jamendoToTrack(t));
+      }
+    }
+
+    // 4) Merge: local results first (most relevant), then Jamendo
+    const allResults: Track[] = [
+      ...localHits,
+      ...jamendoTracks.filter(jt => !localHits.some(lh => lh.id === jt.id)),
+    ].slice(0, 20);
+
+    setSearchRes(allResults);
     setSearching(false);
-  }, []);
+  }, [ownTracks]);
 
   useEffect(() => {
-    const t = setTimeout(() => doSearch(search), 450);
+    const t = setTimeout(() => doSearch(search), 300);
     return () => clearTimeout(t);
   }, [search, doSearch]);
 
@@ -179,6 +218,17 @@ export default function MusicPage() {
                 animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
                 transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }} />
             ))}
+            
+            {/* ── ADD MUSIC BUTTON ── */}
+            <div className="absolute top-6 right-6 z-20">
+              <button 
+                onClick={() => setIsAddMusicOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-sky-500/20 backdrop-blur-xl border border-sky-400/40 rounded-2xl text-sky-50 font-bold text-xs md:text-sm hover:bg-sky-400/30 transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]"
+              >
+                <Music2 size={16} className="text-sky-300" /> + Add Music
+              </button>
+            </div>
+
             <div className="relative z-10">
               <motion.div {...FADE_UP(0)} className="inline-flex items-center gap-2 mb-3 md:mb-4 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary border border-primary/20 bg-primary/5 backdrop-blur-md">
                 <Radio size={11} /> PandaStore Music
@@ -243,12 +293,27 @@ export default function MusicPage() {
           ) : (
             <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
               {featured.map((t, i) => (
-                <FeaturedCard key={t.id} track={t} index={i} onClick={() => playFrom(featured, i)} />
+                <FeaturedCard key={`feat-${t.id}-${i}`} track={t} index={i} onClick={() => playFrom(featured, i)} />
               ))}
             </div>
           )}
         </section>
       )}
+
+      {/* ── TELUGU MOVIES ───────────────────────────────────────────────── */}
+      {!search.trim() && TELUGU_MOVIES.map((movie) => (
+        <section key={movie.id} className="max-w-7xl mx-auto px-4 md:px-8 mb-8 md:mb-10">
+          <div className="flex items-center gap-2 mb-4 md:mb-5">
+            <Radio size={18} className="text-purple-500" />
+            <h2 className="text-lg font-black text-on-surface">{movie.title}</h2>
+          </div>
+          <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
+            {movie.tracks.map((t, i) => (
+              <FeaturedCard key={`telugu-${movie.id}-${t.id}`} track={t} index={i} onClick={() => playFrom(movie.tracks, i)} />
+            ))}
+          </div>
+        </section>
+      ))}
 
       {/* ── OWN TRACKS ────────────────────────────────────────────────── */}
       {!search.trim() && ownTracks.length > 0 && (
@@ -259,7 +324,7 @@ export default function MusicPage() {
           </div>
           <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
             {ownTracks.map((t, i) => (
-              <FeaturedCard key={t.id} track={t} index={i} onClick={() => playFrom(ownTracks, i)} />
+              <FeaturedCard key={`own-${t.id}-${i}`} track={t} index={i} onClick={() => playFrom(ownTracks, i)} />
             ))}
           </div>
         </section>
@@ -300,7 +365,7 @@ export default function MusicPage() {
         ) : displayTracks.length > 0 ? (
           <div className="flex flex-col gap-0.5 md:gap-1">
             {displayTracks.map((t, i) => (
-              <TrackRow key={t.id} track={t} index={i}
+              <TrackRow key={`track-${t.id}-${i}`} track={t} index={i}
                 onClick={() => playFrom(displayTracks, i)}
                 isPlaying={playerOpen && queue[queueIdx]?.id === t.id}
                 isLiked={liked.has(t.id)}
@@ -323,6 +388,13 @@ export default function MusicPage() {
           <MusicPlayer queue={queue} initialIndex={queueIdx} onClose={() => setPlayerOpen(false)} />
         )}
       </AnimatePresence>
+
+      {/* ── ADD MUSIC MODAL ───────────────────────────────────────────── */}
+      <AddMusicModal 
+        isOpen={isAddMusicOpen} 
+        onClose={() => setIsAddMusicOpen(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
     </div>
   );
 }

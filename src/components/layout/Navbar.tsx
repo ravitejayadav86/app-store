@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle, LogOut } from "lucide-react";
+import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle, LogOut, Music } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { MobileSearch } from "@/components/ui/MobileSearch";
@@ -10,6 +10,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
+import { fuzzySearch } from "@/lib/search";
 
 // Spring presets tuned for 120 Hz — settle in < 250 ms, no bounce
 const SPRING_NAV    = { type: "spring", stiffness: 500, damping: 36, mass: 0.6 } as const;
@@ -34,7 +35,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     // Live Search Logic (Shared with Mobile)
     React.useEffect(() => {
         const fetchResults = async () => {
-            if (searchQuery.trim().length < 2) {
+            if (searchQuery.trim().length < 1) {
                 setSearchResults([]);
                 return;
             }
@@ -42,23 +43,32 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
             try {
                 const [appsRes, musicRes] = await Promise.all([
                     api.get("/apps/"),
-                    api.get("/music/")
+                    api.get("/music/").catch(() => ({ data: [] })),
                 ]);
-                const q = searchQuery.toLowerCase();
-                const apps = appsRes.data
-                    .filter((a: any) => a.name.toLowerCase().includes(q))
-                    .map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` }));
-                const music = musicRes.data
-                    .filter((m: any) => m.title.toLowerCase().includes(q))
-                    .map((m: any) => ({ ...m, name: m.title, type: "music", url: "/music" }));
-                setSearchResults([...apps, ...music].slice(0, 6));
+
+                const q = searchQuery;
+
+                // Advanced fuzzy search across all fields
+                const scoredApps = fuzzySearch(
+                    appsRes.data.map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` })),
+                    q,
+                    5
+                );
+
+                const scoredMusic = fuzzySearch(
+                    musicRes.data.map((m: any) => ({ ...m, name: m.title, type: "music", url: "/music" })),
+                    q,
+                    3
+                );
+
+                setSearchResults([...scoredApps, ...scoredMusic].slice(0, 8));
             } catch (err) {
                 console.error("Search failed", err);
             } finally {
                 setSearchLoading(false);
             }
         };
-        const timer = setTimeout(fetchResults, 300);
+        const timer = setTimeout(fetchResults, 200);
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
@@ -79,6 +89,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
         <AnimatePresence>
             {!isHidden && (
                 <motion.nav
+                    key="main-navbar"
                     initial={{ y: -72, opacity: 0 }}
                     animate={{ y: 0,   opacity: 1 }}
                     exit={{   y: -72,  opacity: 0 }}
@@ -124,6 +135,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             <AnimatePresence>
                                 {searchQuery.length >= 2 && (
                                     <motion.div
+                                        key="search-dropdown"
                                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -228,6 +240,9 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 <Link href="/settings" className="hidden sm:flex p-2 text-on-surface-variant hover:text-primary transition-colors" aria-label="Settings">
                                     <Settings size={18} />
                                 </Link>
+                                <Link href="/music" className="hidden sm:flex p-2 text-on-surface-variant hover:text-primary transition-colors ml-1" aria-label="Music">
+                                    <Music size={18} />
+                                </Link>
                                 <Link href="/profile" className="flex w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-colors items-center justify-center bg-surface-low text-on-surface-variant group ml-1" aria-label="View profile">
                                     <User size={16} className="md:size-[18px] group-hover:text-primary transition-colors" />
                                 </Link>
@@ -254,15 +269,17 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
 
                 <AnimatePresence>
                     {mobileMenuOpen && (
-                        <>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                transition={{ duration: 0.15, ease: "linear" }}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="fixed inset-0 bg-black/40 backdrop-blur-md z-[55] lg:hidden"
-                                style={{ willChange: "opacity" }} />
-                            <motion.div
-                                initial={{ opacity: 0, y: -12, scale: 0.97 }}
-                                animate={{ opacity: 1, y: 0,   scale: 1    }}
+                        <motion.div key="mobile-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15, ease: "linear" }}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-md z-[55] lg:hidden"
+                            style={{ willChange: "opacity" }} />
+                    )}
+                    {mobileMenuOpen && (
+                        <motion.div
+                            key="mobile-drawer"
+                            initial={{ opacity: 0, y: -12, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0,   scale: 1    }}
                                 exit={{   opacity: 0, y: -12,  scale: 0.97 }}
                                 transition={SPRING_DRAWER}
                                 style={{ willChange: "transform, opacity" }}
@@ -304,7 +321,6 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                     ))}
                                 </div>
                             </motion.div>
-                        </>
                     )}
                 </AnimatePresence>
                 </motion.nav>
@@ -313,7 +329,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
             {/* ── Mobile Search Overlay ─────────────────────────── */}
             <AnimatePresence>
                 {mobileSearchOpen && (
-                    <MobileSearch onClose={() => setMobileSearchOpen(false)} />
+                    <MobileSearch key="mobile-search-overlay" onClose={() => setMobileSearchOpen(false)} />
                 )}
             </AnimatePresence>
         </AnimatePresence>
