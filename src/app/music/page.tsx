@@ -165,43 +165,42 @@ export default function MusicPage() {
   const displayTracks = search.trim() ? searchRes : tracks;
 
   return (
-    <div className="min-h-screen pb-40" style={{ background: "linear-gradient(180deg,#0d0d1a 0%,#0f0f23 100%)" }}>
+    <div className="min-h-screen pb-40">
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-4 md:px-8 pt-6 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="relative rounded-[2.5rem] overflow-hidden min-h-[320px] md:min-h-[420px] flex flex-col justify-end p-8 md:p-12"
-            style={{ background: "linear-gradient(135deg, #1a0533 0%, #0b1a3e 50%, #0d1f3c 100%)" }}>
+          <div className="relative rounded-[2.5rem] overflow-hidden min-h-[320px] md:min-h-[420px] flex flex-col justify-end p-8 md:p-12 shadow-2xl shadow-primary/10"
+            style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%)" }}>
             {/* animated blobs */}
-            {[["#e91e63","top-[-80px] left-[-80px]"],["#3f51b5","bottom-[-60px] right-[-60px]"],["#9c27b0","top-[40%] left-[40%]"]].map(([c,pos],i)=>(
-              <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-30 ${pos}`}
+            {[["#ffffff","top-[-80px] left-[-80px]"],["#ffffff","bottom-[-60px] right-[-60px]"],["#ffffff","top-[40%] left-[40%]"]].map(([c,pos],i)=>(
+              <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-10 ${pos}`}
                 style={{ background: c }}
-                animate={{ scale:[1,1.2,1], opacity:[0.25,0.45,0.25] }}
+                animate={{ scale:[1,1.2,1], opacity:[0.05,0.15,0.05] }}
                 transition={{ duration: 6+i*2, repeat:Infinity, ease:"easeInOut" }} />
             ))}
             <div className="relative z-10">
-              <motion.div {...FADE_UP(0)} className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white/70 border border-white/15 bg-white/5 backdrop-blur-md">
+              <motion.div {...FADE_UP(0)} className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-on-primary border border-white/15 bg-white/5 backdrop-blur-md">
                 <Radio size={11} /> PandaStore Music
               </motion.div>
-              <motion.h1 {...FADE_UP(1)} className="text-4xl md:text-7xl font-black tracking-tight text-white mb-3 leading-none">
+              <motion.h1 {...FADE_UP(1)} className="text-4xl md:text-7xl font-black tracking-tight text-on-primary mb-3 leading-none">
                 Your Music,<br/>Your World.
               </motion.h1>
-              <motion.p {...FADE_UP(2)} className="text-white/50 md:text-lg mb-6 max-w-md">
+              <motion.p {...FADE_UP(2)} className="text-on-primary/70 md:text-lg mb-6 max-w-md font-medium">
                 Stream millions of tracks free. Play, skip, repeat — download anytime.
               </motion.p>
                 <div className="flex flex-wrap gap-4">
                   <motion.button {...FADE_UP(3)}
                     onClick={() => playFrom(featured, 0)}
-                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-pink-500/20"
-                    style={{ background: "linear-gradient(120deg,#e91e63,#9c27b0)" }}>
-                    <Play size={18} fill="white" /> Play Top Tracks
+                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-primary bg-white shadow-xl shadow-black/10 transition-all hover:scale-105 active:scale-95">
+                    <Play size={18} fill="currentColor" /> Play Top Tracks
                   </motion.button>
                   <motion.button {...FADE_UP(4)}
                     onClick={() => {
                       const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
                       playFrom(shuffled, 0);
                     }}
-                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white bg-white/10 backdrop-blur-md border border-white/10 transition-all hover:bg-white/20 active:scale-95">
+                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-on-primary bg-white/10 backdrop-blur-md border border-white/15 transition-all hover:bg-white/20 active:scale-95">
                     <Shuffle size={18} /> Shuffle All
                   </motion.button>
                 </div>
@@ -214,16 +213,16 @@ export default function MusicPage() {
       {/* ── SEARCH ────────────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mb-8">
         <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40" />
           <input
             type="search"
             placeholder="Search songs, artists…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/30 outline-none"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.10)" }}
+            className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-all focus:ring-2 focus:ring-primary/20"
+            style={{ background: "var(--surface-container-low)", border: "1px solid var(--outline-variant)" }}
           />
-          {searching && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 animate-spin" />}
+          {searching && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 animate-spin" />}
         </div>
       </section>
 
@@ -231,13 +230,13 @@ export default function MusicPage() {
       {!search.trim() && (
         <section className="max-w-7xl mx-auto px-4 md:px-8 mb-10">
           <div className="flex items-center gap-2 mb-5">
-            <Flame size={18} className="text-orange-400" />
-            <h2 className="text-lg font-black text-white">Featured</h2>
+            <Flame size={18} className="text-orange-500" />
+            <h2 className="text-lg font-black text-on-surface">Featured</h2>
           </div>
           {featLoad ? (
             <div className="flex gap-4 overflow-hidden">
               {[...Array(4)].map((_,i) => (
-                <div key={i} className="flex-shrink-0 w-48 h-48 rounded-2xl animate-pulse" style={{ background:"rgba(255,255,255,0.06)" }} />
+                <div key={i} className="flex-shrink-0 w-48 h-48 rounded-2xl animate-pulse bg-surface-low" />
               ))}
             </div>
           ) : (
@@ -255,7 +254,7 @@ export default function MusicPage() {
         <section className="max-w-7xl mx-auto px-4 md:px-8 mb-10">
           <div className="flex items-center gap-2 mb-5">
             <Disc3 size={18} className="text-primary" />
-            <h2 className="text-lg font-black text-white">PandaStore Originals</h2>
+            <h2 className="text-lg font-black text-on-surface">PandaStore Originals</h2>
           </div>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
             {ownTracks.map((t, i) => (
@@ -273,8 +272,8 @@ export default function MusicPage() {
               <button key={g.tag} onClick={() => setGenre(g.tag)}
                 className="flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-all"
                 style={genre === g.tag
-                  ? { background: "#0058bb", color: "#fff" }
-                  : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.55)" }}>
+                  ? { background: "var(--primary)", color: "var(--on-primary)" }
+                  : { background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
                 {g.label}
               </button>
             ))}
@@ -286,16 +285,16 @@ export default function MusicPage() {
       <section className="max-w-7xl mx-auto px-4 md:px-8">
         {search.trim() && (
           <div className="flex items-center gap-2 mb-5">
-            <Search size={16} className="text-white/40" />
-            <h2 className="text-base font-bold text-white/60">
-              Results for "<span className="text-white">{search}</span>"
+            <Search size={16} className="text-on-surface-variant/60" />
+            <h2 className="text-base font-bold text-on-surface-variant/60">
+              Results for "<span className="text-on-surface">{search}</span>"
             </h2>
           </div>
         )}
 
         {loading && !search.trim() ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 size={36} className="animate-spin text-white/30" />
+            <Loader2 size={36} className="animate-spin text-primary/20" />
           </div>
         ) : displayTracks.length > 0 ? (
           <div className="flex flex-col gap-1">
@@ -309,8 +308,8 @@ export default function MusicPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Music2 size={48} className="mb-4 opacity-20 text-white" />
-            <p className="text-white/40 text-lg font-semibold">
+            <Music2 size={48} className="mb-4 opacity-20 text-on-surface-variant" />
+            <p className="text-on-surface-variant/60 text-lg font-semibold">
               {search.trim() ? "No results found." : "No tracks available."}
             </p>
           </div>
@@ -332,23 +331,23 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
   const color = trackColor(track, index);
   return (
     <motion.button onClick={onClick} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-      className="flex-shrink-0 w-44 md:w-52 rounded-2xl overflow-hidden text-left relative group"
-      style={{ background: `linear-gradient(145deg,${color}99,${color}33)`, border:"1px solid rgba(255,255,255,0.08)" }}>
-      <div className="w-full aspect-square flex items-center justify-center overflow-hidden">
+      className="flex-shrink-0 w-44 md:w-52 rounded-2xl overflow-hidden text-left relative group shadow-sm"
+      style={{ background: "var(--surface-container-low)", border:"1px solid var(--outline-variant)" }}>
+      <div className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-lowest">
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
-          : <Music2 size={52} className="text-white/30" />}
+          : <Music2 size={52} className="text-on-surface-variant/20" />}
       </div>
       {/* play overlay */}
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ background:"rgba(0,0,0,0.45)" }}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: color }}>
+        style={{ background:"rgba(255,255,255,0.2)" }}>
+        <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-xl" style={{ background: color }}>
           <Play size={22} fill="white" className="text-white ml-0.5" />
         </div>
       </div>
       <div className="p-3">
-        <p className="text-sm font-bold text-white truncate">{track.title}</p>
-        <p className="text-xs text-white/50 truncate">{track.artist}</p>
+        <p className="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">{track.title}</p>
+        <p className="text-xs text-on-surface-variant truncate font-medium">{track.artist}</p>
       </div>
     </motion.button>
   );
@@ -364,10 +363,10 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
     <motion.div
       initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.025, ...SPRING }}
-      className="flex items-center gap-4 px-4 py-3 rounded-xl group transition-colors cursor-pointer"
-      style={isPlaying ? { background:"rgba(255,255,255,0.06)" } : {}}
+      className="flex items-center gap-4 px-4 py-3 rounded-xl group transition-all cursor-pointer"
+      style={isPlaying ? { background:"var(--primary-container)", opacity: 1 } : {}}
       onClick={onClick}
-      whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+      whileHover={{ backgroundColor: isPlaying ? "var(--primary-container)" : "var(--surface-container-low)" }}
     >
       {/* index / equalizer */}
       <div className="w-8 text-center flex-shrink-0">
@@ -375,39 +374,39 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
           ? <div className="flex items-end justify-center gap-0.5 h-4">
               {[1,2,3].map(b=>(
                 <motion.div key={b} className="w-1 rounded-full"
-                  style={{ background: color }}
+                  style={{ background: "var(--primary)" }}
                   animate={{ height:["4px","14px","6px","12px","4px"] }}
                   transition={{ duration:0.8+b*0.2, repeat:Infinity, ease:"easeInOut", delay:b*0.15 }} />
               ))}
             </div>
-          : <span className="text-xs text-white/25 font-mono">{index + 1}</span>}
+          : <span className="text-xs text-on-surface-variant/40 font-mono font-bold">{index + 1}</span>}
       </div>
 
       {/* thumbnail */}
       <div className="w-11 h-11 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
-        style={{ background:`${color}44` }}>
+        style={{ background: isPlaying ? "white" : `var(--surface-container-low)` }}>
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
-          : <Music2 size={20} className="text-white/50" />}
+          : <Music2 size={20} className="text-on-surface-variant/30" />}
       </div>
 
       {/* info */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${isPlaying ? "text-white" : "text-white/85"}`}>{track.title}</p>
-        <p className="text-xs text-white/40 truncate">{track.artist}</p>
+        <p className={`text-sm font-bold truncate ${isPlaying ? "text-primary" : "text-on-surface"}`}>{track.title}</p>
+        <p className={`text-xs truncate font-medium ${isPlaying ? "text-primary/60" : "text-on-surface-variant"}`}>{track.artist}</p>
       </div>
 
       {/* actions */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={e => { e.stopPropagation(); onToggleLike(); }}
-          className="p-2 rounded-full hover:bg-white/10 transition-colors">
-          <Heart size={15} fill={isLiked?"#e91e63":"none"} className={isLiked?"text-pink-500":"text-white/30"} />
+          className="p-2 rounded-full hover:bg-black/5 transition-colors">
+          <Heart size={15} fill={isLiked?"#e91e63":"none"} className={isLiked?"text-pink-500":"text-on-surface-variant/40"} />
         </button>
       </div>
 
       {/* duration */}
       {track.duration && (
-        <span className="text-xs text-white/25 font-mono flex-shrink-0 ml-1">
+        <span className={`text-xs font-mono flex-shrink-0 ml-1 font-bold ${isPlaying ? "text-primary/40" : "text-on-surface-variant/20"}`}>
           {Math.floor(track.duration/60)}:{String(track.duration%60).padStart(2,"0")}
         </span>
       )}
