@@ -40,7 +40,13 @@ async def upload_file_route(
     if file and file.filename:
         if app.file_path and app.file_path.startswith("https://"):
             storage.delete_file(app.file_path)
-        file_url = storage.upload_file(file.file, file.filename, file.content_type or "application/octet-stream")
+            
+        # 🌟 HYBRID CLOUD ROUTING LOGIC 🌟
+        if app.category == "Music":
+            file_url = storage.upload_music_to_gcp(file.file, file.filename, file.content_type or "audio/mpeg")
+        else:
+            file_url = storage.upload_file(file.file, file.filename, file.content_type or "application/octet-stream")
+            
         app.file_path = file_url
     if icon and icon.filename:
         icon_url = storage.upload_file(icon.file, icon.filename, icon.content_type or "image/png")
