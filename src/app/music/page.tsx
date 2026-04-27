@@ -15,7 +15,7 @@ import api from "@/lib/api";
    We use client_id = "b6747d04" (Jamendo's own demo id — fine for non-commercial)
 ──────────────────────────────────────────────────────────────────────────── */
 const JAMENDO_CLIENT = "b6747d04";
-const JAMENDO_BASE   = "https://api.jamendo.com/v3.0";
+const JAMENDO_BASE = "https://api.jamendo.com/v3.0";
 
 async function fetchJamendo(endpoint: string, params: Record<string, string> = {}): Promise<any[]> {
   const qs = new URLSearchParams({ client_id: JAMENDO_CLIENT, format: "json", limit: "20", ...params });
@@ -31,47 +31,47 @@ async function fetchJamendo(endpoint: string, params: Record<string, string> = {
 
 function jamendoToTrack(t: any): Track {
   return {
-    id:          `j_${t.id}`,
-    title:       t.name,
-    artist:      t.artist_name,
-    duration:    t.duration,
-    audioUrl:    t.audio,              // direct MP3 stream
-    coverUrl:    t.album_image || t.image,
+    id: `j_${t.id}`,
+    title: t.name,
+    artist: t.artist_name,
+    duration: t.duration,
+    audioUrl: t.audio,              // direct MP3 stream
+    coverUrl: t.album_image || t.image,
     downloadUrl: t.audiodownload,     // downloadable MP3
-    color:       undefined,
+    color: undefined,
   };
 }
 
 /* Convert our own backend app (with file_path as audio URL) */
 function appToTrack(a: any): Track {
   return {
-    id:          a.id,
-    title:       a.name,
-    artist:      a.developer,
-    audioUrl:    a.file_path,
-    coverUrl:    a.icon_url || undefined,
+    id: a.id,
+    title: a.name,
+    artist: a.developer,
+    audioUrl: a.file_path,
+    coverUrl: a.icon_url || undefined,
     downloadUrl: `${process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.onrender.com"}/apps/${a.id}/download`,
   };
 }
 
 /* ── Genre tabs ─────────────────────────────────────────────────────────── */
 const GENRES = [
-  { label: "Trending",  tag: "pop"          },
-  { label: "Hip-Hop",   tag: "hiphop"       },
-  { label: "Electronic",tag: "electronic"   },
-  { label: "Rock",      tag: "rock"         },
-  { label: "Chill",     tag: "chillout"     },
-  { label: "Jazz",      tag: "jazz"         },
-  { label: "Classical", tag: "classical"    },
+  { label: "Trending", tag: "pop" },
+  { label: "Hip-Hop", tag: "hiphop" },
+  { label: "Electronic", tag: "electronic" },
+  { label: "Rock", tag: "rock" },
+  { label: "Chill", tag: "chillout" },
+  { label: "Jazz", tag: "jazz" },
+  { label: "Classical", tag: "classical" },
 ];
 
-const SPRING  = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
+const SPRING = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
 const FADE_UP = (i: number) => ({ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.04, ...SPRING } });
 
 const ACCENT_COLORS = [
-  "#e91e63","#9c27b0","#3f51b5","#0058bb",
-  "#00bcd4","#009688","#ff5722","#ff9800",
-  "#4caf50","#f44336","#673ab7","#2196f3",
+  "#e91e63", "#9c27b0", "#3f51b5", "#0058bb",
+  "#00bcd4", "#009688", "#ff5722", "#ff9800",
+  "#4caf50", "#f44336", "#673ab7", "#2196f3",
 ];
 
 function trackColor(t: Track, i: number) {
@@ -82,19 +82,19 @@ function trackColor(t: Track, i: number) {
    Page
 ════════════════════════════════════════════════════════════════════════════ */
 export default function MusicPage() {
-  const [genre,      setGenre]      = useState(GENRES[0].tag);
-  const [tracks,     setTracks]     = useState<Track[]>([]);
-  const [featured,   setFeatured]   = useState<Track[]>([]);
-  const [ownTracks,  setOwnTracks]  = useState<Track[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [featLoad,   setFeatLoad]   = useState(true);
-  const [queue,      setQueue]      = useState<Track[]>([]);
-  const [queueIdx,   setQueueIdx]   = useState(0);
+  const [genre, setGenre] = useState(GENRES[0].tag);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [featured, setFeatured] = useState<Track[]>([]);
+  const [ownTracks, setOwnTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [featLoad, setFeatLoad] = useState(true);
+  const [queue, setQueue] = useState<Track[]>([]);
+  const [queueIdx, setQueueIdx] = useState(0);
   const [playerOpen, setPlayerOpen] = useState(false);
-  const [search,     setSearch]     = useState("");
-  const [searchRes,  setSearchRes]  = useState<Track[]>([]);
-  const [searching,  setSearching]  = useState(false);
-  const [liked,      setLiked]      = useState<Set<number | string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [searchRes, setSearchRes] = useState<Track[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [liked, setLiked] = useState<Set<number | string>>(new Set());
 
   /* ── Persistence for Likes ────────────────────────────────────── */
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function MusicPage() {
         a.category?.toLowerCase() === "music" && a.file_path?.startsWith("http")
       );
       setOwnTracks(music.map(appToTrack));
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   /* ── Genre tracks ─────────────────────────────────────────────── */
@@ -173,39 +173,39 @@ export default function MusicPage() {
           <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5"
             style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%)", border: "1px solid rgba(0, 88, 187, 0.08)" }}>
             {/* animated blobs */}
-            {[["#6c9fff","top-[-80px] left-[-80px]"],["#3f51b5","bottom-[-60px] right-[-60px]"],["#9c27b0","top-[40%] left-[40%]"]].map(([c,pos],i)=>(
+            {[["#6c9fff", "top-[-80px] left-[-80px]"], ["#3f51b5", "bottom-[-60px] right-[-60px]"], ["#9c27b0", "top-[40%] left-[40%]"]].map(([c, pos], i) => (
               <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-10 ${pos}`}
                 style={{ background: c }}
-                animate={{ scale:[1,1.2,1], opacity:[0.1,0.2,0.1] }}
-                transition={{ duration: 6+i*2, repeat:Infinity, ease:"easeInOut" }} />
+                animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+                transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }} />
             ))}
             <div className="relative z-10">
               <motion.div {...FADE_UP(0)} className="inline-flex items-center gap-2 mb-3 md:mb-4 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary border border-primary/20 bg-primary/5 backdrop-blur-md">
                 <Radio size={11} /> PandaStore Music
               </motion.div>
               <motion.h1 {...FADE_UP(1)} className="text-3xl md:text-7xl font-black tracking-tight text-on-surface mb-2 md:mb-3 leading-none">
-                Your Music,<br/>Your World.
+                Your Music,<br />Your World.
               </motion.h1>
               <motion.p {...FADE_UP(2)} className="text-on-surface-variant md:text-lg mb-5 md:mb-8 max-w-md">
                 Stream millions of tracks free. Play, skip, repeat — download anytime.
               </motion.p>
-                <div className="flex flex-wrap gap-3 md:gap-4">
-                  <motion.button {...FADE_UP(3)}
-                    onClick={() => playFrom(featured, 0)}
-                    className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
-                    style={{ background: "linear-gradient(120deg,#0058bb,#3f51b5)" }}>
-                    <Play size={16} fill="white" /> Play Top Tracks
-                  </motion.button>
-                  <motion.button {...FADE_UP(4)}
-                    onClick={() => {
-                      const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
-                      playFrom(shuffled, 0);
-                    }}
-                    className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-primary bg-primary/10 border border-primary/10 transition-all hover:bg-primary/20 active:scale-95">
-                    <Shuffle size={16} /> Shuffle All
-                  </motion.button>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-3 md:gap-4">
+                <motion.button {...FADE_UP(3)}
+                  onClick={() => playFrom(featured, 0)}
+                  className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
+                  style={{ background: "linear-gradient(120deg,#0058bb,#3f51b5)" }}>
+                  <Play size={16} fill="white" /> Play Top Tracks
+                </motion.button>
+                <motion.button {...FADE_UP(4)}
+                  onClick={() => {
+                    const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
+                    playFrom(shuffled, 0);
+                  }}
+                  className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-primary bg-primary/10 border border-primary/10 transition-all hover:bg-primary/20 active:scale-95">
+                  <Shuffle size={16} /> Shuffle All
+                </motion.button>
+              </div>
+
             </div>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function MusicPage() {
           </div>
           {featLoad ? (
             <div className="flex gap-4 overflow-hidden">
-              {[...Array(4)].map((_,i) => (
+              {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex-shrink-0 w-40 md:w-48 h-40 md:h-48 rounded-2xl animate-pulse bg-surface-container-low" />
               ))}
             </div>
@@ -295,7 +295,7 @@ export default function MusicPage() {
 
         {loading && !search.trim() ? (
           <div className="flex items-center justify-center py-20 md:py-24">
-            <Loader2 size={32} md:size={36} className="animate-spin text-primary/30" />
+            <Loader2 size={36} className="animate-spin text-primary/30" />
           </div>
         ) : displayTracks.length > 0 ? (
           <div className="flex flex-col gap-0.5 md:gap-1">
@@ -309,7 +309,7 @@ export default function MusicPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 md:py-24 text-center">
-            <Music2 size={40} md:size={48} className="mb-4 text-on-surface-variant/20" />
+            <Music2 size={48} className="mb-4 text-on-surface-variant/20" />
             <p className="text-on-surface-variant/50 text-base md:text-lg font-semibold">
               {search.trim() ? "No results found." : "No tracks available."}
             </p>
@@ -338,8 +338,8 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
           : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}22, ${color}44)` }}>
-              <Music2 size={48} className="text-white/80" />
-            </div>
+            <Music2 size={48} className="text-white/80" />
+          </div>
         }
         {/* play overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-[2px]">
@@ -379,22 +379,22 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
       <div className="w-6 md:w-8 text-center flex-shrink-0">
         {isPlaying
           ? <div className="flex items-end justify-center gap-0.5 h-3 md:h-4">
-              {[1,2,3].map(b=>(
-                <motion.div key={b} className="w-1 rounded-full"
-                  style={{ background: color }}
-                  animate={{ height:["4px","14px","6px","12px","4px"] }}
-                  transition={{ duration:0.8+b*0.2, repeat:Infinity, ease:"easeInOut", delay:b*0.15 }} />
-              ))}
-            </div>
+            {[1, 2, 3].map(b => (
+              <motion.div key={b} className="w-1 rounded-full"
+                style={{ background: color }}
+                animate={{ height: ["4px", "14px", "6px", "12px", "4px"] }}
+                transition={{ duration: 0.8 + b * 0.2, repeat: Infinity, ease: "easeInOut", delay: b * 0.15 }} />
+            ))}
+          </div>
           : <span className="text-[10px] md:text-xs text-on-surface-variant/40 font-mono">{index + 1}</span>}
       </div>
 
       {/* thumbnail */}
       <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm"
-        style={{ background:`${color}15` }}>
+        style={{ background: `${color}15` }}>
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
-          : <Music2 size={18} md:size={20} className="text-on-surface-variant/30" />}
+          : <Music2 size={20} className="text-on-surface-variant/30" />}
       </div>
 
       {/* info */}
@@ -407,14 +407,14 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={e => { e.stopPropagation(); onToggleLike(); }}
           className="p-1.5 md:p-2 rounded-full hover:bg-black/5 transition-colors">
-          <Heart size={14} md:size={15} fill={isLiked?"#ef4444":"none"} className={isLiked?"text-red-500":"text-on-surface-variant/30"} />
+          <Heart size={15} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-on-surface-variant/30"} />
         </button>
       </div>
 
       {/* duration */}
       {track.duration && (
         <span className="text-[10px] md:text-xs text-on-surface-variant/30 font-mono flex-shrink-0 ml-1">
-          {Math.floor(track.duration/60)}:{String(track.duration%60).padStart(2,"0")}
+          {Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, "0")}
         </span>
       )}
     </motion.div>
