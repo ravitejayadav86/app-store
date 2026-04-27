@@ -244,73 +244,30 @@ function UploadFormContent() {
       toast.error("Please upload a file or provide a link.");
       return;
     }
-    
     setLoading(true);
     setUploadProgress(0);
-
     try {
-      // Parallel Direct Uploads to Cloudinary (Consumes more bandwidth for speed)
-      const uploadTasks: Promise<any>[] = [];
-      let mainFileUrl = metadata.external_url;
-      let iconUrl = "";
-      let screenshotUrls: string[] = [];
-
-      // 1. Icon Task
-      if (iconFile) {
-        uploadTasks.push(
-          uploadToCloudinary(iconFile, "pandastore/icons")
-            .then(url => { iconUrl = url; })
-        );
-      }
-
-      // 2. Screenshots Tasks (Parallel)
-      screenshots.forEach((s, i) => {
-        uploadTasks.push(
-          uploadToCloudinary(s, `pandastore/screenshots/${appId}`)
-            .then(url => { screenshotUrls[i] = url; })
-        );
+      const formData = new FormData();
+      if (file) formData.append("file", file);
+      if (iconFile) formData.append("icon", iconFile);
+      screenshots.forEach((s) => formData.append("screenshots", s));
+      if (metadata.external_url && !file) formData.append("external_url", metadata.external_url);
+      await api.post(/apps//upload, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e: any) => {
+          if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
+        }
       });
-
-      // 3. Main File Task (Direct to backend to support large files)
-      if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const fileUploadPromise = api.post(`/apps/${appId}/upload`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (e) => {
-            if (e.total) {
-              setUploadProgress(Math.round((e.loaded * 100) / e.total));
-            }
-          }
-        }).then(res => {
-          if (res.data?.file_path) {
-            mainFileUrl = res.data.file_path;
-          }
-        });
-        uploadTasks.push(fileUploadPromise);
-      }
-
-      // Wait for all uploads to complete
-      await Promise.all(uploadTasks);
-
-      // Finalize with backend
-      const payload: any = {};
-      if (mainFileUrl) payload.file_path = mainFileUrl;
-      if (iconUrl) payload.icon_url = iconUrl;
-      if (screenshotUrls.length > 0) payload.screenshot_urls = JSON.stringify(screenshotUrls.filter(Boolean));
-
-      await api.post(`/apps/${appId}/upload`, payload);
-
-      toast.success("Application is now live!");
+      toast.success("Application submitted for review!");
       setStep(3);
     } catch (err: any) {
       console.error("Upload error:", err);
-      toast.error(err.response?.data?.detail || "High-speed upload failed. Your connection might have reset.");
+      toast.error(err.response?.data?.detail || "Submission failed. Please try again.");
     } finally {
       setLoading(false);
       setUploadProgress(0);
     }
-  };
+  };;
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
