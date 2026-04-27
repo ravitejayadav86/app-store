@@ -9,6 +9,7 @@ import { MobileSearch } from "@/components/ui/MobileSearch";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "@/lib/api";
 
 // Spring presets tuned for 120 Hz — settle in < 250 ms, no bounce
 const SPRING_NAV    = { type: "spring", stiffness: 500, damping: 36, mass: 0.6 } as const;

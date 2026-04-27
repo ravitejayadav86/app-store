@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Search, X, Clock, TrendingUp, ChevronRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "@/lib/api";
 
 /* ── Animation presets (120 Hz-ready) ─────────────────────────────────── */
 const SPRING_EXPAND = { type: "spring", stiffness: 480, damping: 36, mass: 0.5 } as const;
