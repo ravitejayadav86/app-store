@@ -149,7 +149,7 @@ export function MusicPlayer({ queue, initialIndex = 0, onClose }: Props) {
   useEffect(() => {
     const audio = new Audio();
     audio.volume = 0.8;
-    audio.crossOrigin = "anonymous";
+    // Removed crossOrigin to prevent CORS playback blocks on external URLs
     audioRef.current = audio;
     return () => {
       audio.pause();

@@ -146,53 +146,68 @@ export default function MusicPage() {
   }, [genre]);
 
   /* ── Search ───────────────────────────────────────────── */
-  const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setSearchRes([]); return; }
-    setSearching(true);
+  useEffect(() => {
+    const q = search.trim();
+    if (!q) {
+      setSearchRes([]);
+      setSearching(false);
+      return;
+    }
 
-    // 1) Build local corpus: Telugu movies + own tracks
-    const allLocalTracks: Track[] = [
-      ...TELUGU_MOVIES.flatMap(m => m.tracks.map(t => ({ ...t, artist: t.artist || m.title }))),
+    // 1) Build local corpus with album mapped to movie title
+    const allLocalTracks: any[] = [
+      ...TELUGU_MOVIES.flatMap(m => m.tracks.map(t => ({
+        ...t,
+        artist: t.artist || m.title,
+        album: m.title
+      }))),
       ...ownTracks,
     ];
 
-    // 2) Fuzzy-search local tracks instantly (no network needed)
+    // 2) Instant local search
     const localHits = fuzzySearch(
       allLocalTracks.map(t => ({ ...t, name: t.title, artist_name: t.artist })),
       q,
-      8
+      12
     ).map(t => ({ ...t, title: t.name ?? t.title } as Track));
 
-    // 3) Search Jamendo API in parallel
-    const [jamendoByName, jamendoByTag] = await Promise.all([
-      fetchJamendo("/tracks", { namesearch: q.trim(), limit: "10" }),
-      fetchJamendo("/tracks", { search: q.trim(),     limit: "10", order: "popularity_week" }),
-    ]);
+    // Show local hits immediately so it feels snappy
+    setSearchRes(localHits);
+    setSearching(true);
 
-    // Merge Jamendo results, deduplicate by id
-    const seen = new Set<string>();
-    const jamendoTracks: Track[] = [];
-    for (const t of [...jamendoByName, ...jamendoByTag]) {
-      if (!seen.has(t.id)) {
-        seen.add(t.id);
-        jamendoTracks.push(jamendoToTrack(t));
+    // 3) Debounce the slow Jamendo API fetch by 300ms
+    const t = setTimeout(async () => {
+      try {
+        const [jamendoByName, jamendoByTag] = await Promise.all([
+          fetchJamendo("/tracks", { namesearch: q, limit: "10" }),
+          fetchJamendo("/tracks", { search: q, limit: "10", order: "popularity_week" }),
+        ]);
+
+        const seen = new Set<string>();
+        const jamendoTracks: Track[] = [];
+        for (const t of [...jamendoByName, ...jamendoByTag]) {
+          if (!seen.has(t.id)) {
+            seen.add(t.id);
+            jamendoTracks.push(jamendoToTrack(t));
+          }
+        }
+
+        // Merge: local results first, then Jamendo
+        const allResults: Track[] = [
+          ...localHits,
+          ...jamendoTracks.filter(jt => !localHits.some(lh => lh.id === jt.id)),
+        ].slice(0, 20);
+
+        setSearchRes(allResults);
+      } catch (e) {
+        console.error("Jamendo search failed", e);
+      } finally {
+        setSearching(false);
       }
-    }
+    }, 300);
 
-    // 4) Merge: local results first (most relevant), then Jamendo
-    const allResults: Track[] = [
-      ...localHits,
-      ...jamendoTracks.filter(jt => !localHits.some(lh => lh.id === jt.id)),
-    ].slice(0, 20);
-
-    setSearchRes(allResults);
-    setSearching(false);
-  }, [ownTracks]);
-
-  useEffect(() => {
-    const t = setTimeout(() => doSearch(search), 300);
     return () => clearTimeout(t);
-  }, [search, doSearch]);
+  }, [search, ownTracks]);
 
   /* ── Play helpers ─────────────────────────────────────────────── */
   const playFrom = (list: Track[], index: number) => {

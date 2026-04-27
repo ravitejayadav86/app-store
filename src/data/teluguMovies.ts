@@ -191,15 +191,14 @@ export const TELUGU_MOVIES: MovieAlbum[] = [
     id: "tillu",
     title: "Tillu Square",
     composer: "Ram Miriyala",
-    // TMDB CDN — no hotlink restrictions
-    coverUrl: "https://image.tmdb.org/t/p/w500/dQe4gnqOAhLisa4tgOdrwD3SDQY.jpg",
+    coverUrl: "/movies/tillu.jpg",
     tracks: [
       {
         id: "tillu_1",
         title: "Ticket Eh Konkunda",
         artist: "Ram Miriyala",
         audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        coverUrl: "https://image.tmdb.org/t/p/w500/dQe4gnqOAhLisa4tgOdrwD3SDQY.jpg",
+        coverUrl: "/movies/tillu.jpg",
         color: "#8b5cf6",
       },
       {
@@ -207,7 +206,7 @@ export const TELUGU_MOVIES: MovieAlbum[] = [
         title: "Radhika",
         artist: "Ram Miriyala",
         audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-        coverUrl: "https://image.tmdb.org/t/p/w500/dQe4gnqOAhLisa4tgOdrwD3SDQY.jpg",
+        coverUrl: "/movies/tillu.jpg",
         color: "#8b5cf6",
       },
     ],
@@ -216,15 +215,14 @@ export const TELUGU_MOVIES: MovieAlbum[] = [
     id: "gamechanger",
     title: "Game Changer",
     composer: "Thaman S",
-    // TMDB CDN — no hotlink restrictions
-    coverUrl: "https://image.tmdb.org/t/p/w500/gOHJBBEiYgBTCRCXJWEtmCTBBlT.jpg",
+    coverUrl: "/movies/gamechanger.jpg",
     tracks: [
       {
         id: "gc_1",
         title: "Jaragandi",
         artist: "Daler Mehndi, Sunidhi Chauhan",
         audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-        coverUrl: "https://image.tmdb.org/t/p/w500/gOHJBBEiYgBTCRCXJWEtmCTBBlT.jpg",
+        coverUrl: "/movies/gamechanger.jpg",
         color: "#059669",
       },
       {
@@ -232,7 +230,7 @@ export const TELUGU_MOVIES: MovieAlbum[] = [
         title: "Raa Macha Macha",
         artist: "Nakash Aziz",
         audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-        coverUrl: "https://image.tmdb.org/t/p/w500/gOHJBBEiYgBTCRCXJWEtmCTBBlT.jpg",
+        coverUrl: "/movies/gamechanger.jpg",
         color: "#059669",
       },
     ],

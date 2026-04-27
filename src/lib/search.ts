@@ -96,6 +96,7 @@ function scoreToken(field: string, token: string): number {
 const FIELD_WEIGHTS: Record<string, number> = {
   name:        1.0,
   title:       1.0,
+  album:       0.9,
   category:    0.7,
   developer:   0.6,
   artist_name: 0.6,
