@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Music2, Headphones, Loader2, Play, Search,
-  Flame, Radio, Heart, Disc3,
+  Flame, Radio, Heart, Disc3, Shuffle,
 } from "lucide-react";
 import { MusicPlayer, Track } from "@/components/ui/MusicPlayer";
 import api from "@/lib/api";
@@ -94,6 +94,25 @@ export default function MusicPage() {
   const [search,     setSearch]     = useState("");
   const [searchRes,  setSearchRes]  = useState<Track[]>([]);
   const [searching,  setSearching]  = useState(false);
+  const [liked,      setLiked]      = useState<Set<number | string>>(new Set());
+
+  /* ── Persistence for Likes ────────────────────────────────────── */
+  useEffect(() => {
+    const saved = localStorage.getItem("pandas_liked_tracks");
+    if (saved) {
+      try { setLiked(new Set(JSON.parse(saved))); } catch (e) { console.error(e); }
+    }
+  }, []);
+
+  const toggleLike = useCallback((id: number | string) => {
+    setLiked(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      localStorage.setItem("pandas_liked_tracks", JSON.stringify(Array.from(next)));
+      return next;
+    });
+  }, []);
 
   /* ── Featured (popular tracks) ────────────────────────────────── */
   useEffect(() => {
@@ -170,14 +189,22 @@ export default function MusicPage() {
               <motion.p {...FADE_UP(2)} className="text-white/50 md:text-lg mb-6 max-w-md">
                 Stream millions of tracks free. Play, skip, repeat — download anytime.
               </motion.p>
-              {/* featured quick-play */}
-              {!featLoad && featured.length > 0 && (
-                <motion.button {...FADE_UP(3)}
-                  onClick={() => playFrom(featured, 0)}
-                  className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95"
-                  style={{ background: "linear-gradient(120deg,#e91e63,#9c27b0)" }}>
-                  <Play size={18} fill="white" /> Play Top Tracks
-                </motion.button>
+                <div className="flex flex-wrap gap-4">
+                  <motion.button {...FADE_UP(3)}
+                    onClick={() => playFrom(featured, 0)}
+                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-pink-500/20"
+                    style={{ background: "linear-gradient(120deg,#e91e63,#9c27b0)" }}>
+                    <Play size={18} fill="white" /> Play Top Tracks
+                  </motion.button>
+                  <motion.button {...FADE_UP(4)}
+                    onClick={() => {
+                      const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
+                      playFrom(shuffled, 0);
+                    }}
+                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white bg-white/10 backdrop-blur-md border border-white/10 transition-all hover:bg-white/20 active:scale-95">
+                    <Shuffle size={18} /> Shuffle All
+                  </motion.button>
+                </div>
               )}
             </div>
           </div>
@@ -275,7 +302,9 @@ export default function MusicPage() {
             {displayTracks.map((t, i) => (
               <TrackRow key={t.id} track={t} index={i}
                 onClick={() => playFrom(displayTracks, i)}
-                isPlaying={playerOpen && queue[queueIdx]?.id === t.id} />
+                isPlaying={playerOpen && queue[queueIdx]?.id === t.id}
+                isLiked={liked.has(t.id)}
+                onToggleLike={() => toggleLike(t.id)} />
             ))}
           </div>
         ) : (
@@ -326,11 +355,11 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
 }
 
 /* ── Track row ──────────────────────────────────────────────────────────── */
-function TrackRow({ track, index, onClick, isPlaying }: {
+function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
   track: Track; index: number; onClick: () => void; isPlaying: boolean;
+  isLiked: boolean; onToggleLike: () => void;
 }) {
   const color = trackColor(track, index);
-  const [liked, setLiked] = useState(false);
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
@@ -370,9 +399,9 @@ function TrackRow({ track, index, onClick, isPlaying }: {
 
       {/* actions */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={e => { e.stopPropagation(); setLiked(l=>!l); }}
+        <button onClick={e => { e.stopPropagation(); onToggleLike(); }}
           className="p-2 rounded-full hover:bg-white/10 transition-colors">
-          <Heart size={15} fill={liked?"#e91e63":"none"} className={liked?"text-pink-500":"text-white/30"} />
+          <Heart size={15} fill={isLiked?"#e91e63":"none"} className={isLiked?"text-pink-500":"text-white/30"} />
         </button>
       </div>
 

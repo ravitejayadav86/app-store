@@ -50,8 +50,42 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
   const [repeat, setRepeat]   = useState(false);
   const [liked, setLiked]     = useState<Set<number | string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const track = queue[idx];
+
+  /* ── Keyboard shortcuts ────────────────────────────────────── */
+  useEffect(() => {
+    const handleKeys = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
+      switch (e.code) {
+        case "Space":      e.preventDefault(); togglePlay(); break;
+        case "ArrowRight": nextTrack(); break;
+        case "ArrowLeft":  prevTrack(); break;
+      }
+    };
+    window.addEventListener("keydown", handleKeys);
+    return () => window.removeEventListener("keydown", handleKeys);
+  }, [togglePlay, nextTrack, prevTrack]);
+
+  /* ── Sync with prop changes ─────────────────────────────────── */
+  useEffect(() => {
+    setIdx(initialIndex);
+  }, [initialIndex]);
+
+  /* ── Persistence ────────────────────────────────────────────── */
+  useEffect(() => {
+    const saved = localStorage.getItem("pandas_liked_tracks");
+    if (saved) {
+      try { setLiked(new Set(JSON.parse(saved))); } catch (e) { console.error(e); }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (liked.size > 0 || localStorage.getItem("pandas_liked_tracks")) {
+      localStorage.setItem("pandas_liked_tracks", JSON.stringify(Array.from(liked)));
+    }
+  }, [liked]);
 
   /* ── audio wiring ────────────────────────────────────────────── */
   useEffect(() => {
@@ -65,7 +99,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
     audio.load();
     audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx]);
+  }, [idx, track?.audioUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -87,7 +121,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
       audio.removeEventListener("waiting",        onWait);
       audio.removeEventListener("canplay",        onPlay2);
     };
-  }, [repeat]);
+  }, [repeat, nextTrack]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
@@ -122,12 +156,20 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
   };
 
   const handleDownload = async () => {
-    const url = track.downloadUrl || track.audioUrl;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${track.title} - ${track.artist}.mp3`;
-    a.target = "_blank";
-    a.click();
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const url = track.downloadUrl || track.audioUrl;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${track.title} - ${track.artist}.mp3`;
+      a.target = "_blank";
+      a.click();
+      // Reset after a short delay
+      setTimeout(() => setDownloading(false), 2000);
+    } catch {
+      setDownloading(false);
+    }
   };
 
   const accent = track?.color || COLORS[Number(track?.id ?? 0) % COLORS.length];
@@ -232,7 +274,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
             </div>
 
             {/* volume + download */}
-            <div className="px-8 pb-10 flex items-center gap-4">
+            <div className="px-8 pb-8 flex items-center gap-4">
               <button onClick={() => setMuted(m => !m)} className="text-white/40 hover:text-white transition-colors">
                 {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
@@ -240,9 +282,36 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
                 onChange={e => { setVolume(Number(e.target.value)); setMuted(false); }}
                 className="flex-1 h-1 accent-white cursor-pointer" />
               <button onClick={handleDownload}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-white/10 hover:bg-white/20 transition-colors">
-                <Download size={14} /> Download
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+                disabled={downloading}>
+                {downloading ? <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />}
+                {downloading ? "Saving..." : "Download"}
               </button>
+            </div>
+
+            {/* Up Next / Queue */}
+            <div className="flex-1 px-8 overflow-y-auto no-scrollbar pb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-white/30">Up Next</h3>
+                <span className="text-[10px] text-white/20 font-mono">{queue.length - idx - 1} tracks left</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {queue.slice(idx + 1, idx + 6).map((t, i) => (
+                  <button key={t.id} onClick={() => setIdx(idx + i + 1)}
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors text-left group">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
+                      {t.coverUrl ? <img src={t.coverUrl} alt={t.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /> : <Music2 size={16} className="m-auto text-white/20" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white/60 group-hover:text-white transition-colors truncate">{t.title}</p>
+                      <p className="text-xs text-white/30 truncate">{t.artist}</p>
+                    </div>
+                  </button>
+                ))}
+                {queue.length <= idx + 1 && (
+                  <p className="text-xs text-white/20 italic py-4">End of queue</p>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -290,8 +359,8 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
               <button onClick={nextTrack} className="p-1.5 text-white/70 hover:text-white">
                 <SkipForward size={18} />
               </button>
-              <button onClick={handleDownload} className="p-1.5 text-white/70 hover:text-white">
-                <Download size={16} />
+              <button onClick={handleDownload} className="p-1.5 text-white/70 hover:text-white disabled:opacity-50" disabled={downloading}>
+                {downloading ? <div className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={16} />}
               </button>
             </div>
           </div>
