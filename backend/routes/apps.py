@@ -18,6 +18,7 @@ def get_my_apps(db: Session = Depends(get_db), current_user: models.User = Depen
 
 @router.post("/submit", response_model=schemas.AppOut, status_code=201)
 def submit_app(app: schemas.AppCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    print(f"DEBUG: Submit app request received from {current_user.username}: {app.name}")
     db_app = models.App(**app.dict(), developer=current_user.username)
     db.add(db_app)
     db.commit()
@@ -34,6 +35,7 @@ async def upload_file_route(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    print(f"DEBUG: Upload request for app {app_id} by {current_user.username}")
     app = db.query(models.App).filter(models.App.id == app_id, models.App.developer == current_user.username).first()
     if not app:
         raise HTTPException(404, "App not found")

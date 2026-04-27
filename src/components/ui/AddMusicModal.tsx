@@ -102,8 +102,9 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
       setFile(null);
       setCoverUrl(null);
     } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.detail || "Upload failed. Make sure you are logged in.");
+      console.error("Upload error:", error);
+      const message = error.response?.data?.detail || error.message || "Upload failed. Please try again.";
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }
