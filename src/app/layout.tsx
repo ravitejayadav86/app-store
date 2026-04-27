@@ -7,6 +7,8 @@ import { UILayoutWrapper } from "@/components/layout/UILayoutWrapper";
 import { Toaster } from "sonner";
 import Providers from "@/components/Providers";
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -81,22 +83,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preload" href="/main-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <script src="/main.js" defer></script>
         <script src="/analytics.js" async></script>
+        {/* Anti-FOUC theme script */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            const theme = localStorage.getItem('pandas_theme') || 'system';
+            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) document.documentElement.classList.add('dark');
+          } catch (e) {}
+        `}} />
       </head>
-      <body className="min-h-screen flex flex-col bg-surface overflow-x-hidden" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-surface transition-colors duration-300 overflow-x-hidden" suppressHydrationWarning>
         <Providers>
-          <UILayoutWrapper>
-            {children}
-          </UILayoutWrapper>
-          <Footer />
-
-          <Toaster position="bottom-right" theme="dark" richColors />
+          <ThemeProvider>
+            <UILayoutWrapper>
+              {children}
+            </UILayoutWrapper>
+            <Footer />
+            <Toaster position="bottom-right" theme="dark" richColors />
+          </ThemeProvider>
         </Providers>
       </body>
     </html>

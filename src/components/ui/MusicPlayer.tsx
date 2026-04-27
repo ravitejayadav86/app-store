@@ -193,7 +193,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
             transition={SPRING}
             className="fixed inset-0 z-[300] flex flex-col"
             style={{
-              background: `linear-gradient(160deg, #f8faff 0%, #ffffff 100%)`,
+              background: "var(--hero-gradient, linear-gradient(160deg, #f8faff 0%, #ffffff 100%))",
               willChange: "transform",
             }}
           >
@@ -218,7 +218,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
               <motion.div
                 animate={{ scale: playing ? 1 : 0.88, rotate: playing ? 360 : 0 }}
                 transition={{ scale: { duration: 0.4 }, rotate: { duration: 25, repeat: Infinity, ease: "linear" } }}
-                className="w-64 h-64 md:w-72 md:h-72 rounded-full shadow-2xl overflow-hidden border-4 border-white/80 flex items-center justify-center relative z-10"
+                className="w-64 h-64 md:w-72 md:h-72 rounded-full shadow-2xl overflow-hidden border-4 border-surface/80 flex items-center justify-center relative z-10"
                 style={{ background: `radial-gradient(circle at 35% 35%, ${accent}, ${accent}dd)` }}
               >
                 {track.coverUrl
@@ -308,8 +308,8 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
               <div className="flex flex-col gap-2">
                 {queue.slice(idx + 1, idx + 6).map((t, i) => (
                   <button key={t.id} onClick={() => setIdx(idx + i + 1)}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 transition-colors text-left group">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0 border border-black/5">
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-on-surface/5 transition-colors text-left group">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0 border border-outline-variant/10">
                       {t.coverUrl ? <img src={t.coverUrl} alt={t.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" /> : <Music2 size={16} className="m-auto text-on-surface-variant/20" />}
                     </div>
                     <div className="min-w-0">
@@ -336,9 +336,9 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({ queue, initialIndex = 
           className="fixed bottom-[72px] md:bottom-4 left-2 right-2 md:left-auto md:right-4 md:w-[380px] z-[150]"
           style={{ willChange: "transform" }}
         >
-          <div className="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/60 bg-white/80 backdrop-blur-xl">
+          <div className="rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-outline-variant/30 bg-surface/80 backdrop-blur-xl">
             {/* progress strip */}
-            <div className="h-0.5 bg-black/5">
+            <div className="h-0.5 bg-on-surface/5">
               <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5">

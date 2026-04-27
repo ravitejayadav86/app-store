@@ -21,6 +21,8 @@
   --background: var(--surface);
   --foreground:  var(--on-surface);
 
+  --hero-gradient: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
+
   --radius-xl:   1.5rem;
   --radius-pill: 9999px;
 
@@ -42,6 +44,31 @@
   --glass-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.8),
                         inset 0 -1px 0 rgba(0, 0, 0, 0.03);
   --glass-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ── Dark Mode (AMOLED Black) ─────────────────────────────────────────── */
+.dark {
+  --primary:            #6c9fff;
+  --primary-dim:        #4082ff;
+  --primary-container:  #0058bb;
+  --on-primary:         #ffffff;
+
+  --surface:                  #000000; /* Pure black for AMOLED */
+  --surface-container-low:    #0a0a0a;
+  --surface-container-lowest: #121212;
+  --on-surface:               #f0f2ff;
+  --on-surface-variant:       #adacb2;
+
+  --hero-gradient: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
+
+  --outline-variant: rgba(255, 255, 255, 0.1);
+
+  --glass-bg:           rgba(0, 0, 0, 0.72);
+  --glass-border:       rgba(255, 255, 255, 0.12);
+  --glass-border-inner: rgba(255, 255, 255, 0.08);
+  --glass-shadow-outer: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --glass-shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* ── 120 Hz optimizations ─────────────────────────────────────────────────
@@ -115,6 +142,15 @@ body {
   -webkit-touch-callout: none;
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
+  transition: background-color var(--dur-slow) var(--ease-in-out);
+}
+
+.dark body {
+  background:
+    radial-gradient(ellipse at 20% -10%, rgba(0, 88, 187, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 110%, rgba(79, 70, 229, 0.12) 0%, transparent 50%),
+    #000000;
+  background-attachment: fixed;
 }
 
 @keyframes meshGradient {
@@ -179,7 +215,8 @@ nav[class*="fixed"],
   transition:
     opacity   var(--dur-normal) var(--ease-out),
     transform var(--dur-normal) var(--ease-out),
-    box-shadow 300ms var(--ease-out);
+    box-shadow 300ms var(--ease-out),
+    background-color var(--dur-normal) var(--ease-out);
 
   /* Own compositor layer */
   transform: translateZ(0);
@@ -196,6 +233,13 @@ nav[class*="fixed"],
   transform: translateY(-1px) translateZ(0);
 }
 
+.dark .liquid-glass:hover {
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.7),
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    var(--glass-shadow-inner);
+}
+
 /* ── Simple glass (notification panel, dropdowns) ─────────────────────── */
 .glass {
   background:              rgba(255, 255, 255, 0.50);
@@ -204,6 +248,14 @@ nav[class*="fixed"],
   border:                  1px solid rgba(255, 255, 255, 0.65);
   box-shadow:              0 4px 24px rgba(0, 0, 0, 0.06),
                            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: background-color var(--dur-normal), border-color var(--dur-normal);
+}
+
+.dark .glass {
+  background:              rgba(0, 0, 0, 0.55);
+  border:                  1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:              0 8px 32px rgba(0, 0, 0, 0.5),
+                           inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* ── Bottom nav — edge-to-edge glass strip ────────────────────────────── */
@@ -221,6 +273,21 @@ nav[class*="fixed"],
     0 -8px 32px rgba(0, 0, 0, 0.07),
     0 -1px 0   rgba(0, 88, 187, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.60);
+  transition: background var(--dur-normal);
+}
+
+.dark .bottom-nav-glass {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0.92) 100%
+    );
+  border-top:    1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 -8px 48px rgba(0, 0, 0, 0.6),
+    0 -1px 0   rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 /* ── Hint pill ────────────────────────────────────────────────────────── */

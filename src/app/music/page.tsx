@@ -170,8 +170,8 @@ export default function MusicPage() {
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-3 md:px-8 pt-4 md:pt-6 pb-6 md:pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5"
-            style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%)", border: "1px solid rgba(0, 88, 187, 0.08)" }}>
+          <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5 border border-outline-variant/30"
+            style={{ background: "var(--hero-gradient, linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%))" }}>
             {/* animated blobs */}
             {[["#6c9fff", "top-[-80px] left-[-80px]"], ["#3f51b5", "bottom-[-60px] right-[-60px]"], ["#9c27b0", "top-[40%] left-[40%]"]].map(([c, pos], i) => (
               <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-10 ${pos}`}
@@ -332,7 +332,7 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
   const color = trackColor(track, index);
   return (
     <motion.button onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.97 }}
-      className="flex-shrink-0 w-40 md:w-52 rounded-2xl md:rounded-[1.5rem] overflow-hidden text-left relative group bg-white shadow-sm hover:shadow-md transition-all border border-black/5"
+      className="flex-shrink-0 w-40 md:w-52 rounded-2xl md:rounded-[1.5rem] overflow-hidden text-left relative group bg-surface-lowest shadow-sm hover:shadow-md transition-all border border-outline-variant/20"
       style={{ isolation: "isolate" }}>
       <div className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-low relative">
         {track.coverUrl
@@ -348,7 +348,7 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
           </div>
         </div>
       </div>
-      <div className="p-3 md:p-4 bg-white">
+      <div className="p-3 md:p-4 bg-surface-lowest">
         <p className="text-xs md:text-sm font-bold text-on-surface truncate">{track.title}</p>
         <p className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{track.artist}</p>
       </div>

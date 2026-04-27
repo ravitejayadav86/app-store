@@ -15,6 +15,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface Profile {
   id: number;
@@ -90,6 +91,7 @@ function SelectRow({ icon, label, description, options, value, onChange, id }: {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { theme: currentTheme, setTheme } = useTheme();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -108,7 +110,6 @@ export default function SettingsPage() {
     biometric: false,
     safeBrowsing: true,
     dataSharing: false,
-    theme: "System Default",
     videoAutoplay: "Wi-Fi only",
     language: "English",
   });
@@ -319,6 +320,31 @@ export default function SettingsPage() {
           <SettingRow id="row-biometric" icon={<Lock size={15} />} label="Biometric Authentication" description="Require fingerprint/FaceID for purchases" right={(label) => <Toggle id="setting-biometric" label={label} checked={settings.biometric} onChange={v => update("biometric", v)} />} />
           <SettingRow id="row-safe-browsing" icon={<Eye size={15} />} label="Safe Browsing" description="Filter unverified or experimental uploads" right={(label) => <Toggle id="setting-safe-browsing" label={label} checked={settings.safeBrowsing} onChange={v => update("safeBrowsing", v)} />} />
           <SettingRow id="row-data-sharing" icon={<Shield size={15} />} label="Data Sharing" description="Share usage analytics with developers" right={(label) => <Toggle id="setting-data-sharing" label={label} checked={settings.dataSharing} onChange={v => update("dataSharing", v)} />} />
+        </>
+      )
+    },
+    {
+      title: "Display & Theme",
+      icon: <Monitor size={16} />,
+      color: "from-cyan-500 to-blue-600",
+      rows: (
+        <>
+          <SelectRow 
+            id="setting-theme" 
+            icon={currentTheme === "dark" ? <Moon size={15} /> : <Sun size={15} />} 
+            label="App Theme" 
+            description="Switch between Light, Dark (AMOLED), and System modes" 
+            options={["Light", "Dark", "System"]} 
+            value={currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} 
+            onChange={v => setTheme(v.toLowerCase() as any)} 
+          />
+          {currentTheme === "dark" && (
+            <div className="px-12 py-2">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-green-500 uppercase tracking-widest bg-green-500/5 w-fit px-2 py-1 rounded">
+                <Sparkles size={10} /> AMOLED Black Active
+              </div>
+            </div>
+          )}
         </>
       )
     },
