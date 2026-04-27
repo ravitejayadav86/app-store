@@ -127,7 +127,7 @@ export default function DiscoverPage() {
                           </span>
                         </div>
                         <Button size="xs" variant={app.file_path ? "primary" : "secondary"} className="w-full md:w-auto h-7">
-                          {app.file_path ? "Get" : "View"}
+                          {app.category?.toLowerCase() === "music" ? "Play" : (app.file_path ? "Get" : "View")}
                         </Button>
                       </div>
                     </GlassCard>

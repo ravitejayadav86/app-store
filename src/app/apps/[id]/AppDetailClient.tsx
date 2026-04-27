@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import {
   ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2,
   Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info,
-  Sparkles, Database, Cloud, Briefcase, CloudUpload, X
+  Sparkles, Database, Cloud, Briefcase, CloudUpload, X, Play
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -357,6 +357,8 @@ function AppDetailContent({ id: propId }: { id?: string }) {
               <Loader2 className="animate-spin mr-3" size={22} />
             ) : !app.file_path ? (
               <Bell size={22} className="mr-3" />
+            ) : app.category?.toLowerCase() === "music" ? (
+              <Play size={22} className="mr-3 fill-current" />
             ) : (
               <Download size={22} className="mr-3" />
             )}
@@ -366,7 +368,7 @@ function AppDetailContent({ id: propId }: { id?: string }) {
                 : !app.file_path
                 ? "Notify When Available"
                 : app.price === 0
-                ? "Install"
+                ? (app.category?.toLowerCase() === "music" ? "Play" : "Install")
                 : `Buy for $${app.price}`}
             </span>
           </Button>
