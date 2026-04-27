@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCheck, MessageCircle, Users, ShieldCheck, Zap, Package, ArrowLeft } from "lucide-react";
+import { Bell, CheckCheck, MessageCircle, Users, ShieldCheck, Zap, Package, ArrowLeft, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -57,6 +57,11 @@ export default function NotificationsPage() {
     setUnread(p => Math.max(0, p - 1));
   };
 
+  const deleteNotification = async (id: number) => {
+    setNotifications(p => p.filter(n => n.id !== id));
+    await api.delete("/notifications/" + id).catch(() => {});
+  };
+
   const markAllRead = async () => {
     await api.post("/notifications/read-all").catch(() => {});
     setNotifications(p => p.map(n => ({ ...n, is_read: true })));
@@ -102,18 +107,41 @@ export default function NotificationsPage() {
           <p className="text-sm text-on-surface-variant">No notifications yet.</p>
         </GlassCard>
       ) : (
-        <div className="space-y-2">
-          <AnimatePresence initial={false}>
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout" initial={false}>
             {notifications.map((n, i) => (
               <motion.div
                 key={n.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03 }}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, x: -100, scale: 0.9, height: 0, marginBottom: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                className="relative overflow-hidden rounded-2xl"
               >
-                <button
+                {/* Background delete action */}
+                <div className="absolute inset-0 bg-red-500 flex items-center justify-end px-6">
+                  <motion.div 
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                  >
+                    <Trash2 className="text-white" size={20} />
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  drag="x"
+                  dragDirectionLock
+                  dragConstraints={{ left: -120, right: 0 }}
+                  dragElastic={{ left: 0.1, right: 0 }}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x < -70) {
+                      deleteNotification(n.id);
+                    }
+                  }}
+                  className={"relative z-10 w-full text-left flex items-start gap-4 p-4 rounded-2xl border transition-all hover:bg-surface-low cursor-grab active:cursor-grabbing " + (n.is_read ? "border-transparent opacity-60 bg-surface" : "border-primary/10 bg-primary/5")}
+                  style={{ touchAction: "none" }}
                   onClick={() => handleClick(n)}
-                  className={"w-full text-left flex items-start gap-4 p-4 rounded-2xl border transition-all hover:bg-surface-low " + (n.is_read ? "border-transparent opacity-60" : "border-primary/10 bg-primary/5")}
                 >
                   <div className="w-10 h-10 rounded-2xl bg-surface-low border border-outline-variant/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     {notifIcon(n.title)}
@@ -123,10 +151,10 @@ export default function NotificationsPage() {
                       <p className="text-sm font-bold text-on-surface truncate">{n.title}</p>
                       <span className="text-[10px] text-on-surface-variant/50 flex-shrink-0">{timeAgo(n.created_at)}</span>
                     </div>
-                    <p className="text-xs text-on-surface-variant leading-relaxed">{n.message}</p>
+                    <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{n.message}</p>
                   </div>
                   {!n.is_read && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />}
-                </button>
+                </motion.div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -135,3 +163,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+
