@@ -98,6 +98,7 @@ export default function ProfileClient() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showActionPanel, setShowActionPanel] = useState(false);
+  const [isPfpZoomed, setIsPfpZoomed] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -243,7 +244,11 @@ export default function ProfileClient() {
 
         <div className="px-4 pt-4 flex items-center gap-6">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full border-2 border-primary p-0.5">
+            <motion.div 
+              layoutId="profile-image"
+              onClick={() => setIsPfpZoomed(true)}
+              className="w-20 h-20 rounded-full border-2 border-primary p-0.5 cursor-pointer active:scale-90 transition-transform"
+            >
               <div className="relative w-full h-full rounded-full bg-surface-low flex items-center justify-center text-primary font-black text-2xl overflow-hidden border border-surface">
                 {profile?.avatar_url ? (
                   <Image 
@@ -256,7 +261,7 @@ export default function ProfileClient() {
                   />
                 ) : profile?.username[0].toUpperCase()}
               </div>
-            </div>
+            </motion.div>
             <label className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full border-2 border-surface flex items-center justify-center text-white cursor-pointer shadow-lg">
               <Camera size={12} />
               <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
@@ -363,7 +368,11 @@ export default function ProfileClient() {
               
               <div className="relative flex flex-col md:flex-row items-center gap-12">
                 <div className="relative group">
-                  <div className="relative w-48 h-48 rounded-[2.5rem] bg-linear-to-br from-primary to-primary-container p-1 shadow-2xl shadow-primary/20 transition-transform hover:scale-105 overflow-hidden">
+                  <motion.div 
+                    layoutId="profile-image"
+                    onClick={() => setIsPfpZoomed(true)}
+                    className="relative w-48 h-48 rounded-[2.5rem] bg-linear-to-br from-primary to-primary-container p-1 shadow-2xl shadow-primary/20 transition-transform hover:scale-105 overflow-hidden cursor-pointer active:scale-95"
+                  >
                     <div className="relative w-full h-full rounded-[2.3rem] bg-surface flex items-center justify-center text-primary font-black text-6xl overflow-hidden border-4 border-surface shadow-inner">
                       {profile?.avatar_url ? (
                         <Image 
@@ -376,7 +385,7 @@ export default function ProfileClient() {
                         />
                       ) : profile?.username[0].toUpperCase()}
                     </div>
-                  </div>
+                  </motion.div>
                   <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-surface rounded-2xl shadow-xl flex items-center justify-center text-primary cursor-pointer border border-outline-variant hover:scale-110 active:scale-95 transition-all">
                     <Camera size={20} />
                     <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
@@ -772,6 +781,51 @@ export default function ProfileClient() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Profile Picture Zoom Overlay */}
+      <AnimatePresence>
+        {isPfpZoomed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-surface/95 backdrop-blur-3xl"
+            onDoubleClick={() => setIsPfpZoomed(false)}
+          >
+            <motion.div
+              layoutId="profile-image"
+              className="relative w-[85vw] aspect-square max-w-[450px] rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] border-8 border-surface cursor-pointer"
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+            >
+              {profile?.avatar_url ? (
+                <Image 
+                  src={profile.avatar_url} 
+                  alt="Profile Zoomed"
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="450px"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-surface-low text-primary text-9xl font-black">
+                  {profile?.username[0].toUpperCase()}
+                </div>
+              )}
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsPfpZoomed(false); }}
+                className="absolute top-6 right-6 p-4 rounded-full bg-black/5 hover:bg-black/10 text-on-surface-variant transition-colors"
+              >
+                <X size={24} />
+              </button>
+              
+              <div className="absolute bottom-10 inset-x-0 text-center pointer-events-none">
+                <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] opacity-40">Double tap to go back</p>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
