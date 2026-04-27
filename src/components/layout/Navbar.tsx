@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { MobileSearch } from "@/components/ui/MobileSearch";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,8 +19,9 @@ const FADE_FAST     = { duration: 0.12, ease: [0.16, 1, 0.3, 1] as const };
 export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     const { data: session } = useSession();
     const pathname = usePathname();
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen]             = useState(false);
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen]     = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
@@ -94,11 +96,20 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                             </div>
 
                             <div className="flex items-center gap-0 sm:gap-2">
-                                <button onClick={() => setSearchOpen(true)}
-                                    className="p-2.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors touch-manipulation"
+                                {/* Mobile search icon — opens overlay */}
+                                <button
+                                    onClick={() => setMobileSearchOpen(true)}
+                                    className="md:hidden p-2.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
                                     aria-label="Open search"
                                     style={{ touchAction: "manipulation" }}>
-                                    <Search size={20} className="w-5 h-5 md:w-[18px] md:h-[18px]" />
+                                    <Search size={20} className="w-5 h-5" />
+                                </button>
+                                {/* Desktop search icon — opens inline form */}
+                                <button onClick={() => setSearchOpen(true)}
+                                    className="hidden md:flex p-2.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/8 active:scale-90 transition-colors"
+                                    aria-label="Open search"
+                                    style={{ touchAction: "manipulation" }}>
+                                    <Search size={20} className="w-[18px] h-[18px]" />
                                 </button>
                                 {mounted && session && (
                                     <Link href="/messages"
@@ -208,6 +219,13 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                 </AnimatePresence>
                 </motion.nav>
             )}
+
+            {/* ── Mobile Search Overlay ─────────────────────────── */}
+            <AnimatePresence>
+                {mobileSearchOpen && (
+                    <MobileSearch onClose={() => setMobileSearchOpen(false)} />
+                )}
+            </AnimatePresence>
         </AnimatePresence>
     );
 };
