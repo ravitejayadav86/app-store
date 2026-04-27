@@ -36,6 +36,11 @@ api.interceptors.request.use(
       }
     }
 
+    // Invalidate cache on mutations (POST, PUT, DELETE, etc.)
+    if (config.method !== "get") {
+      cache.clear();
+    }
+
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
       if (token) {

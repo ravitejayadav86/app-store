@@ -69,6 +69,17 @@ export default function NotificationsPage() {
     }
   };
 
+  const deleteAllNotifications = async () => {
+    if (!window.confirm("Permanently clear all notifications?")) return;
+    setNotifications([]);
+    setUnread(0);
+    try {
+      await api.delete("/notifications/delete-all/");
+    } catch (error) {
+      console.error("Clear all failed:", error);
+    }
+  };
+
   const markAllRead = async () => {
     await api.post("/notifications/read-all").catch(() => {});
     setNotifications(p => p.map(n => ({ ...n, is_read: true })));
@@ -96,11 +107,18 @@ export default function NotificationsPage() {
             {unread > 0 && <p className="text-xs text-on-surface-variant">{unread} unread</p>}
           </div>
         </div>
-        {unread > 0 && (
-          <button onClick={markAllRead} className="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline px-3 py-2 rounded-xl hover:bg-primary/8 transition-colors">
-            <CheckCheck size={14} /> Mark all read
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {unread > 0 && (
+            <button onClick={markAllRead} className="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline px-3 py-2 rounded-xl hover:bg-primary/8 transition-colors">
+              <CheckCheck size={14} /> Mark all read
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button onClick={deleteAllNotifications} className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:underline px-3 py-2 rounded-xl hover:bg-red-500/8 transition-colors">
+              <Trash2 size={14} /> Clear all
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
