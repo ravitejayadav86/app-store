@@ -221,9 +221,6 @@ export default function ProfileClient() {
       >
         <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} aria-label="Go back" className="text-gray-900">
-              <ChevronLeft size={24} />
-            </button>
             <div className="relative w-7 h-7">
               <Image 
                 src="/paw-logo.png" 
