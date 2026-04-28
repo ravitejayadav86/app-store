@@ -1,21 +1,27 @@
 services:
   - type: web
-    name: app-store-backend
+    name: pandas-store-api
     env: docker
     plan: free
-    region: singapore # Using a region near India as requested by bombay context in vercel.json
+    region: singapore
     rootDir: backend
     envVars:
+      # ── Database (permanent) ───────────────────────────────────────────────
+      # Set this to your Neon / Supabase / any external PostgreSQL URL.
+      # Get a FREE permanent database at: https://neon.tech
+      # Format: postgresql://user:pass@host/dbname?sslmode=require
       - key: DATABASE_URL
-        fromDatabase:
-          name: app-store-db
-          property: connectionString
+        sync: false   # Set manually in Render dashboard → do not commit the actual URL
+
+      # ── Auth ──────────────────────────────────────────────────────────────
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "30"
+        value: "10080"   # 7 days
+
+      # ── Cloudinary (permanent file storage – music, apps, images) ─────────
       - key: CLOUDINARY_CLOUD_NAME
         value: deii8hxll
       - key: CLOUDINARY_API_KEY
@@ -23,7 +29,6 @@ services:
       - key: CLOUDINARY_API_SECRET
         value: hmjlrH1hSjKTOHQw4r5TElfdUNE
 
-databases:
-  - name: app-store-db
-    plan: free
-    region: singapore
+      # ── Redis (optional – for rate limiting) ──────────────────────────────
+      # - key: REDIS_URL
+      #   value: redis://localhost:6379/0
