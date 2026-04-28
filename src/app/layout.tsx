@@ -9,6 +9,7 @@ import Providers from "@/components/Providers";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { MusicProvider } from "@/lib/MusicContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -103,12 +104,14 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-surface transition-colors duration-300 overflow-x-hidden" suppressHydrationWarning>
         <Providers>
           <ThemeProvider>
-            <UILayoutWrapper>
-              {children}
-            </UILayoutWrapper>
-            <Footer />
-            <Toaster position="bottom-right" theme="dark" richColors />
-            <SpeedInsights />
+            <MusicProvider>
+              <UILayoutWrapper>
+                {children}
+              </UILayoutWrapper>
+              <Footer />
+              <Toaster position="bottom-right" theme="dark" richColors />
+              <SpeedInsights />
+            </MusicProvider>
           </ThemeProvider>
         </Providers>
       </body>

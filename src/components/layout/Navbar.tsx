@@ -6,6 +6,8 @@ import { Search, User, Menu, X, ShieldAlert, Settings, MessageCircle, LogOut, Mu
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { MobileSearch } from "@/components/ui/MobileSearch";
+import { DynamicIslandPlayer } from "@/components/ui/DynamicIslandPlayer";
+import { useMusicPlayer } from "@/lib/MusicContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +31,7 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
+    const { track } = useMusicPlayer();
 
     React.useEffect(() => { setMounted(true); }, []);
 
@@ -98,12 +101,25 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 transform-gpu"
                 >
                 <div className="liquid-glass w-full max-w-7xl flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2.5 border border-white/20 rounded-full md:rounded-[2rem]" style={{ isolation: "isolate" }}>
-                    <Link href="/" className="flex items-center gap-1.5 md:gap-2">
-                        <div className="relative w-8 h-8 md:w-10 md:h-10 overflow-hidden">
-                            <Image src="/paw-logo.png" alt="Panda Store Logo" fill className="object-contain" priority sizes="(max-width: 768px) 32px, 40px" />
-                        </div>
-                        <span className="font-inter font-bold text-lg md:text-xl tracking-tight text-on-surface">PandaStore</span>
-                    </Link>
+                    {/* Logo / Dynamic Island */}
+                    <div className="flex items-center">
+                      <AnimatePresence mode="wait">
+                        {track ? (
+                          <DynamicIslandPlayer key="island" />
+                        ) : (
+                          <motion.div key="brand"
+                            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.2 }}>
+                            <Link href="/" className="flex items-center gap-1.5 md:gap-2">
+                              <div className="relative w-8 h-8 md:w-10 md:h-10 overflow-hidden">
+                                <Image src="/paw-logo.png" alt="Panda Store Logo" fill className="object-contain" priority sizes="(max-width: 768px) 32px, 40px" />
+                              </div>
+                              <span className="font-inter font-bold text-lg md:text-xl tracking-tight text-on-surface">PandaStore</span>
+                            </Link>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
                     {searchOpen ? (
                         <div className="flex-1 mx-6 relative">

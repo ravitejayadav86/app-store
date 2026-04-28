@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Music2, Loader2, Play, Search,
@@ -11,6 +10,7 @@ import { Track } from "@/components/ui/MusicPlayer";
 import { TELUGU_MOVIES, MovieMeta } from "@/data/teluguMovies";
 import { AddMusicModal } from "@/components/ui/AddMusicModal";
 import { fuzzySearch } from "@/lib/search";
+import { useMusicPlayer } from "@/lib/MusicContext";
 import api from "@/lib/api";
 
 const JAMENDO_CLIENT = "b6747d04";
@@ -69,7 +69,7 @@ const ACCENT_COLORS = ["#e91e63","#9c27b0","#3f51b5","#0058bb","#00bcd4","#00968
 function trackColor(t: Track, i: number) { return t.color ?? ACCENT_COLORS[i % ACCENT_COLORS.length]; }
 
 export default function MusicPage() {
-  const router = useRouter();
+  const { play } = useMusicPlayer();
   const [genre, setGenre] = useState(GENRES[0].tag);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [featured, setFeatured] = useState<Track[]>([]);
@@ -170,12 +170,9 @@ export default function MusicPage() {
     return () => clearTimeout(timer);
   }, [search, ownTracks, movieSongs]);
 
-  const navigateToSong = (list: Track[], index: number) => {
-    try {
-      sessionStorage.setItem("pandas_song_page", JSON.stringify({ track: list[index], queue: list, queueIdx: index }));
-    } catch { }
-    router.push(`/music/${encodeURIComponent(String(list[index].id))}`);
-  };
+  const startPlay = useCallback((list: Track[], index: number) => {
+    play(list as any, index);
+  }, [play]);
 
   const displayTracks = search.trim() ? searchRes : tracks;
 
@@ -210,7 +207,7 @@ export default function MusicPage() {
               </motion.p>
               <div className="flex flex-wrap gap-3 md:gap-4">
                 <motion.button {...FADE_UP(3)}
-                  onClick={() => featured.length > 0 && navigateToSong(featured, 0)}
+                  onClick={() => featured.length > 0 && startPlay(featured, 0)}
                   className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
                   style={{ background: "linear-gradient(120deg,#0058bb,#3f51b5)" }}>
                   <Play size={16} fill="white" /> Play Top Tracks
@@ -219,7 +216,7 @@ export default function MusicPage() {
                   onClick={() => {
                     const src = displayTracks.length > 0 ? displayTracks : featured;
                     if (!src.length) return;
-                    navigateToSong([...src].sort(() => Math.random() - 0.5), 0);
+                    startPlay([...src].sort(() => Math.random() - 0.5), 0);
                   }}
                   className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-primary bg-primary/10 border border-primary/10 transition-all hover:bg-primary/20 active:scale-95">
                   <Shuffle size={16} /> Shuffle All
@@ -255,7 +252,7 @@ export default function MusicPage() {
             </div>
           ) : (
             <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
-              {featured.map((t, i) => <FeaturedCard key={`feat-${t.id}-${i}`} track={t} index={i} onClick={() => navigateToSong(featured, i)} />)}
+              {featured.map((t, i) => <FeaturedCard key={`feat-${t.id}-${i}`} track={t} index={i} onClick={() => startPlay(featured, i)} />)}
             </div>
           )}
         </section>
@@ -334,7 +331,7 @@ export default function MusicPage() {
           <div className="flex flex-col gap-0.5 md:gap-1">
             {displayTracks.map((t, i) => (
               <TrackRow key={`track-${t.id}-${i}`} track={t} index={i}
-                onClick={() => navigateToSong(displayTracks, i)}
+                onClick={() => startPlay(displayTracks, i)}
                 isPlaying={false} isLiked={liked.has(t.id)}
                 onToggleLike={() => toggleLike(t.id)} />
             ))}
