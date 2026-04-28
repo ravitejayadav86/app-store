@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Music2, Loader2, Play, Search,
   Flame, Radio, Heart, Disc3, Shuffle,
@@ -405,12 +405,7 @@ export default function MusicPage() {
         )}
       </section>
 
-      {/* ── PLAYER ────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {playerOpen && queue.length > 0 && (
-          <MusicPlayer queue={queue} initialIndex={queueIdx} onClose={() => setPlayerOpen(false)} />
-        )}
-      </AnimatePresence>
+
 
       {/* ── ADD MUSIC MODAL ───────────────────────────────────────────── */}
       <AddMusicModal 
