@@ -87,6 +87,8 @@ async def upload_file_route(
     icon: Optional[UploadFile] = File(None),
     screenshots: Optional[List[UploadFile]] = File(None),
     external_url: Optional[str] = Form(None),
+    icon_url: Optional[str] = Form(None),
+    screenshot_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -133,6 +135,12 @@ async def upload_file_route(
 
     if external_url:
         app.file_path = external_url
+
+    if icon_url:
+        app.icon_url = icon_url
+
+    if screenshot_urls:
+        app.screenshot_urls = screenshot_urls
 
     db.commit()
     db.refresh(app)

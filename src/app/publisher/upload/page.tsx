@@ -247,17 +247,37 @@ function UploadFormContent() {
     setLoading(true);
     setUploadProgress(0);
     try {
+      const folder = metadata.category === "Music" ? "music" : "apps";
+      
+      // 1. Upload main file directly if present
+      let fileUrl = metadata.external_url || "";
+      if (file) {
+        fileUrl = await uploadToCloudinary(file, folder, (p) => setUploadProgress(p));
+      }
+
+      // 2. Upload icon directly if present
+      let finalIconUrl = "";
+      if (iconFile) {
+        finalIconUrl = await uploadToCloudinary(iconFile, "icons");
+      }
+
+      // 3. Upload screenshots directly
+      const finalScreenshotUrls: string[] = [];
+      for (const s of screenshots) {
+        const url = await uploadToCloudinary(s, "screenshots");
+        finalScreenshotUrls.push(url);
+      }
+
+      // 4. Send all URLs to backend
       const formData = new FormData();
-      if (file) formData.append("file", file);
-      if (iconFile) formData.append("icon", iconFile);
-      screenshots.forEach((s) => formData.append("screenshots", s));
-      if (metadata.external_url && !file) formData.append("external_url", metadata.external_url);
-      await api.post(`/apps/${appId}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (e: any) => {
-          if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
-        }
-      });
+      if (fileUrl) formData.append("external_url", fileUrl);
+      if (finalIconUrl) formData.append("icon_url", finalIconUrl);
+      if (finalScreenshotUrls.length > 0) {
+        formData.append("screenshot_urls", JSON.stringify(finalScreenshotUrls));
+      }
+
+      await api.post(`/apps/${appId}/upload`, formData);
+      
       toast.success("Application submitted for review!");
       setStep(3);
     } catch (err: any) {
