@@ -7,8 +7,7 @@ import { useMusicPlayer } from "@/lib/MusicContext";
 
 const SPRING = { type: "spring", stiffness: 600, damping: 38, mass: 0.5 } as const;
 
-// Extend Window for global seek (unused — now uses context directly)
-declare global { interface Window { __pandaMusicSeek?: (t: number) => void; } }
+
 
 function fmt(s: number) {
   if (!isFinite(s) || s < 0) return "0:00";
@@ -16,7 +15,7 @@ function fmt(s: number) {
 }
 
 export function DynamicIslandPlayer() {
-  const { track, isPlaying, progress, duration, togglePlay, skipNext, skipPrev, stop } = useMusicPlayer();
+  const { track, isPlaying, progress, duration, togglePlay, skipNext, skipPrev, seek, stop } = useMusicPlayer();
   const [expanded, setExpanded] = useState(false);
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
   const color = track?.color ?? "#0058bb";
@@ -131,7 +130,7 @@ export function DynamicIslandPlayer() {
 
                 {/* Progress bar */}
                 <div className="mb-3" onClick={e => e.stopPropagation()}>
-                  <div className="relative h-1 rounded-full bg-white/10 mb-1">
+                  <div className="relative h-1 rounded-full bg-white/10 mb-1 overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
                     <input type="range" min={0} max={duration || 100} step={0.1} value={progress}
                       onChange={e => seek(Number(e.target.value))}
