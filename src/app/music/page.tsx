@@ -4,10 +4,10 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Music2, Headphones, Loader2, Play, Search,
+  Music2, Loader2, Play, Search,
   Flame, Radio, Heart, Disc3, Shuffle,
 } from "lucide-react";
-import { MusicPlayer, Track } from "@/components/ui/MusicPlayer";
+import { Track } from "@/components/ui/MusicPlayer";
 import { TELUGU_MOVIES } from "@/data/teluguMovies";
 import { AddMusicModal } from "@/components/ui/AddMusicModal";
 import { fuzzySearch } from "@/lib/search";
@@ -93,9 +93,6 @@ export default function MusicPage() {
   const [ownTracks, setOwnTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const [featLoad, setFeatLoad] = useState(true);
-  const [queue, setQueue] = useState<Track[]>([]);
-  const [queueIdx, setQueueIdx] = useState(0);
-  const [playerOpen, setPlayerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchRes, setSearchRes] = useState<Track[]>([]);
   const [searching, setSearching] = useState(false);
@@ -211,12 +208,6 @@ export default function MusicPage() {
     return () => clearTimeout(t);
   }, [search, ownTracks]);
 
-  /* ── Play helpers ─────────────────────────────────────────────── */
-  const playFrom = (list: Track[], index: number) => {
-    setQueue(list);
-    setQueueIdx(index);
-    setPlayerOpen(true);
-  };
 
   /* ── Navigate to song detail page ────────────────────────────── */
   const navigateToSong = (list: Track[], index: number) => {
