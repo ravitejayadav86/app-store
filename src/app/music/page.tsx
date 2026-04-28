@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Music2, Headphones, Loader2, Play, Search,
@@ -85,6 +86,7 @@ function trackColor(t: Track, i: number) {
    Page
 ════════════════════════════════════════════════════════════════════════════ */
 export default function MusicPage() {
+  const router = useRouter();
   const [genre, setGenre] = useState(GENRES[0].tag);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [featured, setFeatured] = useState<Track[]>([]);
@@ -216,6 +218,19 @@ export default function MusicPage() {
     setPlayerOpen(true);
   };
 
+  /* ── Navigate to song detail page ────────────────────────────── */
+  const navigateToSong = (list: Track[], index: number) => {
+    try {
+      sessionStorage.setItem(
+        "pandas_song_page",
+        JSON.stringify({ track: list[index], queue: list, queueIdx: index })
+      );
+    } catch (e) {
+      console.error("sessionStorage error", e);
+    }
+    router.push(`/music/${encodeURIComponent(String(list[index].id))}`);
+  };
+
   const displayTracks = search.trim() ? searchRes : tracks;
 
   return (
@@ -256,15 +271,17 @@ export default function MusicPage() {
               </motion.p>
               <div className="flex flex-wrap gap-3 md:gap-4">
                 <motion.button {...FADE_UP(3)}
-                  onClick={() => playFrom(featured, 0)}
+                  onClick={() => featured.length > 0 && navigateToSong(featured, 0)}
                   className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
                   style={{ background: "linear-gradient(120deg,#0058bb,#3f51b5)" }}>
                   <Play size={16} fill="white" /> Play Top Tracks
                 </motion.button>
                 <motion.button {...FADE_UP(4)}
                   onClick={() => {
-                    const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
-                    playFrom(shuffled, 0);
+                    const src = displayTracks.length > 0 ? displayTracks : featured;
+                    if (src.length === 0) return;
+                    const shuffled = [...src].sort(() => Math.random() - 0.5);
+                    navigateToSong(shuffled, 0);
                   }}
                   className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-primary bg-primary/10 border border-primary/10 transition-all hover:bg-primary/20 active:scale-95">
                   <Shuffle size={16} /> Shuffle All
@@ -308,7 +325,7 @@ export default function MusicPage() {
           ) : (
             <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
               {featured.map((t, i) => (
-                <FeaturedCard key={`feat-${t.id}-${i}`} track={t} index={i} onClick={() => playFrom(featured, i)} />
+                <FeaturedCard key={`feat-${t.id}-${i}`} track={t} index={i} onClick={() => navigateToSong(featured, i)} />
               ))}
             </div>
           )}
@@ -324,7 +341,7 @@ export default function MusicPage() {
           </div>
           <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
             {movie.tracks.map((t, i) => (
-              <FeaturedCard key={`telugu-${movie.id}-${t.id}`} track={t} index={i} onClick={() => playFrom(movie.tracks, i)} />
+              <FeaturedCard key={`telugu-${movie.id}-${t.id}`} track={t} index={i} onClick={() => navigateToSong(movie.tracks, i)} />
             ))}
           </div>
         </section>
@@ -339,7 +356,7 @@ export default function MusicPage() {
           </div>
           <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
             {ownTracks.map((t, i) => (
-              <FeaturedCard key={`own-${t.id}-${i}`} track={t} index={i} onClick={() => playFrom(ownTracks, i)} />
+              <FeaturedCard key={`own-${t.id}-${i}`} track={t} index={i} onClick={() => navigateToSong(ownTracks, i)} />
             ))}
           </div>
         </section>
@@ -381,8 +398,8 @@ export default function MusicPage() {
           <div className="flex flex-col gap-0.5 md:gap-1">
             {displayTracks.map((t, i) => (
               <TrackRow key={`track-${t.id}-${i}`} track={t} index={i}
-                onClick={() => playFrom(displayTracks, i)}
-                isPlaying={playerOpen && queue[queueIdx]?.id === t.id}
+                onClick={() => navigateToSong(displayTracks, i)}
+                isPlaying={false}
                 isLiked={liked.has(t.id)}
                 onToggleLike={() => toggleLike(t.id)} />
             ))}
