@@ -276,7 +276,7 @@ export default function MusicPage() {
               </div>
             ) : songs.length > 0 ? (
               <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
-                {songs.map((t, i) => <FeaturedCard key={`${movie.id}-${t.id}-${i}`} track={t} index={i} onClick={() => navigateToSong(songs, i)} />)}
+                {songs.map((t, i) => <FeaturedCard key={`${movie.id}-${t.id}-${i}`} track={t} index={i} onClick={() => startPlay(songs, i)} />)}
               </div>
             ) : (
               <p className="text-xs text-on-surface-variant/40 py-4">Songs unavailable right now.</p>
@@ -293,7 +293,7 @@ export default function MusicPage() {
             <h2 className="text-lg font-black text-on-surface">PandaStore Originals</h2>
           </div>
           <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
-            {ownTracks.map((t, i) => <FeaturedCard key={`own-${t.id}-${i}`} track={t} index={i} onClick={() => navigateToSong(ownTracks, i)} />)}
+            {ownTracks.map((t, i) => <FeaturedCard key={`own-${t.id}-${i}`} track={t} index={i} onClick={() => startPlay(ownTracks, i)} />)}
           </div>
         </section>
       )}
