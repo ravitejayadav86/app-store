@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import Providers from "@/components/Providers";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -107,6 +108,7 @@ export default function RootLayout({
             </UILayoutWrapper>
             <Footer />
             <Toaster position="bottom-right" theme="dark" richColors />
+            <SpeedInsights />
           </ThemeProvider>
         </Providers>
       </body>
