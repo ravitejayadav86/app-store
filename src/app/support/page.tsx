@@ -76,7 +76,7 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="flex flex-col gap-20 pb-20 bg-white">
+    <div className="flex flex-col gap-20 pb-20 bg-surface">
       {/* Hero Section */}
       <section className="px-4 md:px-8">
         <div className="relative h-[400px] md:h-[500px] w-full max-w-7xl mx-auto rounded-3xl overflow-hidden bg-linear-to-br from-primary to-primary-dim p-6 md:p-12 text-on-primary flex flex-col justify-center items-center text-center gap-8 shadow-2xl mt-4">
@@ -124,24 +124,24 @@ export default function SupportPage() {
           <section className="space-y-8">
             <div className="flex items-center gap-3">
                <BookOpen className="text-primary" size={28} />
-               <h2 className="text-3xl font-bold text-gray-900">Panda Guide</h2>
+               <h2 className="text-3xl font-bold text-on-surface">Panda Guide</h2>
             </div>
             <div className="grid gap-4">
               {filteredGuideSteps.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-on-surface-variant">
                   No articles found matching "{searchQuery}"
                 </div>
               ) : filteredGuideSteps.map((step, i) => (
-                <GlassCard key={i} className="p-0 overflow-hidden border-gray-100">
+                <GlassCard key={i} className="p-0 overflow-hidden border-outline-variant">
                   <button 
                     onClick={() => setOpenGuide(openGuide === i ? null : i)}
-                    className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors text-left"
+                    className="w-full flex items-center justify-between p-6 hover:bg-surface-low transition-colors text-left"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                         {i + 1}
                       </div>
-                      <span className="font-bold text-gray-900">{step.title}</span>
+                      <span className="font-bold text-on-surface">{step.title}</span>
                     </div>
                     {openGuide === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                   </button>
@@ -153,7 +153,7 @@ export default function SupportPage() {
                         exit={{ height: 0, opacity: 0 }}
                         className="px-6 pb-6"
                       >
-                        <p className="text-sm text-gray-600 leading-relaxed pl-12 border-l-2 border-primary/20">
+                        <p className="text-sm text-on-surface-variant leading-relaxed pl-12 border-l-2 border-primary/20">
                           {step.content}
                         </p>
                       </motion.div>
@@ -167,11 +167,11 @@ export default function SupportPage() {
           {/* Categories */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {categories.map((cat, i) => (
-              <GlassCard key={i} className="flex flex-col items-center text-center gap-4 py-8 hover:bg-gray-50 transition-all cursor-pointer group border-gray-100">
-                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              <GlassCard key={i} className="flex flex-col items-center text-center gap-4 py-8 hover:bg-surface-low transition-all cursor-pointer group border-outline-variant">
+                <div className="w-12 h-12 rounded-xl bg-surface-low flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                   {cat.icon}
                 </div>
-                <h3 className="text-sm font-bold text-gray-900">{cat.title}</h3>
+                <h3 className="text-sm font-bold text-on-surface">{cat.title}</h3>
               </GlassCard>
             ))}
           </section>
@@ -179,12 +179,12 @@ export default function SupportPage() {
 
         {/* Right Column: Feedback Form */}
         <aside className="space-y-8">
-          <div className="sticky top-24 p-8 bg-gray-50 border border-gray-100 rounded-[2.5rem] flex flex-col gap-6 relative overflow-hidden shadow-sm">
+          <div className="sticky top-24 p-8 bg-surface-low border border-outline-variant rounded-[2.5rem] flex flex-col gap-6 relative overflow-hidden shadow-sm">
              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-primary/50 to-transparent" />
              
              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Direct Feedback</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <h3 className="text-2xl font-bold text-on-surface">Direct Feedback</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">
                   Send your feedback directly to our admin team. They will be notified instantly.
                 </p>
              </div>
@@ -195,7 +195,7 @@ export default function SupportPage() {
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="How can we improve Panda Store?"
                   rows={5}
-                  className="w-full px-4 py-3 rounded-2xl bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm resize-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm resize-none"
                 />
                 <Button 
                   type="submit"
@@ -213,12 +213,12 @@ export default function SupportPage() {
                 </Button>
              </form>
 
-             <div className="pt-6 border-t border-gray-100 flex flex-col gap-4">
-                <div className="flex items-center gap-3 text-xs text-gray-500">
+             <div className="pt-6 border-t border-outline-variant flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-xs text-on-surface-variant">
                   <CheckCircle2 size={14} className="text-green-500" />
                   <span>Admins notified instantly via WebSockets</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-500">
+                <div className="flex items-center gap-3 text-xs text-on-surface-variant">
                   <CheckCircle2 size={14} className="text-green-500" />
                   <span>24/7 technical monitoring</span>
                 </div>

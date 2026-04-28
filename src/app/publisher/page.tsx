@@ -265,7 +265,7 @@ export default function PublisherPage() {
                   {activeTab === tab && (
                     <motion.div
                       layoutId="publisher-tab"
-                      className="absolute inset-0 bg-white shadow-sm rounded-xl -z-10"
+                      className="absolute inset-0 bg-surface-lowest shadow-sm rounded-xl -z-10"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -298,7 +298,7 @@ export default function PublisherPage() {
             <div className="grid grid-cols-1 gap-4">
               {filteredApps.map((app, i) => (
                 <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                  <GlassCard className="flex flex-col transition-all overflow-hidden relative group p-4 md:p-6">
+                  <GlassCard className="bg-surface-lowest p-4 md:p-6 transition-all overflow-hidden relative group">
                     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-0 z-10 relative">
                       <div className="flex items-center gap-4 md:gap-6">
                         <div className={`relative w-12 h-12 md:w-14 md:h-14 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-xl md:text-2xl shadow-inner text-white font-bold group-hover:scale-105 transition-transform overflow-hidden bg-surface-low`}>

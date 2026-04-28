@@ -37,7 +37,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({ children, className, anima
       whileTap={animate && onClick ? { scale: 0.985 } : {}}
       className={cn(
         "relative overflow-hidden rounded-[2rem] p-6 transition-all duration-300",
-        "liquid-glass transform-gpu will-change-transform border-white/60",
+        "liquid-glass transform-gpu will-change-transform",
         onClick && "cursor-pointer",
         className
       )}

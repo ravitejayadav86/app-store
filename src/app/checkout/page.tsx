@@ -110,7 +110,7 @@ function CheckoutContent() {
 
         <aside className="lg:col-span-5">
           <div className="sticky top-24 p-1 rounded-[2.5rem] bg-linear-to-b from-primary/10 to-primary/5">
-            <GlassCard className="p-10 space-y-10 bg-white/50 shadow-2xl relative overflow-hidden">
+            <GlassCard className="p-10 space-y-10 bg-surface-lowest/50 shadow-2xl relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold">The Summary</h3>
                 <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary"><Lock size={18} /></div>
