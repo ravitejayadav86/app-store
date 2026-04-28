@@ -52,6 +52,14 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Auth guard — backend requires a JWT token
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("You must be signed in to publish music. Please log in first.");
+      return;
+    }
+
     if (!file) {
       toast.error("Please select an MP3 file");
       return;
@@ -59,43 +67,41 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
 
     setIsUploading(true);
     try {
-      // 1. Submit App Metadata
+      // 1. Submit App Metadata — Music is auto-approved by backend
       const metadataRes = await api.post("/apps/submit", {
         name: songName,
-        developer: movieName, // Store movie name in developer field
         category: "Music",
-        description: `Language: ${language}`,
+        description: `Movie/Album: ${movieName} | Language: ${language}`,
         price: 0,
         version: "1.0.0",
       });
 
       const appId = metadataRes.data.id;
 
-      // 2. Prepare files for upload
+      // 2. Prepare multipart form with audio + optional cover icon
       const formData = new FormData();
       formData.append("file", file);
 
       if (coverUrl) {
         try {
-          // Download cover image to upload as icon if available
           const imgRes = await fetch(coverUrl);
           const blob = await imgRes.blob();
-          formData.append("icon", new File([blob], "cover.jpg", { type: blob.type }));
+          formData.append("icon", new File([blob], "cover.jpg", { type: blob.type || "image/jpeg" }));
         } catch (imgErr) {
-          console.error("Could not fetch cover blob, ignoring", imgErr);
+          console.warn("Could not fetch cover art, skipping icon upload", imgErr);
         }
       }
 
-      // 3. Upload files
+      // 3. Upload audio file (and icon) to Cloudinary via backend
       await api.post(`/apps/${appId}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Song published successfully!");
+      toast.success(`🎵 "${songName}" published successfully!`);
       onSuccess();
       onClose();
-      
-      // Reset
+
+      // Reset form
       setMovieName("");
       setSongName("");
       setLanguage("");
@@ -103,7 +109,10 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
       setCoverUrl(null);
     } catch (error: any) {
       console.error("Upload error:", error);
-      const message = error.response?.data?.detail || error.message || "Upload failed. Please try again.";
+      const status = error.response?.status;
+      let message = error.response?.data?.detail || error.message || "Upload failed. Please try again.";
+      if (status === 401) message = "Session expired. Please log in again.";
+      if (status === 413) message = "File is too large. Please use a smaller MP3.";
       toast.error(message);
     } finally {
       setIsUploading(false);
