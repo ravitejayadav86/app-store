@@ -16,6 +16,12 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "30"
+      - key: CLOUDINARY_CLOUD_NAME
+        value: deii8hxll
+      - key: CLOUDINARY_API_KEY
+        value: "976199473967583"
+      - key: CLOUDINARY_API_SECRET
+        value: hmjlrH1hSjKTOHQw4r5TElfdUNE
 
 databases:
   - name: app-store-db

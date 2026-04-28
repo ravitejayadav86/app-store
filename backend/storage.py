@@ -1,58 +1,85 @@
-import boto3, os, uuid
-from botocore.client import Config
-try:
-    from google.cloud import storage as gcp_storage
-except ImportError:
-    gcp_storage = None
+import os, uuid
+import cloudinary
+import cloudinary.uploader
 
-# --- Existing Backblaze B2 Variables ---
-B2_KEY_ID = os.getenv('B2_KEY_ID')
-B2_APPLICATION_KEY = os.getenv('B2_APPLICATION_KEY')
-B2_BUCKET_NAME = os.getenv('B2_BUCKET_NAME')
-B2_ENDPOINT = os.getenv('B2_ENDPOINT')
+# --- Configure Cloudinary from environment ---
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+    secure=True
+)
 
-# --- New Google Cloud Variables ---
-GCP_MUSIC_BUCKET = os.getenv('GCP_MUSIC_BUCKET') # e.g., 'pandastore-music'
-
-def get_s3_client():
-    return boto3.client('s3', endpoint_url='https://'+B2_ENDPOINT, aws_access_key_id=B2_KEY_ID, aws_secret_access_key=B2_APPLICATION_KEY, config=Config(signature_version='s3v4'))
+def _get_resource_type(content_type: str) -> str:
+    """Determine Cloudinary resource_type from MIME type."""
+    if content_type and content_type.startswith('audio'):
+        return 'video'  # Cloudinary uses 'video' for audio files
+    if content_type and content_type.startswith('image'):
+        return 'image'
+    return 'raw'  # APKs, ZIPs, etc.
 
 def upload_music_to_gcp(file_obj, filename, content_type='audio/mpeg'):
-    """Uploads ONLY music files to Google Cloud Storage. Fallbacks to B2 if not configured."""
-    if not GCP_MUSIC_BUCKET or not gcp_storage:
-        print("GCP not fully configured, falling back to B2 for music upload.")
-        return upload_file(file_obj, filename, content_type)
-        
+    """Upload music files to Cloudinary under the 'music' folder."""
     try:
-        client = gcp_storage.Client()
-        bucket = client.bucket(GCP_MUSIC_BUCKET)
         unique_name = f"music/{uuid.uuid4()}_{filename}"
-        blob = bucket.blob(unique_name)
-        blob.upload_from_file(file_obj, content_type=content_type)
-        return f"https://storage.googleapis.com/{GCP_MUSIC_BUCKET}/{unique_name}"
+        result = cloudinary.uploader.upload(
+            file_obj,
+            public_id=unique_name,
+            resource_type='video',  # Cloudinary uses 'video' for audio
+            overwrite=False
+        )
+        return result.get('secure_url', '')
     except Exception as e:
-        print(f"GCP Upload Error (falling back to B2): {e}")
-        return upload_file(file_obj, filename, content_type)
+        print(f"Cloudinary music upload error: {e}")
+        raise
 
 def upload_file(file_obj, filename, content_type='application/octet-stream'):
-    s3 = get_s3_client()
-    unique_name = str(uuid.uuid4()) + '_' + filename
-    s3.upload_fileobj(file_obj, B2_BUCKET_NAME, unique_name, ExtraArgs={'ContentType': content_type})
-    return 'https://' + B2_ENDPOINT + '/' + B2_BUCKET_NAME + '/' + unique_name
-
-def delete_file(file_url):
+    """Upload any file to Cloudinary."""
     try:
-        s3 = get_s3_client()
-        key = file_url.split(B2_BUCKET_NAME + '/')[-1]
-        s3.delete_object(Bucket=B2_BUCKET_NAME, Key=key)
+        unique_name = f"uploads/{uuid.uuid4()}_{filename}"
+        resource_type = _get_resource_type(content_type)
+        result = cloudinary.uploader.upload(
+            file_obj,
+            public_id=unique_name,
+            resource_type=resource_type,
+            overwrite=False
+        )
+        return result.get('secure_url', '')
     except Exception as e:
-        print('Failed to delete file: ' + str(e))
+        print(f"Cloudinary upload error: {e}")
+        raise
 
-def generate_download_url(file_url, expires_in=3600):
+def delete_file(file_url: str):
+    """Delete a file from Cloudinary using its URL."""
     try:
-        s3 = get_s3_client()
-        key = file_url.split(B2_BUCKET_NAME + '/')[-1]
-        return s3.generate_presigned_url('get_object', Params={'Bucket': B2_BUCKET_NAME, 'Key': key}, ExpiresIn=expires_in)
+        # Extract public_id from the URL
+        # URL format: https://res.cloudinary.com/<cloud>/image/upload/v.../uploads/<uuid>_<filename>
+        parts = file_url.split('/upload/')
+        if len(parts) < 2:
+            return
+        public_id_with_version = parts[1]
+        # Strip version prefix like v1234567890/
+        segments = public_id_with_version.split('/')
+        if segments[0].startswith('v') and segments[0][1:].isdigit():
+            segments = segments[1:]
+        # Strip file extension for non-raw types
+        public_id = '/'.join(segments)
+        dot_idx = public_id.rfind('.')
+        if dot_idx != -1:
+            public_id = public_id[:dot_idx]
+
+        # Determine resource type from URL
+        if '/video/' in file_url:
+            resource_type = 'video'
+        elif '/image/' in file_url:
+            resource_type = 'image'
+        else:
+            resource_type = 'raw'
+
+        cloudinary.uploader.destroy(public_id, resource_type=resource_type)
     except Exception as e:
-        print('Failed to generate URL: ' + str(e))
-        return file_url
+        print(f'Failed to delete file from Cloudinary: {e}')
+
+def generate_download_url(file_url: str, expires_in=3600) -> str:
+    """Cloudinary URLs are already public; return as-is."""
+    return file_url
