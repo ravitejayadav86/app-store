@@ -199,8 +199,32 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                                 {["Discover", "Categories", "Music", "Books", "Community", "Support"].map((item) => {
                                     const href = `/${item.toLowerCase() === "discover" ? "" : item.toLowerCase()}`;
                                     const isActive = pathname === href || (href !== "/" && pathname?.startsWith(href));
+                                    
+                                    // Special logic for Music link long-press
+                                    const isMusic = item === "Music";
+                                    let timer: any = null;
+
+                                    const startHold = () => {
+                                        if (isMusic && track) {
+                                            timer = setTimeout(() => {
+                                                router.push(`/music/${track.id}`);
+                                            }, 1000);
+                                        }
+                                    };
+
+                                    const endHold = () => {
+                                        if (timer) clearTimeout(timer);
+                                    };
+
                                     return (
-                                        <Link key={item} href={href}
+                                        <Link 
+                                            key={item} 
+                                            href={href}
+                                            onMouseDown={startHold}
+                                            onMouseUp={endHold}
+                                            onMouseLeave={endHold}
+                                            onTouchStart={startHold}
+                                            onTouchEnd={endHold}
                                             className={`relative text-sm font-bold px-4 py-2 rounded-full tracking-tight whitespace-nowrap transition-colors ${isActive ? "text-primary" : "text-on-surface-variant hover:text-primary hover:bg-primary/5"}`}>
                                             <span className="relative z-10">{item}</span>
                                             {isActive && (

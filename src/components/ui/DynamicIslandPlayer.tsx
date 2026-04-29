@@ -108,10 +108,16 @@ export function DynamicIslandPlayer() {
                 initial={{ opacity: 0, filter: "blur(4px)" }} animate={{ opacity: 1, filter: "blur(0px)", transition: { delay: 0.1, duration: 0.25 } }} exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
                 className="p-4 w-[280px]"
               >
-                {/* Close */}
-                <button onClick={e => { e.stopPropagation(); setExpanded(false); }}
-                  className="absolute top-3 right-3 p-1 rounded-full bg-white/10 text-white/50 hover:text-white transition-colors z-10">
-                  <X size={12} />
+                {/* Close Button (Stops playback and hides island) */}
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    stop(); 
+                    setExpanded(false); 
+                  }}
+                  className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all z-[100] active:scale-90"
+                >
+                  <X size={14} />
                 </button>
 
                 <div className="flex items-center gap-3 mb-3">
