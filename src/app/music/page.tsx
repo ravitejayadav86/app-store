@@ -56,11 +56,10 @@ function saavnToTrack(s: any, fallbackCover?: string, fallbackColor?: string): T
   };
 }
 
-const GENRES = [
-  { label: "Trending", tag: "pop" }, { label: "Hip-Hop", tag: "hiphop" },
-  { label: "Electronic", tag: "electronic" }, { label: "Rock", tag: "rock" },
-  { label: "Chill", tag: "chillout" }, { label: "Jazz", tag: "jazz" },
-  { label: "Classical", tag: "classical" },
+const LANGUAGES = [
+  { label: "Telugu", tag: "telugu" }, { label: "Hindi", tag: "hindi" },
+  { label: "Tamil", tag: "tamil" }, { label: "Malayalam", tag: "malayalam" },
+  { label: "Kannada", tag: "kannada" }, { label: "English", tag: "english" },
 ];
 
 const SPRING = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
@@ -72,7 +71,7 @@ function trackColor(t: Track, i: number) { return t.color ?? ACCENT_COLORS[i % A
 export default function MusicPage() {
   const router = useRouter();
   const { play } = useMusicPlayer();
-  const [genre, setGenre] = useState(GENRES[0].tag);
+  const [genre, setGenre] = useState(LANGUAGES[0].tag);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [featured, setFeatured] = useState<Track[]>([]);
   const [ownTracks, setOwnTracks] = useState<Track[]>([]);
@@ -137,8 +136,19 @@ export default function MusicPage() {
 
   useEffect(() => {
     setLoading(true); setTracks([]);
-    fetchJamendo("/tracks", { tags: genre, order: "popularity_week", limit: "20" })
-      .then(r => setTracks(r.map(jamendoToTrack))).finally(() => setLoading(false));
+    fetch(`/api/saavn?type=search&q=${encodeURIComponent(genre + " hit songs")}&limit=20`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.success && data.data?.results) {
+          setTracks(data.data.results.map((s: any) => saavnToTrack(s)));
+        } else {
+          // Fallback to jamendo
+          return fetchJamendo("/tracks", { search: genre, limit: "20" })
+            .then(r => setTracks(r.map(jamendoToTrack)));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [genre]);
 
   useEffect(() => {
@@ -305,7 +315,7 @@ export default function MusicPage() {
       {!search.trim() && (
         <section className="max-w-7xl mx-auto px-4 md:px-8 mb-5 md:mb-6">
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {GENRES.map(g => (
+            {LANGUAGES.map(g => (
               <button key={g.tag} onClick={() => setGenre(g.tag)}
                 className="flex-shrink-0 px-4 md:px-5 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
                 style={genre === g.tag ? { background: "var(--primary)", color: "#fff" } : { background: "var(--surface-container-low)", color: "var(--on-surface-variant)" }}>
