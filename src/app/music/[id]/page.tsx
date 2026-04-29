@@ -83,19 +83,28 @@ export default function SongDetailPage() {
   const [englishLyrics, setEnglishLyrics] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
 
+  const isCurrentlyPlaying = currentTrack && String(currentTrack.id) === songId;
+
   // ── Beat Simulation (Dances when playing) ──
+  const [beatVal, setBeatVal] = useState(0);
   const beat = useMotionValue(0);
   useEffect(() => {
-    if (!isPlaying) {
+    if (!isPlaying || !isCurrentlyPlaying) {
       beat.set(0);
+      setBeatVal(0);
       return;
     }
     const interval = setInterval(() => {
-      beat.set(Math.random() * 0.5 + 0.5); // Random "kick" between 0.5 and 1.0
-      setTimeout(() => beat.set(0), 100);
-    }, 450); // ~133 BPM average pulse
+      const v = Math.random() * 0.5 + 0.5;
+      beat.set(v);
+      setBeatVal(v);
+      setTimeout(() => {
+        beat.set(0);
+        setBeatVal(0);
+      }, 100);
+    }, 450);
     return () => clearInterval(interval);
-  }, [isPlaying, beat]);
+  }, [isPlaying, isCurrentlyPlaying, beat]);
 
   const beatScale = useSpring(beat, { stiffness: 300, damping: 15 });
 
@@ -141,6 +150,8 @@ export default function SongDetailPage() {
     if (currentTrack && String(currentTrack.id) === songId) return currentTrack;
     return localTrack;
   }, [currentTrack, songId, localTrack]);
+
+  const color = displayTrack?.color ?? "#0058bb";
 
   // Reset AI when song changes
   useEffect(() => {
@@ -336,8 +347,6 @@ export default function SongDetailPage() {
   }
 
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
-  const color = displayTrack.color ?? "#0058bb";
-  const isCurrentlyPlaying = currentTrack && String(currentTrack.id) === String(displayTrack.id);
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#080808]">
@@ -750,8 +759,8 @@ export default function SongDetailPage() {
                     animate={{
                       d: isCurrentlyPlaying && isPlaying 
                         ? [
-                            `M 0 16 Q 10 ${4 - (beat.get() * 8)} 20 16 Q 30 ${28 + (beat.get() * 8)} 40 16 Q 50 ${4 - (beat.get() * 8)} 60 16 Q 70 ${28 + (beat.get() * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`,
-                            `M 0 16 Q 10 ${28 + (beat.get() * 8)} 20 16 Q 30 ${4 - (beat.get() * 8)} 40 16 Q 50 ${28 + (beat.get() * 8)} 60 16 Q 70 ${4 - (beat.get() * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`
+                            `M 0 16 Q 10 ${4 - (beatVal * 8)} 20 16 Q 30 ${28 + (beatVal * 8)} 40 16 Q 50 ${4 - (beatVal * 8)} 60 16 Q 70 ${28 + (beatVal * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`,
+                            `M 0 16 Q 10 ${28 + (beatVal * 8)} 20 16 Q 30 ${4 - (beatVal * 8)} 40 16 Q 50 ${28 + (beatVal * 8)} 60 16 Q 70 ${4 - (beatVal * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`
                           ]
                         : "M 0 16 L 1000 16"
                     }}
