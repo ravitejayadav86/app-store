@@ -694,20 +694,64 @@ export default function SongDetailPage() {
       <motion.footer initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...EASE_OUT, delay: 0.2 }}
         className="relative z-50 px-6 pb-12 pt-4" style={{ background: "linear-gradient(to top, #080808 60%, transparent)" }}>
 
-        {/* ── Spring-animated Seek Bar ── */}
-        <div className="mb-6">
-          <div className="group relative h-1 rounded-full mb-3 cursor-pointer" style={{ background: "rgba(255,255,255,0.08)" }}>
-            {/* Track fill — uses spring-smoothed progress */}
-            <motion.div className="absolute top-0 left-0 h-full rounded-full"
-              style={{ width: springProgress.get() + "%", background: `linear-gradient(90deg, ${color}cc, ${color}, #fff)` }} />
-            {/* Glow under thumb */}
-            <motion.div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ left: `calc(${pct}% - 6px)`, background: "#fff", boxShadow: `0 0 12px 4px ${color}88` }} />
+        {/* ── Samsung-style Squiggly Seek Bar ── */}
+        <div className="mb-6 relative group">
+          <div className="relative h-6 flex items-center cursor-pointer overflow-visible">
+            {/* Background Track */}
+            <div className="absolute w-full h-1.5 rounded-full bg-white/10" />
+            
+            {/* Progress Container (clipping the wave) */}
+            <motion.div 
+              className="absolute left-0 h-6 overflow-hidden pointer-events-none"
+              style={{ width: useTransform(springProgress, p => `${p}%`) }}
+            >
+              <div className="w-[100vw] h-full flex items-center">
+                <svg width="100%" height="24" viewBox="0 0 1000 24" preserveAspectRatio="none" className="w-full">
+                  <motion.path
+                    fill="none"
+                    stroke={color}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    animate={{
+                      d: isCurrentlyPlaying && isPlaying 
+                        ? [
+                            "M 0 12 Q 10 2 20 12 Q 30 22 40 12 Q 50 2 60 12 Q 70 22 80 12 Q 90 2 100 12 T 200 12 T 300 12 T 400 12 T 500 12 T 600 12 T 700 12 T 800 12 T 900 12 T 1000 12",
+                            "M 0 12 Q 10 22 20 12 Q 30 2 40 12 Q 50 22 60 12 Q 70 2 80 12 Q 90 22 100 12 T 200 12 T 300 12 T 400 12 T 500 12 T 600 12 T 700 12 T 800 12 T 900 12 T 1000 12"
+                          ]
+                        : "M 0 12 L 1000 12"
+                    }}
+                    transition={{
+                      d: { duration: 0.8, repeat: Infinity, ease: "linear" },
+                      default: { duration: 0.4, ease: "easeInOut" }
+                    }}
+                  />
+                </svg>
+              </div>
+            </motion.div>
+
+            {/* Glowing Thumb Head */}
+            <motion.div 
+              className="absolute w-5 h-5 rounded-full bg-white shadow-[0_0_25px_rgba(255,255,255,0.8)] z-10 pointer-events-none flex items-center justify-center"
+              style={{ 
+                left: useTransform(springProgress, p => `calc(${p}% - 10px)`),
+                boxShadow: `0 0 30px 5px ${color}`
+              }}
+            >
+               <motion.div 
+                className="w-2 h-2 rounded-full" 
+                style={{ background: color }}
+                animate={isCurrentlyPlaying && isPlaying ? { scale: [1, 1.5, 1], opacity: [1, 0.7, 1] } : {}}
+                transition={{ duration: 1, repeat: Infinity }}
+               />
+            </motion.div>
+
+            {/* Hidden Input for seeking */}
             <input type="range" min={0} max={duration || 100} step={0.1} value={progress}
               onChange={handleSeek} aria-label="Seek"
-              className="absolute inset-0 w-full opacity-0 cursor-pointer h-full" />
+              className="absolute inset-0 w-full opacity-0 cursor-pointer h-full z-20" />
           </div>
-          <div className="flex justify-between text-[10px] font-black text-white/25 tracking-widest font-mono">
+
+          <div className="flex justify-between mt-2 text-[10px] font-black text-white/25 tracking-widest font-mono">
             <span>{fmt(progress)}</span>
             <span>{fmt(duration)}</span>
           </div>
