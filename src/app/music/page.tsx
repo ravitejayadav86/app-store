@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Music2, Loader2, Play, Search,
   Flame, Radio, Heart, Disc3, Shuffle,
-, Sparkles } from "lucide-react";
+  Sparkles } from "lucide-react";
 import { Track } from "@/components/ui/MusicPlayer";
 import { TELUGU_MOVIES, MovieMeta } from "@/data/teluguMovies";
 import { AddMusicModal } from "@/components/ui/AddMusicModal";
