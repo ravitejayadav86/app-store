@@ -370,11 +370,11 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
   const color = trackColor(track, index);
   return (
     <motion.button onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.97 }}
-      className="flex-shrink-0 w-36 md:w-48 rounded-2xl md:rounded-[1.5rem] overflow-hidden text-left relative group bg-surface-lowest shadow-sm hover:shadow-md transition-all border border-outline-variant/20"
+      className="flex-shrink-0 w-36 md:w-48 rounded-2xl md:rounded-[1.5rem] overflow-hidden text-left relative group bg-surface-lowest shadow-sm hover:shadow-md transition-all border border-outline-variant/20 transform-gpu"
       style={{ isolation: "isolate" }}>
-      <motion.div layoutId={`artwork-${track.id}`} className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-low relative">
+      <div className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-low relative">
         {track.coverUrl
-          ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
+          ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover will-change-transform" loading="lazy" />
           : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}22, ${color}44)` }}>
             <Music2 size={48} className="text-white/80" />
           </div>}
@@ -383,7 +383,7 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
             <Play size={22} fill="white" className="text-white ml-0.5" />
           </div>
         </div>
-      </motion.div>
+      </div>
       <div className="p-3 md:p-4 bg-surface-lowest">
         <p className="text-xs md:text-sm font-bold text-on-surface truncate">{track.title}</p>
         <p className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{track.artist}</p>
@@ -398,9 +398,9 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
 }) {
   const color = trackColor(track, index);
   return (
-    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.02, ...SPRING }}
-      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative"
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.015, 0.2), ...SPRING }}
+      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative transform-gpu"
       onClick={onClick} whileHover={{ backgroundColor: "rgba(0, 88, 187, 0.04)" }}>
       {isPlaying && <motion.div layoutId="active-track-pill" className="absolute left-0 w-1 h-2/3 rounded-r-full" style={{ background: color }} />}
       <div className="w-6 md:w-8 text-center flex-shrink-0">
@@ -414,9 +414,9 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
           </div>
           : <span className="text-[10px] md:text-xs text-on-surface-variant/40 font-mono">{index + 1}</span>}
       </div>
-      <motion.div layoutId={`artwork-${track.id}`} className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm" style={{ background: `${color}15` }}>
-        {track.coverUrl ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" /> : <Music2 size={20} className="text-on-surface-variant/30" />}
-      </motion.div>
+      <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm" style={{ background: `${color}15` }}>
+        {track.coverUrl ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover will-change-transform" loading="lazy" /> : <Music2 size={20} className="text-on-surface-variant/30" />}
+      </div>
       <div className="flex-1 min-w-0">
         <p className={`text-xs md:text-sm font-bold truncate ${isPlaying ? "text-primary" : "text-on-surface"}`}>{track.title}</p>
         <p className="text-[10px] md:text-xs text-on-surface-variant/60 font-medium truncate">{track.artist}</p>
