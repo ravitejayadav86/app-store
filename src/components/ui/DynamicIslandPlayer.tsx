@@ -71,6 +71,10 @@ export function DynamicIslandPlayer() {
               if (holdTimer.current) clearTimeout(holdTimer.current);
               setIsPressing(false);
             }}
+            onDoubleClick={(e) => {
+              if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).tagName === "INPUT") return;
+              router.push(`/music/${track.id}`);
+            }}
             animate={{ scale: isPressing ? 0.95 : 1 }}
             className="relative overflow-hidden cursor-pointer select-none transform-gpu"
             style={{
