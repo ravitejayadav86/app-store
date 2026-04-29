@@ -1,17 +1,22 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "framer-motion";
 import {
   ArrowLeft, Play, Pause, SkipBack, SkipForward,
-  Download, Heart, Shuffle, Repeat, Volume2, VolumeX,
+  Heart, Shuffle, Repeat, Volume2, VolumeX,
   Music2, List, Loader2, Share2, Plus, MoreHorizontal,
-  Mic2, Info, Disc, Users, Star, Sparkles
+  Mic2, Info, Disc, Users, Star, Sparkles, Zap, BarChart2, Globe, FileText, RefreshCw
 } from "lucide-react";
 import { useMusicPlayer, MiniTrack } from "@/lib/MusicContext";
 
-const SPRING = { type: "spring", stiffness: 480, damping: 36 } as const;
+// Ultra-smooth spring presets
+const SP_GENTLE  = { type: "spring", stiffness: 200, damping: 28, mass: 0.8 } as const;
+const SP_SNAPPY  = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
+const SP_ARTWORK = { type: "spring", stiffness: 280, damping: 32, mass: 1.0 } as const;
+const EASE_OUT   = { duration: 0.45, ease: [0.16, 1, 0.3, 1] } as const;
+const EASE_FAST  = { duration: 0.25, ease: [0.16, 1, 0.3, 1] } as const;
 
 function fmt(s: number) {
   if (!isFinite(s) || s < 0) return "0:00";
@@ -22,17 +27,31 @@ function fmt(s: number) {
 
 function EqualizerBars({ color, playing }: { color: string; playing: boolean }) {
   return (
-    <div className="flex items-end gap-0.5 h-5">
-      {[1, 2, 3, 4].map((b) => (
+    <div className="flex items-end gap-[3px] h-5">
+      {[1,2,3,4,5].map((b) => (
         <motion.div
           key={b}
-          className="w-1 rounded-full"
-          style={{ background: color }}
-          animate={playing ? { height: ["4px", "18px", "8px", "14px", "4px"] } : { height: "4px" }}
-          transition={{ duration: 0.7 + b * 0.15, repeat: Infinity, ease: "easeInOut", delay: b * 0.1 }}
+          className="w-[3px] rounded-full"
+          style={{ background: color, originY: 1 }}
+          animate={playing
+            ? { scaleY: [0.2, 1, 0.5, 0.9, 0.3], opacity: [0.6,1,0.8,1,0.6] }
+            : { scaleY: 0.15, opacity: 0.3 }}
+          transition={{ duration: 0.55 + b * 0.12, repeat: Infinity, ease: "easeInOut", delay: b * 0.08 }}
         />
       ))}
     </div>
+  );
+}
+
+function PulseDot({ color }: { color: string }) {
+  return (
+    <span className="relative flex h-2.5 w-2.5">
+      <motion.span className="absolute inline-flex h-full w-full rounded-full opacity-75"
+        style={{ background: color }}
+        animate={{ scale: [1, 2.2, 1], opacity: [0.7, 0, 0.7] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} />
+      <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: color }} />
+    </span>
   );
 }
 
@@ -51,10 +70,15 @@ export default function SongDetailPage() {
   const [activeTab, setActiveTab] = useState<"player" | "lyrics" | "info">("player");
   const [aiInsight, setAiInsight] = useState<any | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiStep, setAiStep] = useState(0);
   const [shuffleOn, setShuffleOn] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "one" | "all">("off");
   const [volume, setVolumeState] = useState(0.8);
   const [muted, setMuted] = useState(false);
+
+  // Smooth spring progress for seek bar
+  const rawProgress = useMotionValue(0);
+  const springProgress = useSpring(rawProgress, { stiffness: 60, damping: 18, mass: 0.6 });
 
   // Sync with current playing track if it matches the URL ID
   const displayTrack = useMemo(() => {
@@ -66,7 +90,13 @@ export default function SongDetailPage() {
   useEffect(() => {
     setAiInsight(null);
     setAiLoading(false);
+    setAiStep(0);
   }, [displayTrack?.id]);
+
+  // Sync spring progress with playback
+  useEffect(() => {
+    rawProgress.set(duration > 0 ? (progress / duration) * 100 : 0);
+  }, [progress, duration, rawProgress]);
 
   // Fetch track if not in context
   useEffect(() => {
@@ -161,6 +191,7 @@ export default function SongDetailPage() {
     const track = displayTrack;
     if (!lyrics || aiLoading || !track) return;
     setAiLoading(true);
+    setAiStep(0);
     try {
       const res = await fetch("/api/lyrics-ai", {
         method: "POST",
@@ -170,6 +201,12 @@ export default function SongDetailPage() {
       const data = await res.json();
       if (data.success) {
         setAiInsight(data.data);
+        // Stagger each section card reveal
+        const total = data.data?.sections?.length ?? 0;
+        for (let i = 1; i <= total; i++) {
+          await new Promise(r => setTimeout(r, 180));
+          setAiStep(i);
+        }
       }
     } catch (err) {
       console.error("AI Analysis failed", err);
@@ -186,11 +223,20 @@ export default function SongDetailPage() {
 
   if (loading && !displayTrack) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#0a0a0a]">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-          <Loader2 size={40} className="text-white/20" />
-        </motion.div>
-        <p className="text-white/40 text-sm font-medium tracking-wide">Tuning in…</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-[#080808]">
+        <div className="relative">
+          <motion.div className="w-24 h-24 rounded-full border-2 border-white/10"
+            animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} />
+          <motion.div className="absolute inset-3 rounded-full border border-white/5"
+            animate={{ rotate: -360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Music2 size={28} className="text-white/20" />
+          </div>
+        </div>
+        <motion.p className="text-white/30 text-xs font-bold uppercase tracking-[0.3em]"
+          animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }}>
+          Tuning in…
+        </motion.p>
       </div>
     );
   }
@@ -217,38 +263,48 @@ export default function SongDetailPage() {
   const isCurrentlyPlaying = currentTrack && String(currentTrack.id) === String(displayTrack.id);
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#0a0a0a]">
-      {/* ── Background Layer ── */}
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#080808]">
+      {/* ── Animated Background ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          className="absolute inset-0"
-          animate={{ 
-            opacity: [0.4, 0.6, 0.4],
-            scale: [1, 1.05, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          style={{ 
-            background: `radial-gradient(circle at 50% 30%, ${color}aa, transparent 70%), 
-                         radial-gradient(circle at 80% 80%, ${color}44, transparent 50%),
-                         linear-gradient(to bottom, transparent, #0a0a0a 90%)` 
-          }}
-        />
-        <div className="absolute inset-0 backdrop-blur-[100px]" />
+        {/* Primary ambient orb — breathes with playback */}
+        <motion.div className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] rounded-full"
+          animate={{ scale: isPlaying ? [1, 1.06, 1] : 1, opacity: isPlaying ? [0.35, 0.5, 0.35] : 0.25 }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          style={{ background: `radial-gradient(circle at 40% 40%, ${color}66, transparent 65%)` }} />
+        {/* Secondary orb — slow drift */}
+        <motion.div className="absolute bottom-0 right-0 w-[80%] h-[80%]"
+          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.2, 0.35, 0.2] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          style={{ background: `radial-gradient(circle at 60% 60%, ${color}44, transparent 70%)` }} />
+        {/* Deep noise overlay */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,8,8,0) 0%, rgba(8,8,8,0.7) 60%, #080808 100%)" }} />
+        <div className="absolute inset-0 backdrop-blur-[120px]" />
       </div>
 
       {/* ── Top Navigation ── */}
-      <header className="relative z-50 flex items-center justify-between px-6 pt-12 pb-4">
-        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 text-white/80 hover:text-white hover:bg-black/40 transition-all active:scale-90">
-          <ArrowLeft size={24} />
-        </button>
-        <div className="flex flex-col items-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Now Playing</p>
-          <p className="text-xs font-bold text-white/90 truncate max-w-[150px]">{displayTrack.title}</p>
-        </div>
-        <button onClick={() => setShowQueue(v => !v)} className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${showQueue ? "bg-white text-black" : "bg-black/20 text-white/80 hover:text-white"}`}>
+      <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={EASE_OUT}
+        className="relative z-50 flex items-center justify-between px-6 pt-12 pb-4">
+        <motion.button onClick={() => router.back()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }}
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/8 backdrop-blur-xl border border-white/10 text-white/70 hover:text-white transition-colors">
+          <ArrowLeft size={20} />
+        </motion.button>
+        <motion.div className="flex flex-col items-center"
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...EASE_OUT, delay: 0.1 }}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            {isCurrentlyPlaying && isPlaying && <PulseDot color={color} />}
+            <p className="text-[9px] font-black uppercase tracking-[0.25em] text-white/30">
+              {isCurrentlyPlaying ? "Now Playing" : "Preview"}
+            </p>
+          </div>
+          <p className="text-xs font-bold text-white/80 truncate max-w-[160px]">{displayTrack.title}</p>
+        </motion.div>
+        <motion.button onClick={() => setShowQueue(v => !v)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }}
+          className={`w-11 h-11 flex items-center justify-center rounded-full backdrop-blur-xl border transition-all ${
+            showQueue ? "bg-white text-black border-white" : "bg-white/8 text-white/60 border-white/10 hover:text-white"
+          }`}>
           <List size={20} />
-        </button>
-      </header>
+        </motion.button>
+      </motion.header>
 
       {/* ── Main Content ── */}
       <main className="relative z-10 flex-1 flex flex-col px-6 pb-8 overflow-y-auto no-scrollbar">
@@ -280,127 +336,238 @@ export default function SongDetailPage() {
             /* ── Player / Lyrics / Info View ── */
             <div className="flex-1 flex flex-col">
               {/* Tabs */}
-              <div className="flex items-center justify-center gap-8 mb-8 mt-2">
-                {[
-                  { id: "player", icon: Disc, label: "Canvas" },
-                  { id: "lyrics", icon: Mic2, label: "Lyrics" },
-                  { id: "info", icon: Info, label: "About" }
-                ].map(tab => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex flex-col items-center gap-1 transition-all ${activeTab === tab.id ? "text-white scale-110" : "text-white/30 hover:text-white/60"}`}>
-                    <tab.icon size={20} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">{tab.label}</span>
-                  </button>
-                ))}
+              <div className="flex items-center justify-center mb-8 mt-2">
+                <div className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/5 border border-white/8 backdrop-blur-xl">
+                  {[
+                    { id: "player", icon: Disc, label: "Canvas" },
+                    { id: "lyrics", icon: Mic2, label: "Lyrics" },
+                    { id: "info", icon: Info, label: "About" }
+                  ].map(tab => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
+                      className="relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors"
+                      style={{ color: activeTab === tab.id ? "#fff" : "rgba(255,255,255,0.3)" }}>
+                      {activeTab === tab.id && (
+                        <motion.div layoutId="tab-pill"
+                          className="absolute inset-0 rounded-xl bg-white/12 border border-white/15"
+                          transition={SP_SNAPPY} />
+                      )}
+                      <tab.icon size={13} className="relative z-10" strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex-1 flex flex-col">
                 {activeTab === "player" && (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center gap-10">
+                  <motion.div key="player-tab"
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={EASE_OUT}
+                    className="flex-1 flex flex-col items-center gap-10">
                     {/* Big Artwork */}
-                    <motion.div 
+                    <motion.div
                       layoutId={`artwork-${displayTrack.id}`}
-                      className="w-full aspect-square max-w-[340px] rounded-[2rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] relative group"
-                      animate={{ scale: isCurrentlyPlaying && isPlaying ? 1 : 0.94 }}
-                      transition={SPRING}
-                    >
-                      <img src={displayTrack.coverUrl} alt={displayTrack.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      className="w-full aspect-square max-w-[340px] rounded-[2rem] overflow-hidden relative group"
+                      animate={{ scale: isCurrentlyPlaying && isPlaying ? 1 : 0.92 }}
+                      transition={SP_ARTWORK}
+                      style={{ boxShadow: `0 30px 80px -15px ${color}60, 0 0 0 1px rgba(255,255,255,0.06)` }}>
+                      <img src={displayTrack.coverUrl} alt={displayTrack.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      {/* Vinyl shimmer overlay */}
+                      <motion.div className="absolute inset-0 rounded-[2rem]"
+                        animate={{ opacity: isCurrentlyPlaying && isPlaying ? [0, 0.06, 0] : 0 }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)" }} />
                       {!isCurrentlyPlaying && (
-                        <button onClick={handlePlayNow} className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                          <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-black shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                        <motion.button onClick={handlePlayNow} initial={{ opacity: 0 }} whileHover={{ opacity: 1 }}
+                          className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                          <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+                            className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-black shadow-2xl">
                             <Play size={32} fill="black" className="ml-1" />
-                          </div>
-                        </button>
+                          </motion.div>
+                        </motion.button>
                       )}
                     </motion.div>
 
                     {/* Metadata */}
                     <div className="w-full flex items-end justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <motion.h1 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-3xl font-black text-white leading-tight tracking-tight truncate">
+                        <motion.h1 initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={EASE_OUT}
+                          className="text-3xl font-black text-white leading-tight tracking-tight truncate">
                           {displayTrack.title}
                         </motion.h1>
-                        <motion.p initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="text-lg text-white/50 font-bold mt-1 truncate">
+                        <motion.p initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ...EASE_OUT, delay: 0.08 }}
+                          className="text-base text-white/45 font-bold mt-1 truncate">
                           {displayTrack.artist}
                         </motion.p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={toggleLike} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all">
-                          <Heart size={26} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-white/40"} />
-                        </button>
-                        <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all">
-                          <Plus size={26} className="text-white/40" />
-                        </button>
+                        <motion.button onClick={toggleLike} whileTap={{ scale: 0.85 }}
+                          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/8 transition-colors">
+                          <Heart size={24} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-white/40"} />
+                        </motion.button>
+                        <motion.button whileTap={{ scale: 0.85 }}
+                          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/8 transition-colors">
+                          <Plus size={24} className="text-white/40" />
+                        </motion.button>
                       </div>
                     </div>
                   </motion.div>
                 )}
 
-                {activeTab === "lyrics" && (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-6">
-                    {/* AI Insight Box */}
-                    <div className="relative group">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
-                      <div className="relative flex flex-col gap-4 p-5 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-xl">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                         {activeTab === "lyrics" && (
+                  <motion.div key="lyrics-tab" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={EASE_OUT} className="flex-1 flex flex-col gap-4">
+                    {/* ── Panda AI Card ── */}
+                    <div className="relative">
+                      {/* Animated glow border */}
+                      <motion.div className="absolute -inset-px rounded-3xl"
+                        animate={{ opacity: aiLoading ? [0.4, 0.9, 0.4] : aiInsight ? 0.5 : 0.2 }}
+                        transition={{ duration: 1.6, repeat: aiLoading ? Infinity : 0 }}
+                        style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)", borderRadius: "inherit" }} />
+                      <div className="relative flex flex-col gap-4 p-5 rounded-3xl bg-[#0d0d14]/90 border border-white/8 backdrop-blur-2xl overflow-hidden">
+                        {/* Ambient glow inside card */}
+                        <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"
+                          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-3">
+                            <motion.div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                              animate={aiLoading ? { scale: [1, 1.1, 1] } : {}}
+                              transition={{ duration: 1, repeat: Infinity }}
+                              style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}>
                               <Sparkles size={16} className="text-white" />
-                            </div>
+                            </motion.div>
                             <div>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Panda AI</p>
-                              <h3 className="text-sm font-black text-white">Lyrics Intelligence</h3>
+                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Panda AI</p>
+                              <h3 className="text-sm font-black text-white leading-none mt-0.5">Lyrics Intelligence</h3>
                             </div>
                           </div>
-                          {!aiInsight && !aiLoading && (
-                            <button onClick={analyzeLyrics} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95">
-                              Analyze
-                            </button>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {!aiInsight && !aiLoading && (
+                              <motion.button key="analyze-btn" onClick={analyzeLyrics}
+                                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }}
+                                className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/15 bg-white/5 hover:bg-white/10 transition-colors">
+                                Analyze ✦
+                              </motion.button>
+                            )}
+                            {aiInsight && (
+                              <motion.button key="redo-btn" onClick={() => { setAiInsight(null); setAiStep(0); }}
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                whileTap={{ scale: 0.9 }}
+                                className="p-2 rounded-full text-white/30 hover:text-white/60 transition-colors">
+                                <RefreshCw size={14} />
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
                         </div>
 
-                        {aiLoading ? (
-                          <div className="flex items-center gap-3 py-2">
-                            <div className="flex gap-1">
-                              {[1, 2, 3].map(i => (
-                                <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-500"
-                                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                                  transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }} />
-                              ))}
-                            </div>
-                            <p className="text-[11px] font-bold text-white/40 tracking-wider">AI is decoding the vibes...</p>
-                          </div>
-                        ) : aiInsight ? (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                            <p className="text-xs leading-relaxed text-white/70 italic">"{aiInsight.analysis}"</p>
-                            <div className="grid grid-cols-2 gap-3 pt-2">
-                              {aiInsight.sections.slice(0, 2).map((s: any, i: number) => (
-                                <div key={i} className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">{s.title}</p>
-                                  <p className="text-[10px] font-bold text-white/80 line-clamp-2">{s.content}</p>
+                        {/* Body */}
+                        <AnimatePresence mode="wait">
+                          {aiLoading ? (
+                            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                              className="flex flex-col gap-3 py-1">
+                              <div className="flex items-center gap-2.5">
+                                <div className="flex gap-1">
+                                  {[0,1,2,3,4].map(i => (
+                                    <motion.div key={i} className="w-1 rounded-full bg-indigo-400"
+                                      style={{ height: "14px", originY: 1 }}
+                                      animate={{ scaleY: [0.2, 1, 0.2] }}
+                                      transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }} />
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <p className="text-[11px] text-white/40 font-medium leading-relaxed">
-                            Panda AI can analyze the mood, themes, and cultural context of these lyrics. Click analyze to start.
-                          </p>
-                        )}
+                                <motion.p className="text-[11px] font-bold text-white/40 tracking-wide"
+                                  animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                                  Decoding lyrical patterns…
+                                </motion.p>
+                              </div>
+                              {/* Skeleton cards */}
+                              <div className="grid grid-cols-2 gap-2">
+                                {[1,2,3,4].map(i => (
+                                  <motion.div key={i} className="h-14 rounded-2xl bg-white/4"
+                                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                                    transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }} />
+                                ))}
+                              </div>
+                            </motion.div>
+                          ) : aiInsight ? (
+                            <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                              {/* Signature line */}
+                              {aiInsight.signatureLine && (
+                                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                                  className="px-4 py-3 rounded-2xl border-l-2 border-indigo-500/60 bg-indigo-500/5">
+                                  <p className="text-[11px] text-indigo-300/80 italic leading-relaxed">"{aiInsight.signatureLine}"</p>
+                                </motion.div>
+                              )}
+                              {/* Summary */}
+                              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                                className="text-[11px] leading-relaxed text-white/55">
+                                {aiInsight.analysis}
+                              </motion.p>
+                              {/* Mood tags */}
+                              {aiInsight.moodTags && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                                  className="flex flex-wrap gap-1.5">
+                                  {aiInsight.moodTags.map((tag: string, i: number) => (
+                                    <span key={i} className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/6 border border-white/10 text-white/60">
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </motion.div>
+                              )}
+                              {/* Staggered section cards */}
+                              <div className="grid grid-cols-2 gap-2">
+                                {aiInsight.sections.map((s: any, i: number) => (
+                                  <AnimatePresence key={i}>
+                                    {i < aiStep && (
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{ ...SP_GENTLE, delay: 0 }}
+                                        className="p-3 rounded-2xl bg-white/5 border border-white/8 flex flex-col gap-1">
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-white/25">{s.title}</p>
+                                        <p className="text-[10px] font-bold text-white/80 line-clamp-2">{s.value}</p>
+                                        {s.detail && <p className="text-[9px] text-white/35 line-clamp-1">{s.detail}</p>}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                ))}
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                              className="text-[11px] text-white/35 font-medium leading-relaxed">
+                              Panda AI analyzes mood, literary devices, cultural context and emotional arc. Tap <strong className="text-white/50">Analyze ✦</strong> to start.
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
 
-                    <div className="rounded-3xl bg-white/5 p-8 flex-1 overflow-y-auto no-scrollbar border border-white/10">
+                    {/* ── Lyrics ── */}
+                    <div className="rounded-3xl bg-white/4 px-6 py-6 flex-1 overflow-y-auto no-scrollbar border border-white/8">
                       {lyricsLoading ? (
-                        <div className="h-full flex flex-col items-center justify-center gap-4">
-                          <Loader2 size={32} className="text-white/20 animate-spin" />
-                          <p className="text-white/30 text-sm font-bold uppercase tracking-widest">Loading Lyrics</p>
+                        <div className="flex flex-col items-center justify-center gap-3 py-10">
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}>
+                            <Loader2 size={24} className="text-white/20" />
+                          </motion.div>
+                          <p className="text-white/25 text-[10px] font-black uppercase tracking-widest">Loading Lyrics</p>
                         </div>
                       ) : (
-                        <div className="space-y-6">
-                          {lyrics?.split("\n").map((line, i) => (
-                            <p key={i} className={`text-2xl font-black transition-all duration-500 ${i === 0 ? "text-white" : "text-white/20 hover:text-white/40"}`}>
-                              {line || "• • •"}
-                            </p>
+                        <div className="space-y-4">
+                          {lyrics?.split("\n").filter(l => l.trim()).map((line, i) => (
+                            <motion.p key={i}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.02, ...EASE_FAST }}
+                              className="text-xl font-black leading-snug cursor-pointer transition-colors duration-300 hover:text-white text-white/25"
+                              style={{ textShadow: "0 0 20px rgba(255,255,255,0)" }}
+                              onMouseEnter={e => (e.currentTarget.style.textShadow = "0 0 20px rgba(255,255,255,0.15)")}
+                              onMouseLeave={e => (e.currentTarget.style.textShadow = "0 0 20px rgba(255,255,255,0)")}>
+                              {line}
+                            </motion.p>
                           ))}
                         </div>
                       )}
@@ -454,77 +621,100 @@ export default function SongDetailPage() {
       </main>
 
       {/* ── Player Controls (Sticky at bottom) ── */}
-      <footer className="relative z-50 px-6 pb-12 pt-4 bg-gradient-to-t from-[#0a0a0a] to-transparent">
-        {/* Progress Section */}
-        <div className="mb-8">
-          <div className="group relative h-1.5 rounded-full bg-white/10 mb-3 cursor-pointer">
-            <motion.div 
-              className="absolute top-0 left-0 h-full rounded-full transition-all duration-100"
-              style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, #fff)` }} 
-            />
-            <motion.div 
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-xl scale-0 group-hover:scale-100 transition-transform"
-              style={{ left: `calc(${pct}% - 8px)` }}
-            />
+      <motion.footer initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...EASE_OUT, delay: 0.2 }}
+        className="relative z-50 px-6 pb-12 pt-4" style={{ background: "linear-gradient(to top, #080808 60%, transparent)" }}>
+
+        {/* ── Spring-animated Seek Bar ── */}
+        <div className="mb-6">
+          <div className="group relative h-1 rounded-full mb-3 cursor-pointer" style={{ background: "rgba(255,255,255,0.08)" }}>
+            {/* Track fill — uses spring-smoothed progress */}
+            <motion.div className="absolute top-0 left-0 h-full rounded-full"
+              style={{ width: springProgress.get() + "%", background: `linear-gradient(90deg, ${color}cc, ${color}, #fff)` }} />
+            {/* Glow under thumb */}
+            <motion.div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ left: `calc(${pct}% - 6px)`, background: "#fff", boxShadow: `0 0 12px 4px ${color}88` }} />
             <input type="range" min={0} max={duration || 100} step={0.1} value={progress}
               onChange={handleSeek} aria-label="Seek"
               className="absolute inset-0 w-full opacity-0 cursor-pointer h-full" />
           </div>
-          <div className="flex justify-between text-[10px] font-black text-white/30 tracking-widest font-mono">
+          <div className="flex justify-between text-[10px] font-black text-white/25 tracking-widest font-mono">
             <span>{fmt(progress)}</span>
             <span>{fmt(duration)}</span>
           </div>
         </div>
 
-        {/* Controls Grid */}
-        <div className="flex items-center justify-between">
-          <button onClick={() => setShuffleOn(s => !s)} className={`p-2 transition-all ${shuffleOn ? "text-white" : "text-white/20"}`}>
+        {/* ── Transport Controls ── */}
+        <div className="flex items-center justify-between mb-8">
+          <motion.button onClick={() => setShuffleOn(s => !s)} whileTap={{ scale: 0.88 }}
+            className="p-2 transition-colors relative"
+            style={{ color: shuffleOn ? "#fff" : "rgba(255,255,255,0.2)" }}>
             <Shuffle size={20} />
-          </button>
-          
-          <div className="flex items-center gap-8">
-            <button onClick={skipPrev} className="text-white/80 hover:text-white transition-all active:scale-75">
-              <SkipBack size={32} fill="currentColor" />
-            </button>
-            
-            <button onClick={togglePlay} className="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center shadow-[0_15px_40px_-10px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-90 transition-all">
-              {isPlaying ? <Pause size={36} fill="black" /> : <Play size={36} fill="black" className="ml-1" />}
-            </button>
-            
-            <button onClick={skipNext} className="text-white/80 hover:text-white transition-all active:scale-75">
-              <SkipForward size={32} fill="currentColor" />
-            </button>
+            {shuffleOn && <motion.div layoutId="control-dot" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white" />}
+          </motion.button>
+
+          <div className="flex items-center gap-7">
+            <motion.button onClick={skipPrev} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
+              className="text-white/70 hover:text-white transition-colors">
+              <SkipBack size={28} fill="currentColor" />
+            </motion.button>
+
+            <motion.button onClick={togglePlay}
+              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.88 }}
+              transition={SP_SNAPPY}
+              className="w-[72px] h-[72px] rounded-full bg-white text-black flex items-center justify-center relative"
+              style={{ boxShadow: `0 12px 40px -8px ${color}88, 0 0 0 1px rgba(255,255,255,0.15)` }}>
+              {/* Breathing ring when playing */}
+              {isCurrentlyPlaying && isPlaying && (
+                <motion.div className="absolute inset-0 rounded-full border-2 border-white/30"
+                  animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }} />
+              )}
+              <AnimatePresence mode="wait">
+                {isPlaying
+                  ? <motion.div key="pause" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }} transition={SP_SNAPPY}><Pause size={32} fill="black" /></motion.div>
+                  : <motion.div key="play" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }} transition={SP_SNAPPY}><Play size={32} fill="black" className="ml-1" /></motion.div>
+                }
+              </AnimatePresence>
+            </motion.button>
+
+            <motion.button onClick={skipNext} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
+              className="text-white/70 hover:text-white transition-colors">
+              <SkipForward size={28} fill="currentColor" />
+            </motion.button>
           </div>
 
-          <button onClick={() => setRepeat(r => r === "off" ? "all" : r === "all" ? "one" : "off")} className={`p-2 transition-all relative ${repeat !== "off" ? "text-white" : "text-white/20"}`}>
+          <motion.button onClick={() => setRepeat(r => r === "off" ? "all" : r === "all" ? "one" : "off")}
+            whileTap={{ scale: 0.88 }} className="p-2 transition-colors relative"
+            style={{ color: repeat !== "off" ? "#fff" : "rgba(255,255,255,0.2)" }}>
             <Repeat size={20} />
-            {repeat === "one" && <span className="absolute top-0 right-0 text-[8px] font-black">1</span>}
-          </button>
+            {repeat === "one" && <span className="absolute -top-0.5 -right-0.5 text-[7px] font-black bg-white text-black rounded-full w-3.5 h-3.5 flex items-center justify-center">1</span>}
+            {repeat !== "off" && <motion.div layoutId="control-dot" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white" />}
+          </motion.button>
         </div>
 
-        {/* Bottom Actions */}
-        <div className="flex items-center justify-between mt-10 px-2">
-          <button className="text-white/30 hover:text-white transition-all">
-            <Share2 size={20} />
-          </button>
-          
-          <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-            <button onClick={() => setMuted(m => !m)} className="text-white/40">
-              {muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <div className="w-20 h-1 bg-white/10 rounded-full relative overflow-hidden">
-              <div className="absolute top-0 left-0 h-full bg-white/40" style={{ width: `${(muted ? 0 : volume) * 100}%` }} />
+        {/* ── Secondary Bar ── */}
+        <div className="flex items-center justify-between px-1">
+          <motion.button whileTap={{ scale: 0.9 }} className="text-white/25 hover:text-white/60 transition-colors">
+            <Share2 size={18} />
+          </motion.button>
+
+          <div className="flex items-center gap-3 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/8">
+            <motion.button onClick={() => setMuted(m => !m)} whileTap={{ scale: 0.9 }} className="text-white/35 hover:text-white/70 transition-colors">
+              {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            </motion.button>
+            <div className="w-20 h-0.5 rounded-full relative" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div className="absolute top-0 left-0 h-full rounded-full bg-white/50" style={{ width: `${(muted ? 0 : volume) * 100}%` }} />
               <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volume}
                 onChange={(e) => { setVolumeState(Number(e.target.value)); setMuted(false); }}
                 className="absolute inset-0 w-full opacity-0 cursor-pointer" />
             </div>
           </div>
 
-          <button className="text-white/30 hover:text-white transition-all">
-            <MoreHorizontal size={20} />
-          </button>
+          <motion.button whileTap={{ scale: 0.9 }} className="text-white/25 hover:text-white/60 transition-colors">
+            <MoreHorizontal size={18} />
+          </motion.button>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }
