@@ -85,28 +85,34 @@ export default function SongDetailPage() {
 
   const isCurrentlyPlaying = currentTrack && String(currentTrack.id) === songId;
 
-  // ── Beat Simulation (Dances when playing) ──
+  // ── 120Hz Smooth Beat Engine ──
+  // Replaces random jitter with a rhythmic, spring-driven pulse
   const [beatVal, setBeatVal] = useState(0);
   const beat = useMotionValue(0);
+  
   useEffect(() => {
     if (!isPlaying || !isCurrentlyPlaying) {
       beat.set(0);
       setBeatVal(0);
       return;
     }
+    
+    // Constant rhythmic pulse instead of random jumps to prevent "shaking"
     const interval = setInterval(() => {
-      const v = Math.random() * 0.5 + 0.5;
-      beat.set(v);
-      setBeatVal(v);
+      // Gentle kick: 0 -> 1 -> 0
+      beat.set(1);
+      setBeatVal(1);
       setTimeout(() => {
         beat.set(0);
         setBeatVal(0);
-      }, 100);
-    }, 450);
+      }, 120); // Quick attack, spring handles the decay
+    }, 450); // ~133 BPM
+    
     return () => clearInterval(interval);
   }, [isPlaying, isCurrentlyPlaying, beat]);
 
-  const beatScale = useSpring(beat, { stiffness: 300, damping: 15 });
+  // Smoother spring for 120Hz feel
+  const beatScale = useSpring(beat, { stiffness: 400, damping: 25, mass: 0.5 });
 
   const toggleLyricsMode = async () => {
     if (lyricsMode === "english") {
@@ -456,22 +462,29 @@ export default function SongDetailPage() {
                     <motion.div
                       layoutId={`artwork-${displayTrack.id}`}
                       className="w-full aspect-square max-w-[280px] md:max-w-[340px] rounded-[2.5rem] overflow-hidden relative group"
-                      animate={{ scale: isCurrentlyPlaying && isPlaying ? 1 : 0.94 }}
-                      transition={SP_ARTWORK}
-                      style={{ boxShadow: `0 30px 80px -15px ${color}60, 0 0 0 1px rgba(255,255,255,0.06)` }}>
+                      style={{ 
+                        boxShadow: `0 30px 80px -15px ${color}60, 0 0 0 1px rgba(255,255,255,0.06)`,
+                        scale: useTransform(beatScale, [0, 1], [1, 1.015]), // Very subtle pulse
+                        willChange: "transform",
+                        transform: "translateZ(0)" // Force GPU acceleration
+                      }}
+                    >
                       <img src={displayTrack.coverUrl} alt={displayTrack.title} className="w-full h-full object-cover" />
                       {/* Vinyl shimmer overlay */}
                       <motion.div className="absolute inset-0 rounded-[2rem]"
-                        animate={{ opacity: isCurrentlyPlaying && isPlaying ? [0, 0.06, 0] : 0 }}
-                        transition={{ duration: 3, repeat: Infinity }}
+                        animate={{ opacity: isCurrentlyPlaying && isPlaying ? [0, 0.04, 0] : 0 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                         style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)" }} />
                     </motion.div>
 
                     {/* Metadata */}
-                    <div className="w-full flex items-end justify-between gap-4 -mt-4 md:mt-0 px-2">
+                    <div className="w-full flex items-end justify-between gap-4 -mt-4 md:mt-0 px-2 relative z-10">
                       <div className="flex-1 min-w-0">
                         <motion.h1 
-                          style={{ scale: useTransform(beatScale, [0, 1], [1, 1.02]) }}
+                          style={{ 
+                            scale: useTransform(beatScale, [0, 1], [1, 1.01]),
+                            willChange: "transform"
+                          }}
                           className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight truncate">
                           {displayTrack.title}
                         </motion.h1>
