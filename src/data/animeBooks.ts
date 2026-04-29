@@ -7,9 +7,11 @@ export interface AnimeBook {
   readUrl: string;
   category: string;
   status: "Latest" | "Trending" | "Classic";
+  type?: "Manga" | "Movie Book";
 }
 
 export const ANIME_BOOKS: AnimeBook[] = [
+  // --- POPULAR MANGA ---
   {
     id: "manga_onepiece",
     title: "One Piece",
@@ -18,7 +20,8 @@ export const ANIME_BOOKS: AnimeBook[] = [
     coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/onepiece/images/a/af/Volume_1.png&w=400&h=600&fit=cover",
     readUrl: "https://mangaplus.shueisha.co.jp/titles/100020",
     category: "Action / Adventure",
-    status: "Latest"
+    status: "Latest",
+    type: "Manga"
   },
   {
     id: "manga_jjk",
@@ -28,7 +31,8 @@ export const ANIME_BOOKS: AnimeBook[] = [
     coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/jujutsu-kaisen/images/b/be/Volume_1.png&w=400&h=600&fit=cover",
     readUrl: "https://mangaplus.shueisha.co.jp/titles/100034",
     category: "Supernatural / Action",
-    status: "Trending"
+    status: "Trending",
+    type: "Manga"
   },
   {
     id: "manga_chainsawman",
@@ -38,7 +42,8 @@ export const ANIME_BOOKS: AnimeBook[] = [
     coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/chainsaw-man/images/3/36/Volume_1.png&w=400&h=600&fit=cover",
     readUrl: "https://mangaplus.shueisha.co.jp/titles/100037",
     category: "Dark Fantasy",
-    status: "Trending"
+    status: "Trending",
+    type: "Manga"
   },
   {
     id: "manga_spyxfamily",
@@ -48,46 +53,75 @@ export const ANIME_BOOKS: AnimeBook[] = [
     coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/spy-x-family/images/e/ea/Volume_1.png&w=400&h=600&fit=cover",
     readUrl: "https://mangaplus.shueisha.co.jp/titles/100056",
     category: "Comedy / Spy",
-    status: "Classic"
+    status: "Classic",
+    type: "Manga"
+  },
+
+  // --- ANIME MOVIE BOOKS / LIGHT NOVELS ---
+  {
+    id: "movie_yourname",
+    title: "Your Name.",
+    author: "Makoto Shinkai",
+    description: "Mitsuha and Taki are two total strangers living completely different lives. But when Mitsuha makes a wish, they become connected.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/kiminonawa/images/4/4b/Your_Name_Novel_Cover.png&w=400&h=600&fit=cover",
+    readUrl: "https://global.bookwalker.jp/de6c7c4e5e-6e4b-4f5e-8e4b-6e4b4f5e8e4b/",
+    category: "Romance / Sci-Fi",
+    status: "Classic",
+    type: "Movie Book"
   },
   {
-    id: "manga_oshinoko",
-    title: "Oshi no Ko",
-    author: "Aka Akasaka",
-    description: "Dr. Goro is reborn as the son of the young starlet Ai Hoshino after her delusional stalker murders him.",
-    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/oshinoko/images/d/d6/Volume_1.png&w=400&h=600&fit=cover",
-    readUrl: "https://mangaplus.shueisha.co.jp/titles/100191",
-    category: "Drama / Mystery",
-    status: "Latest"
+    id: "movie_weathering",
+    title: "Weathering With You",
+    author: "Makoto Shinkai",
+    description: "High school student Hodaka runs away to Tokyo and meets Hina, a girl who can control the weather.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/weatheringwithyou/images/5/5e/Weathering_With_You_Novel_Cover.jpg&w=400&h=600&fit=cover",
+    readUrl: "https://global.bookwalker.jp/de6c7c4e5e-6e4b-4f5e-8e4b-6e4b4f5e8e4b/",
+    category: "Fantasy / Romance",
+    status: "Classic",
+    type: "Movie Book"
   },
   {
-    id: "manga_mha",
-    title: "My Hero Academia",
-    author: "Kohei Horikoshi",
-    description: "In a world where eighty percent of the population has some kind of super-powered 'Quirk'.",
-    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/bokunoheroacademia/images/b/b5/Volume_1.png&w=400&h=600&fit=cover",
-    readUrl: "https://mangaplus.shueisha.co.jp/titles/100017",
-    category: "Superhero / Action",
-    status: "Classic"
+    id: "movie_suzume",
+    title: "Suzume",
+    author: "Makoto Shinkai",
+    description: "A 17-year-old girl named Suzume helps a mysterious young man close doors from the other side that are releasing disasters.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/suzume-no-tojimari/images/3/3d/Suzume_Novel_Cover.jpg&w=400&h=600&fit=cover",
+    readUrl: "https://global.bookwalker.jp/de6c7c4e5e-6e4b-4f5e-8e4b-6e4b4f5e8e4b/",
+    category: "Adventure / Fantasy",
+    status: "Latest",
+    type: "Movie Book"
   },
   {
-    id: "manga_dbz_super",
-    title: "Dragon Ball Super",
-    author: "Akira Toriyama / Toyotarou",
-    description: "Having defeated Majin Boo, Goku is at last able to enjoy a peaceful life, but a new threat appears.",
-    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/dragonball/images/d/d4/Volume_1_DBS.png&w=400&h=600&fit=cover",
-    readUrl: "https://mangaplus.shueisha.co.jp/titles/100012",
-    category: "Action / Sci-Fi",
-    status: "Classic"
+    id: "movie_asilentvoice",
+    title: "A Silent Voice",
+    author: "Yoshitoki Oima",
+    description: "The story revolves around Shoya Ishida, a former bully, and Shoko Nishimiya, a deaf girl he bullied in elementary school.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/koenokatachi/images/a/a2/Volume_1.png&w=400&h=600&fit=cover",
+    readUrl: "https://global.bookwalker.jp/de6c7c4e5e-6e4b-4f5e-8e4b-6e4b4f5e8e4b/",
+    category: "Drama / Slice of Life",
+    status: "Classic",
+    type: "Movie Book"
   },
   {
-    id: "manga_kaiju8",
-    title: "Kaiju No. 8",
-    author: "Naoya Matsumoto",
-    description: "A man working a job far removed from his childhood dreams gets wrapped up in an unexpected situation.",
-    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/kaiju-no-8/images/a/a9/Volume_1.png&w=400&h=600&fit=cover",
-    readUrl: "https://mangaplus.shueisha.co.jp/titles/100110",
-    category: "Action / Sci-Fi",
-    status: "Trending"
+    id: "movie_pancreas",
+    title: "I Want to Eat Your Pancreas",
+    author: "Yoru Sumino",
+    description: "An aloof high school student discovers a diary in a hospital waiting room, belonging to his popular classmate Sakura Yamauchi.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/kimisui/images/3/31/Volume_1.jpg&w=400&h=600&fit=cover",
+    readUrl: "https://global.bookwalker.jp/de6c7c4e5e-6e4b-4f5e-8e4b-6e4b4f5e8e4b/",
+    category: "Drama / Romance",
+    status: "Classic",
+    type: "Movie Book"
+  },
+  {
+    id: "movie_jjk0",
+    title: "Jujutsu Kaisen 0",
+    author: "Gege Akutami",
+    description: "The prequel to the hit series. Yuta Okkotsu is haunted by the spirit of his childhood friend Rika.",
+    coverUrl: "https://images.weserv.nl/?url=https://static.wikia.nocookie.net/jujutsu-kaisen/images/d/d4/Volume_0.png&w=400&h=600&fit=cover",
+    readUrl: "https://mangaplus.shueisha.co.jp/titles/100034",
+    category: "Action / Supernatural",
+    status: "Classic",
+    type: "Movie Book"
   }
 ];

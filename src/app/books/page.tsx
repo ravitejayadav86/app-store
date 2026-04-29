@@ -218,6 +218,11 @@ function MangaCard({ manga, index }: { manga: AnimeBook; index: number }) {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            <div className="px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-wider border border-white/10 w-fit">
+              {manga.type || "Manga"}
+            </div>
+          </div>
           <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-primary text-on-primary text-[10px] font-black uppercase tracking-widest shadow-lg">
             {manga.status}
           </div>
