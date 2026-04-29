@@ -389,14 +389,10 @@ export function MusicPlayer({ queue, initialIndex = 0, onClose }: Props) {
 
                   {/* Seek bar */}
                   <div className="w-full">
-                    <div className="relative h-1 rounded-full bg-white/10 mb-1.5 cursor-pointer">
+                    <div className="relative h-1 rounded-full bg-white/10 mb-1.5 cursor-pointer transform-gpu overflow-hidden">
                       <div
-                        className="absolute top-0 left-0 h-full rounded-full"
-                        style={{ width: `${pct}%`, background: color }}
-                      />
-                      <div
-                        className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full shadow-lg border-2 border-white"
-                        style={{ left: `calc(${pct}% - 7px)`, background: color }}
+                        className="absolute inset-y-0 left-0 w-full h-full rounded-full origin-left will-change-transform"
+                        style={{ transform: `scaleX(${pct / 100})`, background: color, transition: 'transform 0.1s linear' }}
                       />
                       <input
                         type="range"
@@ -550,10 +546,10 @@ export function MusicPlayer({ queue, initialIndex = 0, onClose }: Props) {
             }}
           >
             {/* Thin progress strip at very top */}
-            <div className="w-full h-0.5 bg-white/10">
+            <div className="w-full h-0.5 bg-white/10 overflow-hidden transform-gpu">
               <div
-                className="h-full transition-all duration-300"
-                style={{ width: `${pct}%`, background: color }}
+                className="h-full origin-left will-change-transform"
+                style={{ transform: `scaleX(${pct / 100})`, background: color, transition: 'transform 0.1s linear' }}
               />
             </div>
 

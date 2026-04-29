@@ -110,7 +110,7 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
     <>
       <Navbar isHidden={!panelsVisible} />
 
-      <main className={`flex-grow overflow-x-hidden transition-[padding] duration-300 ease-out ${
+      <main className={`flex-grow overflow-x-hidden ${
         panelsVisible ? "pt-24 pb-24 md:pb-0" : "pt-0 pb-0"
       }`}>
         <AnimatePresence mode="wait" initial={false}>

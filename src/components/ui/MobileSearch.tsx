@@ -228,6 +228,7 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.025, type: "spring", stiffness: 600, damping: 42 }}
+                        style={{ willChange: "transform, opacity" }}
                       >
                         <button
                           onClick={() => navigate(item.url, item.name)}

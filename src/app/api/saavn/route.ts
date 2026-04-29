@@ -3,18 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 const SAAVN_BASES = [
   "https://saavn.dev/api",
   "https://jiosaavn-api-ts.vercel.app/api",
+  "https://jiosaavn-api-privatecvc2.vercel.app",
 ];
 
 async function saavnFetch(path: string): Promise<any> {
   for (const base of SAAVN_BASES) {
     try {
-      const res = await fetch(`${base}${path}`, {
+      let finalPath = path;
+      if (base.includes("saavn.dev") && path.startsWith("/lyrics?id=")) {
+        const id = new URLSearchParams(path.split("?")[1]).get("id");
+        finalPath = `/songs/${id}/lyrics`;
+      }
+      
+      const res = await fetch(`${base}${finalPath}`, {
         headers: { Accept: "application/json" },
         next: { revalidate: 3600 },
       });
       if (!res.ok) continue;
       const json = await res.json();
-      if (json?.success) return json;
+      if (json?.success || json?.status === "SUCCESS") {
+        // Normalize the success flag for the frontend
+        json.success = true;
+        return json;
+      }
     } catch {
       continue;
     }
@@ -38,11 +49,16 @@ export async function GET(req: NextRequest) {
   } else if (type === "lyrics") {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
-    path = `/songs/${id}/lyrics`;
+    // Some endpoints use /songs/{id}/lyrics and others use /lyrics?id=...
+    // We will pass /lyrics?id= and in saavnFetch we will try it. Or we can just use a specific one.
+    // Let's modify saavnFetch to handle this, or just pass a special flag.
+    path = `/lyrics?id=${id}`;
   } else {
     return NextResponse.json({ success: false, error: "Invalid type" }, { status: 400 });
   }
 
+  // Need to also handle /songs vs /songs?id=
+  // Let's modify the saavnFetch to replace /lyrics?id=x with /songs/x/lyrics if saavn.dev
   const data = await saavnFetch(path);
   if (!data) {
     return NextResponse.json({ success: false, error: "Saavn unavailable" }, { status: 503 });

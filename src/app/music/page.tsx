@@ -44,10 +44,11 @@ function appToTrack(a: any): Track {
 }
 
 function saavnToTrack(s: any, fallbackCover?: string, fallbackColor?: string): Track {
-  const url320 = s.downloadUrl?.find((d: any) => d.quality === "320kbps")?.url;
-  const url160 = s.downloadUrl?.find((d: any) => d.quality === "160kbps")?.url;
-  const audioUrl = url320 || url160 || s.downloadUrl?.[0]?.url || "";
-  const coverUrl = s.image?.find((i: any) => i.quality === "500x500")?.url || fallbackCover;
+  const getUrl = (arr: any[], q: string) => { const f = arr?.find((x: any) => x.quality === q); return f?.url || f?.link; };
+  const url320 = getUrl(s.downloadUrl, "320kbps");
+  const url160 = getUrl(s.downloadUrl, "160kbps");
+  const audioUrl = url320 || url160 || s.downloadUrl?.[0]?.url || s.downloadUrl?.[0]?.link || "";
+  const coverUrl = getUrl(s.image, "500x500") || s.image?.[0]?.url || s.image?.[0]?.link || fallbackCover;
   const artist = s.artists?.primary?.map((a: any) => a.name).join(", ") || s.primaryArtists || "";
   return {
     id: `saavn_${s.id}`, title: s.name, artist,
@@ -123,8 +124,17 @@ export default function MusicPage() {
 
   useEffect(() => {
     setFeatLoad(true);
-    fetchJamendo("/tracks", { order: "popularity_total", limit: "6", include: "musicinfo" })
-      .then(r => setFeatured(r.map(jamendoToTrack))).finally(() => setFeatLoad(false));
+    fetch(`/api/saavn?type=search&q=${encodeURIComponent("latest hits")}&limit=6`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.success && data.data?.results) {
+          setFeatured(data.data.results.map((s: any) => saavnToTrack(s)));
+        } else {
+          setFeatured([]);
+        }
+      })
+      .catch(() => setFeatured([]))
+      .finally(() => setFeatLoad(false));
   }, []);
 
   useEffect(() => {
@@ -142,9 +152,7 @@ export default function MusicPage() {
         if (data?.success && data.data?.results) {
           setTracks(data.data.results.map((s: any) => saavnToTrack(s)));
         } else {
-          // Fallback to jamendo
-          return fetchJamendo("/tracks", { search: genre, limit: "20" })
-            .then(r => setTracks(r.map(jamendoToTrack)));
+          setTracks([]);
         }
       })
       .catch(() => {})
@@ -165,15 +173,11 @@ export default function MusicPage() {
 
     const timer = setTimeout(async () => {
       try {
-        const [j1, j2, s1] = await Promise.all([
-          fetchJamendo("/tracks", { namesearch: q, limit: "8" }),
-          fetchJamendo("/tracks", { search: q, limit: "8", order: "popularity_week" }),
-          fetch(`/api/saavn?type=search&q=${encodeURIComponent(q)}&limit=10`).then(r => r.json()),
-        ]);
+        const s1 = await fetch(`/api/saavn?type=search&q=${encodeURIComponent(q)}&limit=15`).then(r => r.json());
         const saavnTracks: Track[] = s1?.success ? s1.data.results.map((s: any) => saavnToTrack(s)) : [];
         const seen = new Set<string>();
         const merged: Track[] = [];
-        for (const t of [...localHits, ...saavnTracks, ...[...j1, ...j2].map(jamendoToTrack)]) {
+        for (const t of [...localHits, ...saavnTracks]) {
           if (!seen.has(String(t.id))) { seen.add(String(t.id)); merged.push(t); }
         }
         setSearchRes(merged.slice(0, 24));

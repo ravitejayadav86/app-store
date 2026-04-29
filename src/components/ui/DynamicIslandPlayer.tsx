@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, X, Music2 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMusicPlayer } from "@/lib/MusicContext";
 const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } as const;
 
@@ -15,8 +15,12 @@ function fmt(s: number) {
 
 export function DynamicIslandPlayer() {
   const pathname = usePathname();
+  const router = useRouter();
+  const holdTimer = useRef<NodeJS.Timeout | null>(null);
+  const hasLongPressed = useRef(false);
   const { track, isPlaying, progress, duration, togglePlay, skipNext, skipPrev, seek, stop } = useMusicPlayer();
   const [expanded, setExpanded] = useState(false);
+  const [isPressing, setIsPressing] = useState(false);
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
   const color = track?.color ?? "#0058bb";
 
@@ -38,8 +42,34 @@ export function DynamicIslandPlayer() {
           <motion.div
             layout
             transition={SPRING}
-            onClick={() => setExpanded(e => !e)}
-            className="relative overflow-hidden cursor-pointer select-none"
+            onPointerDown={(e) => {
+              // Ignore if clicking on buttons
+              if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).tagName === "INPUT") return;
+              setIsPressing(true);
+              hasLongPressed.current = false;
+              holdTimer.current = setTimeout(() => {
+                hasLongPressed.current = true;
+                setIsPressing(false);
+                router.push(`/music/${track.id}`);
+              }, 400); // 400ms hold
+            }}
+            onPointerUp={() => {
+              if (holdTimer.current) clearTimeout(holdTimer.current);
+              setIsPressing(false);
+              if (!hasLongPressed.current) {
+                setExpanded(e => !e);
+              }
+            }}
+            onPointerLeave={() => {
+              if (holdTimer.current) clearTimeout(holdTimer.current);
+              setIsPressing(false);
+            }}
+            onPointerCancel={() => {
+              if (holdTimer.current) clearTimeout(holdTimer.current);
+              setIsPressing(false);
+            }}
+            animate={{ scale: isPressing ? 0.95 : 1 }}
+            className="relative overflow-hidden cursor-pointer select-none transform-gpu"
             style={{
               background: "rgba(10,10,15,0.95)",
               backdropFilter: "blur(28px)",
@@ -47,6 +77,7 @@ export function DynamicIslandPlayer() {
               borderRadius: expanded ? "24px" : "9999px",
               border: "1px solid rgba(255,255,255,0.1)",
               boxShadow: `0 8px 32px -4px ${color}55, 0 2px 8px rgba(0,0,0,0.4)`,
+              touchAction: "none",
             }}
           >
             {/* Ambient glow strip at top */}
@@ -105,7 +136,8 @@ export function DynamicIslandPlayer() {
             {expanded && (
               <motion.div
                 layout
-                initial={{ opacity: 0, filter: "blur(4px)" }} animate={{ opacity: 1, filter: "blur(0px)", transition: { delay: 0.1, duration: 0.25 } }} exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
+                initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1, transition: { delay: 0.1, duration: 0.25 } }} exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.1 } }}
+                style={{ willChange: "transform, opacity" }}
                 className="p-4 w-[280px]"
               >
                 {/* Close Button (Stops playback and hides island) */}
@@ -136,8 +168,9 @@ export function DynamicIslandPlayer() {
 
                 {/* Progress bar */}
                 <div className="mb-3" onClick={e => e.stopPropagation()}>
-                  <div className="relative h-1 rounded-full bg-white/10 mb-1 overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                  <div className="relative h-1 rounded-full bg-white/10 mb-1 overflow-hidden transform-gpu">
+                    <div className="absolute inset-y-0 left-0 w-full h-full rounded-full origin-left will-change-transform" 
+                         style={{ transform: `scaleX(${pct / 100})`, background: color, transition: 'transform 0.1s linear' }} />
                     <input type="range" min={0} max={duration || 100} step={0.1} value={progress}
                       onChange={e => seek(Number(e.target.value))}
                       className="absolute inset-0 w-full opacity-0 cursor-pointer h-full" />

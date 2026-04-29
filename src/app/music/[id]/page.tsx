@@ -151,6 +151,18 @@ export default function SongDetailPage() {
   const rawProgress = useMotionValue(0);
   const springProgress = useSpring(rawProgress, { stiffness: 60, damping: 18, mass: 0.6 });
 
+  // Sync spring progress with playback
+  useEffect(() => {
+    rawProgress.set(duration > 0 ? (progress / duration) * 100 : 0);
+  }, [progress, duration, rawProgress]);
+
+  // Pre-calculate transforms to avoid hook mismatch
+  const artworkScale = useTransform(beatScale, [0, 1], [1, 1.015]);
+  const titleScale = useTransform(beatScale, [0, 1], [1, 1.01]);
+  const progressClipPath = useTransform(springProgress, p => `inset(0 ${100 - p}% 0 0)`);
+  const thumbLeft = useTransform(springProgress, p => `${p}%`);
+  const thumbScale = useTransform(beatScale, [0, 1], [1, 1.2]);
+
   // Sync with current playing track if it matches the URL ID
   const displayTrack = useMemo(() => {
     if (currentTrack && String(currentTrack.id) === songId) return currentTrack;
@@ -166,11 +178,6 @@ export default function SongDetailPage() {
     setAiStep(0);
   }, [displayTrack?.id]);
 
-  // Sync spring progress with playback
-  useEffect(() => {
-    rawProgress.set(duration > 0 ? (progress / duration) * 100 : 0);
-  }, [progress, duration, rawProgress]);
-
   // Fetch track if not in context
   useEffect(() => {
     if (currentTrack && String(currentTrack.id) === songId) return;
@@ -183,10 +190,11 @@ export default function SongDetailPage() {
         const data = await res.json();
         if (data?.success && data.data?.[0]) {
           const s = data.data[0];
-          const url320 = s.downloadUrl?.find((d: any) => d.quality === "320kbps")?.url;
-          const url160 = s.downloadUrl?.find((d: any) => d.quality === "160kbps")?.url;
-          const audioUrl = url320 || url160 || s.downloadUrl?.[0]?.url || "";
-          const coverUrl = s.image?.find((i: any) => i.quality === "500x500")?.url;
+          const getUrl = (arr: any[], q: string) => { const f = arr?.find((x: any) => x.quality === q); return f?.url || f?.link; };
+          const url320 = getUrl(s.downloadUrl, "320kbps");
+          const url160 = getUrl(s.downloadUrl, "160kbps");
+          const audioUrl = url320 || url160 || s.downloadUrl?.[0]?.url || s.downloadUrl?.[0]?.link || "";
+          const coverUrl = getUrl(s.image, "500x500") || s.image?.[0]?.url || s.image?.[0]?.link || "";
           const artist = s.artists?.primary?.map((a: any) => a.name).join(", ") || s.primaryArtists || "";
           
           setLocalTrack({
@@ -464,7 +472,7 @@ export default function SongDetailPage() {
                       className="w-full aspect-square max-w-[280px] md:max-w-[340px] rounded-[2.5rem] overflow-hidden relative group"
                       style={{ 
                         boxShadow: `0 30px 80px -15px ${color}60, 0 0 0 1px rgba(255,255,255,0.06)`,
-                        scale: useTransform(beatScale, [0, 1], [1, 1.015]), // Very subtle pulse
+                        scale: artworkScale,
                         willChange: "transform",
                         transform: "translateZ(0)" // Force GPU acceleration
                       }}
@@ -482,7 +490,7 @@ export default function SongDetailPage() {
                       <div className="flex-1 min-w-0">
                         <motion.h1 
                           style={{ 
-                            scale: useTransform(beatScale, [0, 1], [1, 1.01]),
+                            scale: titleScale,
                             willChange: "transform"
                           }}
                           className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight truncate">
@@ -736,10 +744,10 @@ export default function SongDetailPage() {
             
             {/* Liquid Progress Mask & Container */}
             <motion.div 
-              className="absolute left-0 h-12 overflow-visible pointer-events-none"
-              style={{ width: useTransform(springProgress, p => `${p}%`) }}
+              className="absolute left-0 w-full h-12 overflow-visible pointer-events-none transform-gpu"
+              style={{ clipPath: progressClipPath }}
             >
-              <div className="w-[100vw] h-full flex items-center relative overflow-visible">
+              <div className="w-full h-full flex items-center relative overflow-visible">
                 {/* ── Layer 1: The Deep Ambient Flow (Glow) ── */}
                 <svg width="100%" height="48" viewBox="0 0 1000 48" preserveAspectRatio="none" className="absolute w-full opacity-20 blur-xl">
                   <motion.path
@@ -806,8 +814,8 @@ export default function SongDetailPage() {
             <motion.div 
               className="absolute z-20 pointer-events-none flex items-center justify-center"
               style={{ 
-                left: useTransform(springProgress, p => `calc(${p}% - 14px)`),
-                scale: useTransform(beatScale, [0, 1], [1, 1.2])
+                left: thumbLeft,
+                scale: thumbScale
               }}
             >
                <motion.div 
