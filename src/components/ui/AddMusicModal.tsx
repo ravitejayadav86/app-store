@@ -278,44 +278,39 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
                     <button type="button" onClick={detectLanguage} disabled={isDetectingLang}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition-colors text-xs font-bold border border-purple-500/20">
                       {isDetectingLang ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                      Auto-Detect Languages
+                      Auto-Detect
                     </button>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {songs.map((song, idx) => (
                       <motion.div key={song.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-                        className="p-4 rounded-3xl bg-surface border border-outline-variant flex flex-col gap-3 group relative shadow-sm">
+                        className="p-3 rounded-2xl bg-surface border border-outline-variant flex items-center gap-3 group relative shadow-sm hover:border-primary/40 transition-colors">
                         
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Music size={14} className="text-primary" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                          <input value={song.name} onChange={e => updateSong(song.id, "name", e.target.value)}
+                            className="flex-1 bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary focus:outline-none text-sm font-bold pb-0.5 transition-colors truncate"
+                            placeholder="Song Title" />
+                            
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Languages size={14} className="text-on-surface-variant hidden sm:block" />
+                            <select value={song.language} onChange={e => updateSong(song.id, "language", e.target.value)}
+                              className="text-xs font-bold bg-surface-low border border-outline-variant rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                              {LANGUAGES.map(lang => (
+                                <option key={lang} value={lang}>{lang}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
                         <button type="button" onClick={() => removeSong(song.id)}
-                          className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all opacity-0 group-hover:opacity-100">
+                          className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white shrink-0 transition-all">
                           <Trash2 size={14} />
                         </button>
-
-                        <div className="flex gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                            <Music size={18} className="text-primary" />
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <input value={song.name} onChange={e => updateSong(song.id, "name", e.target.value)}
-                              className="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:outline-none text-sm font-bold pb-1 transition-colors"
-                              placeholder="Song Title" />
-                            <p className="text-[10px] font-mono text-on-surface-variant truncate max-w-[200px]">{song.file.name}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-outline-variant/30">
-                          <div className="w-full flex items-center gap-1.5 mb-1 text-on-surface-variant">
-                            <Languages size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Language</span>
-                          </div>
-                          {LANGUAGES.map(lang => (
-                            <button type="button" key={lang} onClick={() => updateSong(song.id, "language", lang)}
-                              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${song.language === lang ? 'bg-primary text-white border-primary shadow-md scale-105' : 'bg-surface-low text-on-surface-variant border-outline-variant hover:border-primary/40'}`}>
-                              {lang}
-                            </button>
-                          ))}
-                        </div>
                       </motion.div>
                     ))}
                   </div>

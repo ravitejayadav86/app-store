@@ -195,17 +195,16 @@ export default function MusicPage() {
       {/* HERO */}
       <section className="relative overflow-hidden px-3 md:px-8 pt-4 md:pt-6 pb-6 md:pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5 border border-outline-variant/30"
-            style={{ background: "var(--hero-gradient, linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%))" }}>
-            {[["#6c9fff", "top-[-80px] left-[-80px]"], ["#3f51b5", "bottom-[-60px] right-[-60px]"], ["#9c27b0", "top-[40%] left-[40%]"]].map(([c, pos], i) => (
-              <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-10 ${pos}`}
+          <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5 border border-outline-variant bg-gradient-to-br from-primary/5 to-surface-low">
+            {[["var(--primary)", "top-[-80px] left-[-80px]"], ["var(--secondary, #9c27b0)", "bottom-[-60px] right-[-60px]"], ["var(--tertiary, #3f51b5)", "top-[40%] left-[40%]"]].map(([c, pos], i) => (
+              <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-20 dark:opacity-10 ${pos}`}
                 style={{ background: c }} animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
                 transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }} />
             ))}
             <div className="absolute top-6 right-6 z-20">
               <button onClick={() => setIsAddMusicOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-sky-500/20 backdrop-blur-xl border border-sky-400/40 rounded-2xl text-sky-50 font-bold text-xs md:text-sm hover:bg-sky-400/30 transition-all hover:scale-105 active:scale-95">
-                <Music2 size={16} className="text-sky-300" /> + Add Music
+                className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-2xl text-primary font-bold text-xs md:text-sm hover:bg-primary/20 transition-all hover:scale-105 active:scale-95">
+                <Music2 size={16} className="text-primary" /> + Add Music
               </button>
             </div>
             <div className="relative z-10">
@@ -221,9 +220,8 @@ export default function MusicPage() {
               <div className="flex flex-wrap gap-3 md:gap-4">
                 <motion.button {...FADE_UP(3)}
                   onClick={() => featured.length > 0 && startPlay(featured, 0)}
-                  className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25"
-                  style={{ background: "linear-gradient(120deg,#0058bb,#3f51b5)" }}>
-                  <Play size={16} fill="white" /> Play Top Tracks
+                  className="flex items-center gap-2 md:gap-3 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-xs md:text-sm font-bold text-on-primary transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/25 bg-primary">
+                  <Play size={16} fill="currentColor" /> Play Top Tracks
                 </motion.button>
                 <motion.button {...FADE_UP(4)}
                   onClick={() => {
