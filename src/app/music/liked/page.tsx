@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useMusicPlayer } from "@/lib/MusicContext";
 import { Track } from "@/components/ui/MusicPlayer";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const SPRING = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
 const ACCENT_COLORS = ["#e91e63","#9c27b0","#3f51b5","#0058bb","#00bcd4","#009688","#ff5722","#ff9800","#4caf50","#f44336","#673ab7","#2196f3"];
@@ -107,9 +108,12 @@ export default function LikedSongsPage() {
     fetchLikedTracks();
   }, []);
 
+  const router = useRouter();
+
   const startPlay = useCallback((list: Track[], index: number) => {
     play(list as any, index);
-  }, [play]);
+    router.push(`/music/${list[index].id}`);
+  }, [play, router]);
 
   return (
     <div className="min-h-screen pb-40 bg-surface">
