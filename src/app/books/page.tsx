@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { BookOpen, Star, Loader2, Search, Sparkles, ExternalLink, Zap } from "lucide-react";
+import { BookOpen, Star, Loader2, Search, Sparkles, ExternalLink, Zap, ArrowLeft, X } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
 import { ANIME_BOOKS, AnimeBook } from "@/data/animeBooks";
@@ -210,7 +210,7 @@ function MangaCard({ manga, index }: { manga: AnimeBook; index: number }) {
       whileHover={{ y: -8 }}
       className="group"
     >
-      <a href={manga.readUrl} target="_blank" rel="noopener noreferrer">
+      <Link href={`/books/${manga.id}`}>
         <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-xl mb-4">
           <img 
             src={manga.coverUrl} 
@@ -227,9 +227,9 @@ function MangaCard({ manga, index }: { manga: AnimeBook; index: number }) {
             {manga.status}
           </div>
           <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-            <div className="flex items-center gap-2 text-white font-bold text-sm bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30">
-              <ExternalLink size={14} />
-              Read Free
+            <div className="flex items-center justify-center gap-2 text-white font-bold text-sm bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30">
+              <BookOpen size={14} />
+              Read Now
             </div>
           </div>
         </div>
@@ -238,7 +238,7 @@ function MangaCard({ manga, index }: { manga: AnimeBook; index: number }) {
         <span className="text-[10px] px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-bold">
           {manga.category}
         </span>
-      </a>
+      </Link>
     </motion.div>
   );
 }
