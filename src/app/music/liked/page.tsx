@@ -175,10 +175,9 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
 }) {
   const color = trackColor(track, index);
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.015, 0.2), ...SPRING }}
-      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative transform-gpu"
-      onClick={onClick} whileHover={{ backgroundColor: "rgba(0, 88, 187, 0.04)" }}>
+    <div
+      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative transform-gpu hover:bg-primary/5 active:bg-primary/10"
+      onClick={onClick}>
       {isPlaying && <motion.div layoutId="active-track-pill" className="absolute left-0 w-1 h-2/3 rounded-r-full" style={{ background: color }} />}
       <div className="w-6 md:w-8 text-center flex-shrink-0">
         <span className="text-[10px] md:text-xs text-on-surface-variant/40 font-mono">{index + 1}</span>
@@ -195,6 +194,6 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
           <Heart size={15} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-on-surface-variant/30"} />
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

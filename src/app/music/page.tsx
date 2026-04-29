@@ -202,7 +202,7 @@ export default function MusicPage() {
         <div className="max-w-7xl mx-auto">
           <div className="relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-12 shadow-xl shadow-primary/5 border border-outline-variant bg-gradient-to-br from-primary/5 to-surface-low">
             {[["var(--primary)", "top-[-80px] left-[-80px]"], ["var(--secondary, #9c27b0)", "bottom-[-60px] right-[-60px]"], ["var(--tertiary, #3f51b5)", "top-[40%] left-[40%]"]].map(([c, pos], i) => (
-              <motion.div key={i} className={`absolute w-72 h-72 rounded-full blur-[90px] opacity-20 dark:opacity-10 ${pos}`}
+              <motion.div key={i} className={`hidden md:block absolute w-72 h-72 rounded-full blur-[90px] opacity-20 dark:opacity-10 ${pos}`}
                 style={{ background: c }} animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
                 transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }} />
             ))}
@@ -440,10 +440,9 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
 }) {
   const color = trackColor(track, index);
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.015, 0.2), ...SPRING }}
-      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative transform-gpu"
-      onClick={onClick} whileHover={{ backgroundColor: "rgba(0, 88, 187, 0.04)" }}>
+    <div
+      className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 rounded-xl group transition-all cursor-pointer relative transform-gpu hover:bg-primary/5 active:bg-primary/10"
+      onClick={onClick}>
       {isPlaying && <motion.div layoutId="active-track-pill" className="absolute left-0 w-1 h-2/3 rounded-r-full" style={{ background: color }} />}
       <div className="w-6 md:w-8 text-center flex-shrink-0">
         {isPlaying
@@ -473,6 +472,6 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
           {Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, "0")}
         </span>
       )}
-    </motion.div>
+    </div>
   );
 }
