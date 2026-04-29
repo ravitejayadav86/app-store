@@ -34,11 +34,16 @@ const ITEM_VARIANTS = {
   }
 } as const;
 
-export default function Home() {
+interface Props {
+  initialApps?: App[];
+}
+
+export default function Home({ initialApps = [] }: Props) {
   const categories = ["Games", "Productivity", "Graphics", "Utilities", "Social", "Development"];
-  const [apps, setApps] = useState<App[]>([]);
+  const [apps, setApps] = useState<App[]>(initialApps);
 
   useEffect(() => {
+    if (initialApps.length > 0) return;
     const fetchApps = async () => {
       try {
         const res = await api.get("/apps/");
@@ -48,7 +53,7 @@ export default function Home() {
       }
     };
     fetchApps();
-  }, []);
+  }, [initialApps.length]);
 
   const getFallbackIcon = (category: string) => {
     switch (category.toLowerCase()) {
