@@ -168,7 +168,7 @@ export default function SongDetailPage() {
           }
         }
         
-        setLyrics("Lyrics not available for this song. Panda AI needs lyrics to perform deep analysis.");
+        setLyrics("Lyrics not available for this song.\n\nTap Analyze ✦ to run a sonic & metadata analysis.");
       } catch {
         setLyrics("Failed to load lyrics.");
       } finally {
@@ -209,10 +209,7 @@ export default function SongDetailPage() {
 
   const analyzeLyrics = async () => {
     const track = displayTrack;
-    if (!lyrics || aiLoading || !track) return;
-    if (lyrics.includes("Lyrics not available") || lyrics.includes("Failed to load")) {
-      return;
-    }
+    if (aiLoading || !track) return;
     
     setAiLoading(true);
     setAiStep(0);
@@ -220,7 +217,7 @@ export default function SongDetailPage() {
       const res = await fetch("/api/lyrics-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lyrics, title: track.title, artist: track.artist })
+        body: JSON.stringify({ lyrics: lyrics || "", title: track.title, artist: track.artist })
       });
       const data = await res.json();
       if (data.success) {
@@ -471,10 +468,9 @@ export default function SongDetailPage() {
                           <AnimatePresence mode="wait">
                             {!aiInsight && !aiLoading && (
                               <motion.button key="analyze-btn" onClick={analyzeLyrics}
-                                disabled={lyrics?.includes("Lyrics not available") || lyrics?.includes("Failed to load")}
                                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }}
-                                className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/15 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/15 bg-white/5 hover:bg-white/10 transition-colors">
                                 Analyze ✦
                               </motion.button>
                             )}
