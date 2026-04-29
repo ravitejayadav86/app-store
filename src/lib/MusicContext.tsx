@@ -42,6 +42,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.8);
 
+  const skipNextRef = useRef<() => void>(() => {});
+
   // Sync volume with audio element
   useEffect(() => {
     if (audioRef.current) {
@@ -64,18 +66,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
     const onEnded = () => {
-      setQueue(q => {
-        setQueueIdx(idx => {
-          const next = idx + 1;
-          if (next < q.length) {
-            setTrack(q[next]);
-            return next;
-          }
-          setIsPlaying(false);
-          return idx;
-        });
-        return q;
-      });
+      if (skipNextRef.current) skipNextRef.current();
     };
 
     audio.addEventListener("timeupdate", onTime);
@@ -122,7 +113,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setQueue(q => {
       setQueueIdx(idx => {
         const next = idx + 1;
-        if (next < q.length) { setTrack(q[next]); return next; }
+        if (next < q.length) { 
+          setTrack(q[next]); 
+          return next; 
+        }
+        // Loop back to start if at the end
+        if (q.length > 0) {
+          setTrack(q[0]);
+          return 0;
+        }
         return idx;
       });
       return q;
@@ -154,6 +153,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying(false);
     setProgress(0);
   }, []);
+
+  // Sync skipNextRef
+  useEffect(() => {
+    skipNextRef.current = skipNext;
+  }, [skipNext]);
 
   return (
     <MusicContext.Provider value={{ track, queue, queueIdx, isPlaying, progress, duration, play, togglePlay, skipNext, skipPrev, seek, stop, volume, setVolume }}>
