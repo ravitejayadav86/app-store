@@ -53,9 +53,12 @@ export function DynamicIslandPlayer() {
                 router.push(`/music/${track.id}`);
               }, 400); // 400ms hold
             }}
-            onPointerUp={() => {
+            onPointerUp={(e) => {
               if (holdTimer.current) clearTimeout(holdTimer.current);
               setIsPressing(false);
+              // Ignore if clicking on buttons
+              if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).tagName === "INPUT") return;
+              
               if (!hasLongPressed.current) {
                 setExpanded(e => !e);
               }
