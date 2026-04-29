@@ -147,6 +147,19 @@ export default function SongDetailPage() {
     }
   };
 
+  const [direction, setDirection] = useState(0);
+
+  // Custom handlers to track direction for transitions
+  const handleNext = () => {
+    setDirection(1);
+    skipNext();
+  };
+
+  const handlePrev = () => {
+    setDirection(-1);
+    skipPrev();
+  };
+
   // Smooth spring progress for seek bar
   const rawProgress = useMotionValue(0);
   const springProgress = useSpring(rawProgress, { stiffness: 60, damping: 18, mass: 0.6 });
@@ -465,14 +478,30 @@ export default function SongDetailPage() {
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col">
-                {activeTab === "player" && (
-                  <motion.div key="player-tab"
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={EASE_OUT}
-                    className="flex-1 flex flex-col items-center gap-10">
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <AnimatePresence mode="wait" custom={direction}>
+                  {activeTab === "player" && (
+                    <motion.div 
+                      key={`player-${displayTrack.id}`}
+                      custom={direction}
+                      variants={{
+                        initial: (direction: number) => ({
+                          opacity: 0,
+                          x: direction > 0 ? 300 : direction < 0 ? -300 : 0,
+                          scale: 0.95
+                        }),
+                        animate: { opacity: 1, x: 0, scale: 1 },
+                        exit: (direction: number) => ({
+                          opacity: 0,
+                          x: direction > 0 ? -300 : direction < 0 ? 300 : 0,
+                          scale: 0.95
+                        })
+                      }}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="flex-1 flex flex-col items-center gap-10">
                     {/* Big Artwork */}
                     <motion.div
                       layoutId={`artwork-${displayTrack.id}`}
@@ -515,9 +544,10 @@ export default function SongDetailPage() {
                       </div>
                     </div>
                   </motion.div>
-                )}
+                </AnimatePresence>
 
-                         {activeTab === "lyrics" && (
+                {activeTab === "lyrics" && (
+
                   <motion.div key="lyrics-tab" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={EASE_OUT} className="flex-1 flex flex-col gap-4">
                     {/* ── Panda AI Card ── */}
                     <div className="relative">
@@ -864,7 +894,7 @@ export default function SongDetailPage() {
           </motion.button>
 
           <div className="flex items-center gap-7">
-            <motion.button onClick={skipPrev} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
+            <motion.button onClick={handlePrev} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
               className="text-white/70 hover:text-white transition-colors">
               <SkipBack size={28} fill="currentColor" />
             </motion.button>
@@ -888,7 +918,7 @@ export default function SongDetailPage() {
               </AnimatePresence>
             </motion.button>
 
-            <motion.button onClick={skipNext} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
+            <motion.button onClick={handleNext} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.8 }}
               className="text-white/70 hover:text-white transition-colors">
               <SkipForward size={28} fill="currentColor" />
             </motion.button>
