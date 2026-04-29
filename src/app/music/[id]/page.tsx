@@ -7,7 +7,7 @@ import {
   ArrowLeft, Play, Pause, SkipBack, SkipForward,
   Download, Heart, Shuffle, Repeat, Volume2, VolumeX,
   Music2, List, Loader2, Share2, Plus, MoreHorizontal,
-  Mic2, Info, Disc, Users, Star
+  Mic2, Info, Disc, Users, Star, Sparkles
 } from "lucide-react";
 import { useMusicPlayer, MiniTrack } from "@/lib/MusicContext";
 
