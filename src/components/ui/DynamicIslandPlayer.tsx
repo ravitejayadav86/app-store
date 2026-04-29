@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, X, Music2 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useMusicPlayer } from "@/lib/MusicContext";
 
 const SPRING = { type: "spring", stiffness: 600, damping: 38, mass: 0.5 } as const;
@@ -15,14 +16,17 @@ function fmt(s: number) {
 }
 
 export function DynamicIslandPlayer() {
+  const pathname = usePathname();
   const { track, isPlaying, progress, duration, togglePlay, skipNext, skipPrev, seek, stop } = useMusicPlayer();
   const [expanded, setExpanded] = useState(false);
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
   const color = track?.color ?? "#0058bb";
 
+  const isSongPage = pathname?.startsWith("/music/") && pathname !== "/music";
+
   return (
     <AnimatePresence>
-      {track && (
+      {!isSongPage && track && (
         <motion.div
           key="dynamic-island"
           layout

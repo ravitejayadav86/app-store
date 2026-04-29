@@ -31,6 +31,14 @@ export async function GET(req: NextRequest) {
   let path = "";
   if (type === "search") {
     path = `/search/songs?query=${encodeURIComponent(q)}&limit=${limit}&page=1`;
+  } else if (type === "song") {
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+    path = `/songs?id=${id}`;
+  } else if (type === "lyrics") {
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+    path = `/songs/${id}/lyrics`;
   } else {
     return NextResponse.json({ success: false, error: "Invalid type" }, { status: 400 });
   }

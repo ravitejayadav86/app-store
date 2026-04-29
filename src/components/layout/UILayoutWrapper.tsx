@@ -35,8 +35,14 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
 
   // Reset on navigation
   useEffect(() => {
-    setPanelsVisible(true);
-    scheduleHide();
+    const isMusicDetail = pathname?.startsWith("/music/") && pathname !== "/music";
+    if (isMusicDetail) {
+      setPanelsVisible(false);
+      setShowHint(false);
+    } else {
+      setPanelsVisible(true);
+      scheduleHide();
+    }
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
@@ -45,6 +51,9 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
 
   // Activity keeps panels alive
   useEffect(() => {
+    const isMusicDetail = pathname?.startsWith("/music/") && pathname !== "/music";
+    if (isMusicDetail) return;
+
     const onActivity = () => { if (panelsVisible) scheduleHide(); };
     window.addEventListener("mousemove", onActivity, { passive: true });
     window.addEventListener("scroll",    onActivity, { passive: true });
@@ -54,7 +63,7 @@ export const UILayoutWrapper = ({ children }: UILayoutWrapperProps) => {
       window.removeEventListener("scroll",    onActivity);
       window.removeEventListener("keydown",   onActivity);
     };
-  }, [panelsVisible, scheduleHide]);
+  }, [panelsVisible, scheduleHide, pathname]);
 
   // Double-click / double-tap toggle
   useEffect(() => {

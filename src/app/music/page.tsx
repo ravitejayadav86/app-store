@@ -12,6 +12,7 @@ import { AddMusicModal } from "@/components/ui/AddMusicModal";
 import { fuzzySearch } from "@/lib/search";
 import { useMusicPlayer } from "@/lib/MusicContext";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const JAMENDO_CLIENT = "b6747d04";
 const JAMENDO_BASE = "https://api.jamendo.com/v3.0";
@@ -69,6 +70,7 @@ const ACCENT_COLORS = ["#e91e63","#9c27b0","#3f51b5","#0058bb","#00bcd4","#00968
 function trackColor(t: Track, i: number) { return t.color ?? ACCENT_COLORS[i % ACCENT_COLORS.length]; }
 
 export default function MusicPage() {
+  const router = useRouter();
   const { play } = useMusicPlayer();
   const [genre, setGenre] = useState(GENRES[0].tag);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -172,7 +174,8 @@ export default function MusicPage() {
 
   const startPlay = useCallback((list: Track[], index: number) => {
     play(list as any, index);
-  }, [play]);
+    router.push(`/music/${list[index].id}`);
+  }, [play, router]);
 
   const displayTracks = search.trim() ? searchRes : tracks;
 
@@ -357,7 +360,7 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
     <motion.button onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.97 }}
       className="flex-shrink-0 w-36 md:w-48 rounded-2xl md:rounded-[1.5rem] overflow-hidden text-left relative group bg-surface-lowest shadow-sm hover:shadow-md transition-all border border-outline-variant/20"
       style={{ isolation: "isolate" }}>
-      <div className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-low relative">
+      <motion.div layoutId={`artwork-${track.id}`} className="w-full aspect-square flex items-center justify-center overflow-hidden bg-surface-low relative">
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
           : <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}22, ${color}44)` }}>
@@ -368,7 +371,7 @@ function FeaturedCard({ track, index, onClick }: { track: Track; index: number; 
             <Play size={22} fill="white" className="text-white ml-0.5" />
           </div>
         </div>
-      </div>
+      </motion.div>
       <div className="p-3 md:p-4 bg-surface-lowest">
         <p className="text-xs md:text-sm font-bold text-on-surface truncate">{track.title}</p>
         <p className="text-[10px] md:text-xs text-on-surface-variant font-medium truncate">{track.artist}</p>
@@ -399,9 +402,9 @@ function TrackRow({ track, index, onClick, isPlaying, isLiked, onToggleLike }: {
           </div>
           : <span className="text-[10px] md:text-xs text-on-surface-variant/40 font-mono">{index + 1}</span>}
       </div>
-      <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm" style={{ background: `${color}15` }}>
+      <motion.div layoutId={`artwork-${track.id}`} className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm" style={{ background: `${color}15` }}>
         {track.coverUrl ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" /> : <Music2 size={20} className="text-on-surface-variant/30" />}
-      </div>
+      </motion.div>
       <div className="flex-1 min-w-0">
         <p className={`text-xs md:text-sm font-bold truncate ${isPlaying ? "text-primary" : "text-on-surface"}`}>{track.title}</p>
         <p className="text-[10px] md:text-xs text-on-surface-variant/60 font-medium truncate">{track.artist}</p>
