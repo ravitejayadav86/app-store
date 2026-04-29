@@ -5,9 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, X, Music2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useMusicPlayer } from "@/lib/MusicContext";
-
-const SPRING = { type: "spring", stiffness: 600, damping: 38, mass: 0.5 } as const;
-
+const SPRING = { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } as const;
 
 
 function fmt(s: number) {
@@ -65,8 +63,7 @@ export function DynamicIslandPlayer() {
               <motion.div
                 layout
                 className="flex items-center gap-2 px-3 py-1.5"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1, transition: { delay: 0.1, duration: 0.2 } }} exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
               >
                 {/* Album art / equalizer */}
                 <div className="relative w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
@@ -108,8 +105,7 @@ export function DynamicIslandPlayer() {
             {expanded && (
               <motion.div
                 layout
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, filter: "blur(4px)" }} animate={{ opacity: 1, filter: "blur(0px)", transition: { delay: 0.1, duration: 0.25 } }} exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.1 } }}
                 className="p-4 w-[280px]"
               >
                 {/* Close */}
