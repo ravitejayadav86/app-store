@@ -83,19 +83,45 @@ export default function ExplorePage() {
         </div>
       </motion.section>
 
-      {/* Video Demonstration */}
+      {/* Platform Architecture Showcase */}
       <motion.section variants={ITEM_VARIANTS} className="px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 bg-black relative aspect-[16/10] md:aspect-video group">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none" />
-            <img 
-              src="/pandastore_walkthrough.webp" 
-              alt="PandaStore Platform Walkthrough" 
-              className="w-full h-full object-contain md:object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
-            />
-            <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 z-20">
-              <span className="text-white/80 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 block">Live Demonstration</span>
-              <h3 className="text-xl md:text-3xl font-black text-white drop-shadow-md">The Native Experience</h3>
+          <div className="rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 bg-gradient-to-br from-surface to-surface-low relative aspect-auto md:aspect-[21/9] flex flex-col md:flex-row items-center justify-center p-8 md:p-12 gap-8">
+            <div className="flex-1 text-center md:text-left z-10">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 mb-4 bg-primary/10 w-fit mx-auto md:mx-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary"
+              >
+                <Layers size={14} />
+                <span>Next-Gen Architecture</span>
+              </motion.div>
+              <h3 className="text-2xl md:text-4xl font-black text-on-surface mb-4 leading-tight">Unified Digital Ecosystem</h3>
+              <p className="text-sm md:text-base text-on-surface-variant font-medium max-w-md mx-auto md:mx-0">
+                PandaStore leverages Server-Side Rendering (SSR) and edge-caching to deliver a zero-lag experience across games, music, and apps simultaneously.
+              </p>
+            </div>
+            <div className="flex-1 relative w-full h-[250px] md:h-full flex items-center justify-center">
+               {/* Decorative Abstract UI representing the platform */}
+               <div className="absolute w-48 h-48 bg-primary/20 rounded-full blur-[40px] animate-pulse" />
+               <div className="relative z-10 grid grid-cols-2 gap-4">
+                  <div className="bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-2 animate-bounce" style={{ animationDuration: '3s' }}>
+                     <AppWindow className="text-blue-500" size={32} />
+                     <span className="text-xs font-bold">App Hub</span>
+                  </div>
+                  <div className="bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-2 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                     <Music className="text-fuchsia-500" size={32} />
+                     <span className="text-xs font-bold">Music Engine</span>
+                  </div>
+                  <div className="bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-2 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                     <Gamepad2 className="text-orange-500" size={32} />
+                     <span className="text-xs font-bold">Games</span>
+                  </div>
+                  <div className="bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-2 animate-bounce" style={{ animationDuration: '4.5s', animationDelay: '1.5s' }}>
+                     <BookOpen className="text-red-500" size={32} />
+                     <span className="text-xs font-bold">Library</span>
+                  </div>
+               </div>
             </div>
           </div>
         </div>
