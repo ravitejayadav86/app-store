@@ -547,7 +547,8 @@ export default function SongDetailPage() {
                       </div>
                     </div>
                   </motion.div>
-                </AnimatePresence>
+                )}
+              </AnimatePresence>
 
                 {activeTab === "lyrics" && (
 
