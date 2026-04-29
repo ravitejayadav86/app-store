@@ -138,26 +138,46 @@ export default function SongDetailPage() {
 
   // Fetch lyrics
   useEffect(() => {
-    if (!songId.startsWith("saavn_")) return;
+    if (!displayTrack) return;
+    
     const fetchLyrics = async () => {
       setLyricsLoading(true);
       try {
-        const saavnId = songId.replace("saavn_", "");
-        const res = await fetch(`/api/saavn?type=lyrics&id=${saavnId}`);
-        const data = await res.json();
-        if (data?.success && data.data?.lyrics) {
-          setLyrics(data.data.lyrics);
-        } else {
-          setLyrics("Lyrics not available for this song.");
+        let saavnId = "";
+        
+        if (songId.startsWith("saavn_")) {
+          saavnId = songId.replace("saavn_", "");
+        } else if (displayTrack.title) {
+          // For local uploaded tracks, try to find a matching song on Saavn to get its lyrics
+          const query = encodeURIComponent(`${displayTrack.title} ${displayTrack.artist || ""}`);
+          const searchRes = await fetch(`/api/saavn?type=search&q=${query}&limit=1`);
+          const searchData = await searchRes.json();
+          if (searchData?.success && searchData.data?.results?.length > 0) {
+            saavnId = searchData.data.results[0].id;
+          }
         }
+
+        if (saavnId) {
+          const res = await fetch(`/api/saavn?type=lyrics&id=${saavnId}`);
+          const data = await res.json();
+          if (data?.success && data.data?.lyrics) {
+            // Found lyrics!
+            setLyrics(data.data.lyrics.replace(/<br>/g, "\n"));
+            setLyricsLoading(false);
+            return;
+          }
+        }
+        
+        setLyrics("Lyrics not available for this song. Panda AI needs lyrics to perform deep analysis.");
       } catch {
         setLyrics("Failed to load lyrics.");
       } finally {
         setLyricsLoading(false);
       }
     };
+    
     fetchLyrics();
-  }, [songId]);
+  }, [songId, displayTrack]);
 
   useEffect(() => {
     try {
@@ -190,6 +210,10 @@ export default function SongDetailPage() {
   const analyzeLyrics = async () => {
     const track = displayTrack;
     if (!lyrics || aiLoading || !track) return;
+    if (lyrics.includes("Lyrics not available") || lyrics.includes("Failed to load")) {
+      return;
+    }
+    
     setAiLoading(true);
     setAiStep(0);
     try {
@@ -447,9 +471,10 @@ export default function SongDetailPage() {
                           <AnimatePresence mode="wait">
                             {!aiInsight && !aiLoading && (
                               <motion.button key="analyze-btn" onClick={analyzeLyrics}
+                                disabled={lyrics?.includes("Lyrics not available") || lyrics?.includes("Failed to load")}
                                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }}
-                                className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/15 bg-white/5 hover:bg-white/10 transition-colors">
+                                className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/15 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 Analyze ✦
                               </motion.button>
                             )}
