@@ -206,13 +206,13 @@ export default function MusicPage() {
                 style={{ background: c }} animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
                 transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }} />
             ))}
-            <div className="absolute top-6 right-6 z-20 flex gap-2">
-              <Link href="/music/liked" className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-2xl text-red-500 font-bold text-xs md:text-sm hover:bg-red-500/20 transition-all hover:scale-105 active:scale-95">
-                <Heart fill="currentColor" size={16} /> <span className="hidden sm:inline">Liked</span>
+            <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex gap-2">
+              <Link href="/music/liked" className="flex items-center justify-center gap-2 w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-xl md:rounded-2xl text-red-500 font-bold text-sm hover:bg-red-500/20 transition-all hover:scale-105 active:scale-95">
+                <Heart fill="currentColor" size={18} className="md:w-4 md:h-4" /> <span className="hidden md:inline">Liked</span>
               </Link>
               <button onClick={() => setIsAddMusicOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-2xl text-primary font-bold text-xs md:text-sm hover:bg-primary/20 transition-all hover:scale-105 active:scale-95">
-                <Music2 size={16} className="text-primary" /> <span className="hidden sm:inline">+ Add Music</span>
+                className="flex items-center justify-center gap-2 w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2.5 bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-xl md:rounded-2xl text-primary font-bold text-sm hover:bg-primary/20 transition-all hover:scale-105 active:scale-95">
+                <Music2 size={18} className="md:w-4 md:h-4 text-primary" /> <span className="hidden md:inline">Upload</span>
               </button>
             </div>
             <div className="relative z-10">
