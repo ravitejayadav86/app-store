@@ -55,7 +55,23 @@ export async function GET(req: NextRequest) {
   const limit = searchParams.get("limit") ?? "20";
 
   let path = "";
-  if (type === "search") {
+  if (type === "search_movie") {
+    // 1. Search for the movie/album
+    const albumSearch = await saavnFetch(`/search/albums?query=${encodeURIComponent(q)}&limit=1&page=1`);
+    if (albumSearch?.success && albumSearch?.data?.results?.length > 0) {
+      const albumId = albumSearch.data.results[0].id;
+      // 2. Fetch all songs for this exact album
+      const albumDetails = await saavnFetch(`/albums?id=${albumId}`);
+      if (albumDetails?.success && albumDetails?.data?.songs) {
+        return NextResponse.json({
+          success: true,
+          data: { results: albumDetails.data.songs }
+        }, { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } });
+      }
+    }
+    // Fallback if album not found
+    path = `/search/songs?query=${encodeURIComponent(q)}&limit=${limit}&page=1`;
+  } else if (type === "search") {
     path = `/search/songs?query=${encodeURIComponent(q)}&limit=${limit}&page=1`;
   } else if (type === "song") {
     const id = searchParams.get("id");
@@ -64,9 +80,6 @@ export async function GET(req: NextRequest) {
   } else if (type === "lyrics") {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
-    // Some endpoints use /songs/{id}/lyrics and others use /lyrics?id=...
-    // We will pass /lyrics?id= and in saavnFetch we will try it. Or we can just use a specific one.
-    // Let's modify saavnFetch to handle this, or just pass a special flag.
     path = `/lyrics?id=${id}`;
   } else {
     return NextResponse.json({ success: false, error: "Invalid type" }, { status: 400 });

@@ -103,7 +103,7 @@ export default function MusicPage() {
   const loadMovieSongs = useCallback(async (movie: MovieMeta) => {
     setMovieLoading(prev => ({ ...prev, [movie.id]: true }));
     try {
-      const res = await fetch(`/api/saavn?type=search&q=${encodeURIComponent(movie.saavnQuery)}&limit=20`);
+      const res = await fetch(`/api/saavn?type=search&q=${encodeURIComponent(movie.saavnQuery)}&limit=50`);
       const data = await res.json();
       const songs: Track[] = data?.success && data.data?.results
         ? data.data.results.map((s: any) => saavnToTrack(s, movie.coverUrl, movie.color))
@@ -146,7 +146,7 @@ export default function MusicPage() {
 
   useEffect(() => {
     setLoading(true); setTracks([]);
-    fetch(`/api/saavn?type=search&q=${encodeURIComponent(genre + " hit songs")}&limit=20`)
+    fetch(`/api/saavn?type=search&q=${encodeURIComponent(genre + " hit songs")}&limit=100`)
       .then(r => r.json())
       .then(data => {
         if (data?.success && data.data?.results) {
@@ -173,14 +173,14 @@ export default function MusicPage() {
 
     const timer = setTimeout(async () => {
       try {
-        const s1 = await fetch(`/api/saavn?type=search&q=${encodeURIComponent(q)}&limit=15`).then(r => r.json());
+        const s1 = await fetch(`/api/saavn?type=search_movie&q=${encodeURIComponent(q)}&limit=100`).then(r => r.json());
         const saavnTracks: Track[] = s1?.success ? s1.data.results.map((s: any) => saavnToTrack(s)) : [];
         const seen = new Set<string>();
         const merged: Track[] = [];
         for (const t of [...localHits, ...saavnTracks]) {
           if (!seen.has(String(t.id))) { seen.add(String(t.id)); merged.push(t); }
         }
-        setSearchRes(merged.slice(0, 24));
+        setSearchRes(merged.slice(0, 100));
       } catch { } finally { setSearching(false); }
     }, 300);
     return () => clearTimeout(timer);
