@@ -26,6 +26,8 @@ interface MusicContextValue {
   skipPrev: () => void;
   seek: (t: number) => void;
   stop: () => void;
+  volume: number;
+  setVolume: (v: number) => void;
 }
 
 const MusicContext = createContext<MusicContextValue | null>(null);
@@ -38,6 +40,18 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [volume, setVolumeState] = useState(0.8);
+
+  // Sync volume with audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  const setVolume = useCallback((v: number) => {
+    setVolumeState(Math.max(0, Math.min(1, v)));
+  }, []);
 
   // Init audio element once
   useEffect(() => {
@@ -142,7 +156,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <MusicContext.Provider value={{ track, queue, queueIdx, isPlaying, progress, duration, play, togglePlay, skipNext, skipPrev, seek, stop }}>
+    <MusicContext.Provider value={{ track, queue, queueIdx, isPlaying, progress, duration, play, togglePlay, skipNext, skipPrev, seek, stop, volume, setVolume }}>
       {children}
     </MusicContext.Provider>
   );

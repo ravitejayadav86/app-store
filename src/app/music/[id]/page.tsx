@@ -59,7 +59,11 @@ export default function SongDetailPage() {
   const router = useRouter();
   const params = useParams();
   const songId = params.id as string;
-  const { track: currentTrack, queue, queueIdx, isPlaying, progress, duration, togglePlay, skipNext, skipPrev, seek, play } = useMusicPlayer();
+  const { 
+    track: currentTrack, queue, queueIdx, isPlaying, progress, duration, 
+    togglePlay, skipNext, skipPrev, seek, play,
+    volume: globalVolume, setVolume: setGlobalVolume
+  } = useMusicPlayer();
 
   const [localTrack, setLocalTrack] = useState<MiniTrack | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,12 +77,27 @@ export default function SongDetailPage() {
   const [aiStep, setAiStep] = useState(0);
   const [shuffleOn, setShuffleOn] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "one" | "all">("off");
-  const [volume, setVolumeState] = useState(0.8);
   const [muted, setMuted] = useState(false);
   
   const [lyricsMode, setLyricsMode] = useState<"native" | "english">("native");
   const [englishLyrics, setEnglishLyrics] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
+
+  // ── Beat Simulation (Dances when playing) ──
+  const beat = useMotionValue(0);
+  useEffect(() => {
+    if (!isPlaying) {
+      beat.set(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      beat.set(Math.random() * 0.5 + 0.5); // Random "kick" between 0.5 and 1.0
+      setTimeout(() => beat.set(0), 100);
+    }, 450); // ~133 BPM average pulse
+    return () => clearInterval(interval);
+  }, [isPlaying, beat]);
+
+  const beatScale = useSpring(beat, { stiffness: 300, damping: 15 });
 
   const toggleLyricsMode = async () => {
     if (lyricsMode === "english") {
@@ -427,47 +446,34 @@ export default function SongDetailPage() {
                     {/* Big Artwork */}
                     <motion.div
                       layoutId={`artwork-${displayTrack.id}`}
-                      className="w-full aspect-square max-w-[340px] rounded-[2rem] overflow-hidden relative group"
-                      animate={{ scale: isCurrentlyPlaying && isPlaying ? 1 : 0.92 }}
+                      className="w-full aspect-square max-w-[280px] md:max-w-[340px] rounded-[2.5rem] overflow-hidden relative group"
+                      animate={{ scale: isCurrentlyPlaying && isPlaying ? 1 : 0.94 }}
                       transition={SP_ARTWORK}
                       style={{ boxShadow: `0 30px 80px -15px ${color}60, 0 0 0 1px rgba(255,255,255,0.06)` }}>
-                      <img src={displayTrack.coverUrl} alt={displayTrack.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={displayTrack.coverUrl} alt={displayTrack.title} className="w-full h-full object-cover" />
                       {/* Vinyl shimmer overlay */}
                       <motion.div className="absolute inset-0 rounded-[2rem]"
                         animate={{ opacity: isCurrentlyPlaying && isPlaying ? [0, 0.06, 0] : 0 }}
                         transition={{ duration: 3, repeat: Infinity }}
                         style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)" }} />
-                      {!isCurrentlyPlaying && (
-                        <motion.button onClick={handlePlayNow} initial={{ opacity: 0 }} whileHover={{ opacity: 1 }}
-                          className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                          <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-                            className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-black shadow-2xl">
-                            <Play size={32} fill="black" className="ml-1" />
-                          </motion.div>
-                        </motion.button>
-                      )}
                     </motion.div>
 
                     {/* Metadata */}
-                    <div className="w-full flex items-end justify-between gap-4">
+                    <div className="w-full flex items-end justify-between gap-4 -mt-4 md:mt-0 px-2">
                       <div className="flex-1 min-w-0">
-                        <motion.h1 initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={EASE_OUT}
-                          className="text-3xl font-black text-white leading-tight tracking-tight truncate">
+                        <motion.h1 
+                          style={{ scale: useTransform(beatScale, [0, 1], [1, 1.02]) }}
+                          className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight truncate">
                           {displayTrack.title}
                         </motion.h1>
-                        <motion.p initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ...EASE_OUT, delay: 0.08 }}
-                          className="text-base text-white/45 font-bold mt-1 truncate">
+                        <motion.p className="text-sm md:text-base text-white/45 font-bold mt-0.5 md:mt-1 truncate">
                           {displayTrack.artist}
                         </motion.p>
                       </div>
                       <div className="flex items-center gap-2">
                         <motion.button onClick={toggleLike} whileTap={{ scale: 0.85 }}
-                          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/8 transition-colors">
-                          <Heart size={24} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-white/40"} />
-                        </motion.button>
-                        <motion.button whileTap={{ scale: 0.85 }}
-                          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/8 transition-colors">
-                          <Plus size={24} className="text-white/40" />
+                          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/8 transition-colors">
+                          <Heart size={20} fill={isLiked ? "#ef4444" : "none"} className={isLiked ? "text-red-500" : "text-white/40"} />
                         </motion.button>
                       </div>
                     </div>
@@ -744,13 +750,13 @@ export default function SongDetailPage() {
                     animate={{
                       d: isCurrentlyPlaying && isPlaying 
                         ? [
-                            "M 0 16 Q 10 4 20 16 Q 30 28 40 16 Q 50 4 60 16 Q 70 28 80 16 Q 90 4 100 16 T 200 16 T 300 16 T 400 16 T 500 16 T 600 16 T 700 16 T 800 16 T 900 16 T 1000 16",
-                            "M 0 16 Q 10 28 20 16 Q 30 4 40 16 Q 50 28 60 16 Q 70 4 80 16 Q 90 28 100 16 T 200 16 T 300 16 T 400 16 T 500 16 T 600 16 T 700 16 T 800 16 T 900 16 T 1000 16"
+                            `M 0 16 Q 10 ${4 - (beat.get() * 8)} 20 16 Q 30 ${28 + (beat.get() * 8)} 40 16 Q 50 ${4 - (beat.get() * 8)} 60 16 Q 70 ${28 + (beat.get() * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`,
+                            `M 0 16 Q 10 ${28 + (beat.get() * 8)} 20 16 Q 30 ${4 - (beat.get() * 8)} 40 16 Q 50 ${28 + (beat.get() * 8)} 60 16 Q 70 ${4 - (beat.get() * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`
                           ]
                         : "M 0 16 L 1000 16"
                     }}
                     transition={{
-                      d: { duration: 0.8, repeat: Infinity, ease: "linear" },
+                      d: { duration: 0.6, repeat: Infinity, ease: "linear" },
                       default: { duration: 0.5, ease: "circOut" }
                     }}
                   />
@@ -761,22 +767,22 @@ export default function SongDetailPage() {
             {/* Futuristic "Liquid" Thumb */}
             <motion.div 
               className="absolute z-20 pointer-events-none flex items-center justify-center"
-              style={{ left: useTransform(springProgress, p => `calc(${p}% - 12px)`) }}
+              style={{ 
+                left: useTransform(springProgress, p => `calc(${p}% - 12px)`),
+                scale: useTransform(beatScale, [0, 1], [1, 1.15])
+              }}
             >
                {/* Core Head */}
                <motion.div 
                 className="w-6 h-6 rounded-full bg-white relative flex items-center justify-center overflow-hidden"
-                animate={isCurrentlyPlaying && isPlaying ? { scale: [1, 1.1, 1] } : {}}
-                transition={{ duration: 2, repeat: Infinity }}
                 style={{ boxShadow: `0 0 40px ${color}, 0 0 15px white` }}
                >
                   <div className="absolute inset-0 bg-white" />
-                  {/* Internal Liquid Core */}
                   <motion.div 
                     className="w-4 h-4 rounded-full opacity-50 blur-[1px]"
                     style={{ background: color }}
-                    animate={isCurrentlyPlaying && isPlaying ? { y: [2, -2, 2], x: [-1, 1, -1], scale: [0.8, 1.2, 0.8] } : {}}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                    animate={isCurrentlyPlaying && isPlaying ? { y: [2, -2, 2], scale: [0.8, 1.3, 0.8] } : {}}
+                    transition={{ duration: 0.4, repeat: Infinity }}
                   />
                </motion.div>
             </motion.div>
@@ -844,24 +850,25 @@ export default function SongDetailPage() {
 
         {/* ── Secondary Bar ── */}
         <div className="flex items-center justify-between px-1">
-          <motion.button whileTap={{ scale: 0.9 }} className="text-white/25 hover:text-white/60 transition-colors">
-            <Share2 size={18} />
+          <motion.button whileTap={{ scale: 0.9 }} className="text-white/20 hover:text-white/50 transition-colors">
+            <Share2 size={16} />
           </motion.button>
 
-          <div className="flex items-center gap-3 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/8">
-            <motion.button onClick={() => setMuted(m => !m)} whileTap={{ scale: 0.9 }} className="text-white/35 hover:text-white/70 transition-colors">
-              {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/8 shadow-2xl">
+            <motion.button onClick={() => setMuted(m => !m)} whileTap={{ scale: 0.9 }} className="text-white/40 hover:text-white transition-colors">
+              {muted || globalVolume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
             </motion.button>
-            <div className="w-20 h-0.5 rounded-full relative" style={{ background: "rgba(255,255,255,0.1)" }}>
-              <div className="absolute top-0 left-0 h-full rounded-full bg-white/50" style={{ width: `${(muted ? 0 : volume) * 100}%` }} />
-              <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volume}
-                onChange={(e) => { setVolumeState(Number(e.target.value)); setMuted(false); }}
+            <div className="w-24 h-1 rounded-full relative bg-white/10 overflow-hidden">
+              <motion.div className="absolute top-0 left-0 h-full rounded-full bg-white/60" 
+                style={{ width: `${(muted ? 0 : globalVolume) * 100}%` }} />
+              <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : globalVolume}
+                onChange={(e) => { setGlobalVolume(Number(e.target.value)); setMuted(false); }}
                 className="absolute inset-0 w-full opacity-0 cursor-pointer" />
             </div>
           </div>
 
-          <motion.button whileTap={{ scale: 0.9 }} className="text-white/25 hover:text-white/60 transition-colors">
-            <MoreHorizontal size={18} />
+          <motion.button whileTap={{ scale: 0.9 }} className="text-white/20 hover:text-white/50 transition-colors">
+            <MoreHorizontal size={16} />
           </motion.button>
         </div>
       </motion.footer>
