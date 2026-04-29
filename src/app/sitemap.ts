@@ -5,7 +5,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://pandas-store-api.on
 export const dynamic = "force-static";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://pandas-store.vercel.app";
+  const base = "https://app-store-smoky.vercel.app";
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [

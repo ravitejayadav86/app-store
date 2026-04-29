@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import {
   ArrowLeft, Download, Star, ShieldCheck, Gamepad2, Code2,
   Music, BookOpen, Loader2, Send, User, Calendar, Bell, Clock, Info,
-  Sparkles, Database, Cloud, Briefcase, CloudUpload, X, Play
+  Sparkles, Database, Cloud, Briefcase, CloudUpload, X, Play, Share2
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -300,6 +300,31 @@ function AppDetailContent({ id: propId }: { id?: string }) {
             <p className="text-sm font-bold text-on-surface-variant opacity-60 flex items-center gap-2">
               {app.category} • Contains ads
             </p>
+            <div className="pt-2">
+              <button 
+                onClick={async () => {
+                  const shareData = {
+                    title: `${app.name} on PandaStore`,
+                    text: `Download ${app.name} - ${app.description?.slice(0, 50)}...`,
+                    url: window.location.href,
+                  };
+                  try {
+                    if (navigator.share) {
+                      await navigator.share(shareData);
+                    } else {
+                      await navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied to clipboard!");
+                    }
+                  } catch (err) {
+                    console.error("Share failed", err);
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-low border border-outline-variant/30 text-xs font-black text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Share2 size={14} />
+                SHARE
+              </button>
+            </div>
           </div>
         </div>
 
