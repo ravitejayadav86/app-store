@@ -49,8 +49,8 @@ export default function SongDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [activeTab, setActiveTab] = useState<"player" | "lyrics" | "info">("player");
-
-  // Local state for UI only
+  const [aiInsight, setAiInsight] = useState<any | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [shuffleOn, setShuffleOn] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "one" | "all">("off");
   const [volume, setVolumeState] = useState(0.8);
@@ -61,6 +61,12 @@ export default function SongDetailPage() {
     if (currentTrack && String(currentTrack.id) === songId) return currentTrack;
     return localTrack;
   }, [currentTrack, songId, localTrack]);
+
+  // Reset AI when song changes
+  useEffect(() => {
+    setAiInsight(null);
+    setAiLoading(false);
+  }, [displayTrack?.id]);
 
   // Fetch track if not in context
   useEffect(() => {
@@ -148,6 +154,26 @@ export default function SongDetailPage() {
       } catch { }
       return next;
     });
+  };
+
+  const analyzeLyrics = async () => {
+    if (!lyrics || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/lyrics-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lyrics, title: displayTrack.title, artist: displayTrack.artist })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiInsight(data.data);
+      }
+    } catch (err) {
+      console.error("AI Analysis failed", err);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handlePlayNow = () => {
@@ -309,6 +335,58 @@ export default function SongDetailPage() {
 
                 {activeTab === "lyrics" && (
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-6">
+                    {/* AI Insight Box */}
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+                      <div className="relative flex flex-col gap-4 p-5 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-xl">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                              <Sparkles size={16} className="text-white" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Panda AI</p>
+                              <h3 className="text-sm font-black text-white">Lyrics Intelligence</h3>
+                            </div>
+                          </div>
+                          {!aiInsight && !aiLoading && (
+                            <button onClick={analyzeLyrics} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95">
+                              Analyze
+                            </button>
+                          )}
+                        </div>
+
+                        {aiLoading ? (
+                          <div className="flex items-center gap-3 py-2">
+                            <div className="flex gap-1">
+                              {[1, 2, 3].map(i => (
+                                <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-500"
+                                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                                  transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }} />
+                              ))}
+                            </div>
+                            <p className="text-[11px] font-bold text-white/40 tracking-wider">AI is decoding the vibes...</p>
+                          </div>
+                        ) : aiInsight ? (
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                            <p className="text-xs leading-relaxed text-white/70 italic">"{aiInsight.analysis}"</p>
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              {aiInsight.sections.slice(0, 2).map((s: any, i: number) => (
+                                <div key={i} className="p-3 rounded-2xl bg-white/5 border border-white/5">
+                                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">{s.title}</p>
+                                  <p className="text-[10px] font-bold text-white/80 line-clamp-2">{s.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <p className="text-[11px] text-white/40 font-medium leading-relaxed">
+                            Panda AI can analyze the mood, themes, and cultural context of these lyrics. Click analyze to start.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="rounded-3xl bg-white/5 p-8 flex-1 overflow-y-auto no-scrollbar border border-white/10">
                       {lyricsLoading ? (
                         <div className="h-full flex flex-col items-center justify-center gap-4">
