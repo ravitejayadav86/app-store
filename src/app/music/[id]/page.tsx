@@ -7,7 +7,7 @@ import {
   ArrowLeft, Play, Pause, SkipBack, SkipForward,
   Heart, Shuffle, Repeat, Volume2, VolumeX,
   Music2, List, Loader2, Share2, Plus, MoreHorizontal,
-  Mic2, Info, Disc, Users, Star, Sparkles, Zap, BarChart2, Globe, FileText, RefreshCw
+  Mic2, Info, Disc, Users, Star, Sparkles, Zap, BarChart2, Globe, FileText, RefreshCw, Languages
 } from "lucide-react";
 import { useMusicPlayer, MiniTrack } from "@/lib/MusicContext";
 
@@ -75,6 +75,43 @@ export default function SongDetailPage() {
   const [repeat, setRepeat] = useState<"off" | "one" | "all">("off");
   const [volume, setVolumeState] = useState(0.8);
   const [muted, setMuted] = useState(false);
+  
+  const [lyricsMode, setLyricsMode] = useState<"native" | "english">("native");
+  const [englishLyrics, setEnglishLyrics] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const toggleLyricsMode = async () => {
+    if (lyricsMode === "english") {
+      setLyricsMode("native");
+      return;
+    }
+    
+    // Switch to english
+    if (englishLyrics) {
+      setLyricsMode("english");
+      return;
+    }
+
+    if (!lyrics || lyrics.includes("Lyrics not available")) return;
+
+    setIsTranslating(true);
+    try {
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: lyrics, targetLang: "en" })
+      });
+      const data = await res.json();
+      if (data.success && data.data?.transliterated) {
+        setEnglishLyrics(data.data.transliterated);
+        setLyricsMode("english");
+      }
+    } catch (err) {
+      console.error("Translation failed", err);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   // Smooth spring progress for seek bar
   const rawProgress = useMotionValue(0);
@@ -568,7 +605,19 @@ export default function SongDetailPage() {
                     </div>
 
                     {/* ── Lyrics ── */}
-                    <div className="rounded-3xl bg-white/4 px-6 py-6 flex-1 overflow-y-auto no-scrollbar border border-white/8">
+                    <div className="rounded-3xl bg-white/4 px-6 py-6 flex-1 overflow-y-auto no-scrollbar border border-white/8 relative group">
+                      
+                      {/* English Translate Button */}
+                      {lyrics && !lyrics.includes("Lyrics not available") && (
+                        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={toggleLyricsMode} disabled={isTranslating}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors backdrop-blur-md border ${lyricsMode === 'english' ? 'bg-primary/20 text-primary border-primary/30' : 'bg-white/10 text-white/50 border-white/10 hover:bg-white/20 hover:text-white'}`}>
+                            {isTranslating ? <Loader2 size={12} className="animate-spin" /> : <Languages size={12} />}
+                            {lyricsMode === 'english' ? 'Aa English' : 'Aa Translate'}
+                          </button>
+                        </div>
+                      )}
+
                       {lyricsLoading ? (
                         <div className="flex flex-col items-center justify-center gap-3 py-10">
                           <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}>
@@ -578,8 +627,8 @@ export default function SongDetailPage() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          {lyrics?.split("\n").filter(l => l.trim()).map((line, i) => (
-                            <motion.p key={i}
+                          {(lyricsMode === 'english' && englishLyrics ? englishLyrics : lyrics)?.split("\n").filter(l => l.trim()).map((line, i) => (
+                            <motion.p key={`${lyricsMode}-${i}`}
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.02, ...EASE_FAST }}
