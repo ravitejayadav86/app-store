@@ -694,66 +694,102 @@ export default function SongDetailPage() {
       <motion.footer initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...EASE_OUT, delay: 0.2 }}
         className="relative z-50 px-6 pb-12 pt-4" style={{ background: "linear-gradient(to top, #080808 60%, transparent)" }}>
 
-        {/* ── Samsung-style Squiggly Seek Bar ── */}
+        {/* ── Samsung One UI 8 Futuristic Liquid Seek Bar ── */}
         <div className="mb-6 relative group">
-          <div className="relative h-6 flex items-center cursor-pointer overflow-visible">
-            {/* Background Track */}
-            <div className="absolute w-full h-1.5 rounded-full bg-white/10" />
+          <div className="relative h-8 flex items-center cursor-pointer overflow-visible">
+            {/* Background Track with soft glow */}
+            <div className="absolute w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+               <motion.div 
+                className="absolute inset-0 bg-white/10"
+                animate={{ opacity: [0.1, 0.2, 0.1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+               />
+            </div>
             
-            {/* Progress Container (clipping the wave) */}
+            {/* Liquid Progress Container */}
             <motion.div 
-              className="absolute left-0 h-6 overflow-hidden pointer-events-none"
+              className="absolute left-0 h-8 overflow-visible pointer-events-none"
               style={{ width: useTransform(springProgress, p => `${p}%`) }}
             >
-              <div className="w-[100vw] h-full flex items-center">
-                <svg width="100%" height="24" viewBox="0 0 1000 24" preserveAspectRatio="none" className="w-full">
+              {/* Multi-layered "Liquid" Waves */}
+              <div className="w-[100vw] h-full flex items-center relative">
+                {/* Secondary Wave (Atmosphere) */}
+                <svg width="100%" height="32" viewBox="0 0 1000 32" preserveAspectRatio="none" className="absolute w-full opacity-30 blur-[2px]">
                   <motion.path
                     fill="none"
                     stroke={color}
-                    strokeWidth="3.5"
+                    strokeWidth="4"
                     strokeLinecap="round"
                     animate={{
                       d: isCurrentlyPlaying && isPlaying 
                         ? [
-                            "M 0 12 Q 10 2 20 12 Q 30 22 40 12 Q 50 2 60 12 Q 70 22 80 12 Q 90 2 100 12 T 200 12 T 300 12 T 400 12 T 500 12 T 600 12 T 700 12 T 800 12 T 900 12 T 1000 12",
-                            "M 0 12 Q 10 22 20 12 Q 30 2 40 12 Q 50 22 60 12 Q 70 2 80 12 Q 90 22 100 12 T 200 12 T 300 12 T 400 12 T 500 12 T 600 12 T 700 12 T 800 12 T 900 12 T 1000 12"
+                            "M 0 16 Q 15 6 30 16 Q 45 26 60 16 T 120 16 T 180 16 T 240 16 T 300 16 T 360 16 T 420 16 T 480 16 T 540 16 T 600 16 T 660 16 T 720 16 T 780 16 T 840 16 T 900 16 T 960 16 T 1000 16",
+                            "M 0 16 Q 15 26 30 16 Q 45 6 60 16 T 120 16 T 180 16 T 240 16 T 300 16 T 360 16 T 420 16 T 480 16 T 540 16 T 600 16 T 660 16 T 720 16 T 780 16 T 840 16 T 900 16 T 960 16 T 1000 16"
                           ]
-                        : "M 0 12 L 1000 12"
+                        : "M 0 16 L 1000 16"
+                    }}
+                    transition={{
+                      d: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  />
+                </svg>
+
+                {/* Primary Wave (The "Liquid" Core) */}
+                <svg width="100%" height="32" viewBox="0 0 1000 32" preserveAspectRatio="none" className="w-full relative z-10">
+                  <motion.path
+                    fill="none"
+                    stroke={color}
+                    strokeWidth="4.5"
+                    strokeLinecap="round"
+                    animate={{
+                      d: isCurrentlyPlaying && isPlaying 
+                        ? [
+                            "M 0 16 Q 10 4 20 16 Q 30 28 40 16 Q 50 4 60 16 Q 70 28 80 16 Q 90 4 100 16 T 200 16 T 300 16 T 400 16 T 500 16 T 600 16 T 700 16 T 800 16 T 900 16 T 1000 16",
+                            "M 0 16 Q 10 28 20 16 Q 30 4 40 16 Q 50 28 60 16 Q 70 4 80 16 Q 90 28 100 16 T 200 16 T 300 16 T 400 16 T 500 16 T 600 16 T 700 16 T 800 16 T 900 16 T 1000 16"
+                          ]
+                        : "M 0 16 L 1000 16"
                     }}
                     transition={{
                       d: { duration: 0.8, repeat: Infinity, ease: "linear" },
-                      default: { duration: 0.4, ease: "easeInOut" }
+                      default: { duration: 0.5, ease: "circOut" }
                     }}
                   />
                 </svg>
               </div>
             </motion.div>
 
-            {/* Glowing Thumb Head */}
+            {/* Futuristic "Liquid" Thumb */}
             <motion.div 
-              className="absolute w-5 h-5 rounded-full bg-white shadow-[0_0_25px_rgba(255,255,255,0.8)] z-10 pointer-events-none flex items-center justify-center"
-              style={{ 
-                left: useTransform(springProgress, p => `calc(${p}% - 10px)`),
-                boxShadow: `0 0 30px 5px ${color}`
-              }}
+              className="absolute z-20 pointer-events-none flex items-center justify-center"
+              style={{ left: useTransform(springProgress, p => `calc(${p}% - 12px)`) }}
             >
+               {/* Core Head */}
                <motion.div 
-                className="w-2 h-2 rounded-full" 
-                style={{ background: color }}
-                animate={isCurrentlyPlaying && isPlaying ? { scale: [1, 1.5, 1], opacity: [1, 0.7, 1] } : {}}
-                transition={{ duration: 1, repeat: Infinity }}
-               />
+                className="w-6 h-6 rounded-full bg-white relative flex items-center justify-center overflow-hidden"
+                animate={isCurrentlyPlaying && isPlaying ? { scale: [1, 1.1, 1] } : {}}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ boxShadow: `0 0 40px ${color}, 0 0 15px white` }}
+               >
+                  <div className="absolute inset-0 bg-white" />
+                  {/* Internal Liquid Core */}
+                  <motion.div 
+                    className="w-4 h-4 rounded-full opacity-50 blur-[1px]"
+                    style={{ background: color }}
+                    animate={isCurrentlyPlaying && isPlaying ? { y: [2, -2, 2], x: [-1, 1, -1], scale: [0.8, 1.2, 0.8] } : {}}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+               </motion.div>
             </motion.div>
 
-            {/* Hidden Input for seeking */}
+            {/* Input Overlay */}
             <input type="range" min={0} max={duration || 100} step={0.1} value={progress}
               onChange={handleSeek} aria-label="Seek"
-              className="absolute inset-0 w-full opacity-0 cursor-pointer h-full z-20" />
+              className="absolute inset-0 w-full opacity-0 cursor-pointer h-full z-30" />
           </div>
 
-          <div className="flex justify-between mt-2 text-[10px] font-black text-white/25 tracking-widest font-mono">
+          <div className="flex justify-between mt-3 text-[10px] font-black text-white/20 tracking-[0.2em] font-mono">
             <span>{fmt(progress)}</span>
-            <span>{fmt(duration)}</span>
+            <span className="text-white/40">{fmt(duration)}</span>
           </div>
         </div>
 
