@@ -178,6 +178,13 @@ export default function SongDetailPage() {
     setAiStep(0);
   }, [displayTrack?.id]);
 
+  // Auto-navigate when track changes via global controls (next/prev)
+  useEffect(() => {
+    if (currentTrack && String(currentTrack.id) !== songId) {
+      router.replace(`/music/${currentTrack.id}`);
+    }
+  }, [currentTrack, songId, router]);
+
   // Fetch track if not in context
   useEffect(() => {
     if (currentTrack && String(currentTrack.id) === songId) return;
