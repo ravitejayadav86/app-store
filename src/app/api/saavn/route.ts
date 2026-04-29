@@ -7,7 +7,10 @@ const SAAVN_BASES = [
 ];
 
 async function saavnFetch(path: string): Promise<any> {
-  for (const base of SAAVN_BASES) {
+  const fetchWithTimeout = async (base: string) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500); // 4.5s timeout for fast failover
+
     try {
       let finalPath = path;
       if (base.includes("saavn.dev") && path.startsWith("/lyrics?id=")) {
@@ -18,19 +21,31 @@ async function saavnFetch(path: string): Promise<any> {
       const res = await fetch(`${base}${finalPath}`, {
         headers: { Accept: "application/json" },
         next: { revalidate: 3600 },
+        signal: controller.signal,
       });
-      if (!res.ok) continue;
+      
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error("Not OK");
+      
       const json = await res.json();
       if (json?.success || json?.status === "SUCCESS") {
-        // Normalize the success flag for the frontend
         json.success = true;
         return json;
       }
-    } catch {
-      continue;
+      throw new Error("Invalid response");
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
     }
+  };
+
+  // Race all bases in parallel for the "Strongest" and fastest connection
+  try {
+    return await Promise.any(SAAVN_BASES.map(base => fetchWithTimeout(base)));
+  } catch (err) {
+    console.error("All Saavn mirrors failed", err);
+    return null;
   }
-  return null;
 }
 
 export async function GET(req: NextRequest) {
