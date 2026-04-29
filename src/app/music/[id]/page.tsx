@@ -147,7 +147,8 @@ export default function SongDetailPage() {
       const next = !prev;
       try {
         const liked: string[] = JSON.parse(localStorage.getItem("pandas_liked_tracks") || "[]");
-        const id = String(displayTrack?.id);
+        const id = displayTrack ? String(displayTrack.id) : "";
+        if (!id) return prev;
         if (next) { if (!liked.includes(id)) liked.push(id); }
         else { const i = liked.indexOf(id); if (i > -1) liked.splice(i, 1); }
         localStorage.setItem("pandas_liked_tracks", JSON.stringify(liked));
@@ -157,13 +158,14 @@ export default function SongDetailPage() {
   };
 
   const analyzeLyrics = async () => {
-    if (!lyrics || aiLoading) return;
+    const track = displayTrack;
+    if (!lyrics || aiLoading || !track) return;
     setAiLoading(true);
     try {
       const res = await fetch("/api/lyrics-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lyrics, title: displayTrack.title, artist: displayTrack.artist })
+        body: JSON.stringify({ lyrics, title: track.title, artist: track.artist })
       });
       const data = await res.json();
       if (data.success) {
