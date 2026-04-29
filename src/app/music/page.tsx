@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Music2, Loader2, Play, Search,
   Flame, Radio, Heart, Disc3, Shuffle,
-  Sparkles } from "lucide-react";
+  Sparkles, X } from "lucide-react";
 import { Track } from "@/components/ui/MusicPlayer";
 import { TELUGU_MOVIES, MovieMeta } from "@/data/teluguMovies";
 import { AddMusicModal } from "@/components/ui/AddMusicModal";
@@ -242,15 +242,53 @@ export default function MusicPage() {
         </div>
       </section>
 
-      {/* SEARCH */}
+      {/* SEARCH SECTION */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mb-6 md:mb-8">
         <div className="relative group">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors" />
-          <input type="search" placeholder="Search Telugu songs, artists…"
-            value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 md:py-3.5 rounded-2xl text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-all"
-            style={{ background: "var(--surface-container-low)", border: "1.5px solid var(--outline-variant)" }} />
-          {searching && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
+          <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-xl group-focus-within:bg-primary/10 transition-all" />
+          <div className="relative flex flex-col gap-4 p-2 rounded-[2rem] bg-surface-container-low border border-outline-variant shadow-lg group-focus-within:border-primary/30 transition-all">
+            <div className="relative flex items-center">
+              <Search size={20} className="absolute left-5 text-on-surface-variant/40 group-focus-within:text-primary transition-colors" />
+              <input 
+                type="search" 
+                placeholder="Search songs, artists, or movies…"
+                value={search} 
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-14 pr-12 py-4 bg-transparent text-base md:text-lg text-on-surface placeholder-on-surface-variant/30 outline-none" 
+              />
+              <div className="absolute right-4 flex items-center gap-2">
+                {searching ? (
+                  <Loader2 size={18} className="text-primary animate-spin" />
+                ) : search && (
+                  <button onClick={() => setSearch("")} className="p-2 rounded-full hover:bg-surface-variant transition-colors">
+                    <X size={18} className="text-on-surface-variant/50" />
+                  </button>
+                )}
+                <button 
+                  onClick={() => {/* Trigger manual search if needed */}}
+                  className="hidden md:flex px-4 py-2 bg-primary text-on-primary rounded-2xl text-sm font-bold shadow-md hover:scale-105 active:scale-95 transition-all"
+                >
+                  Search
+                </button>
+              </div>
+            </div>
+
+            {/* Intelligent Suggestions / Trending */}
+            {!search && (
+              <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 mr-2">Trending:</span>
+                {["Siddhu Jonnalagadda", "Pushpa 2", "Devara", "Sid Sriram", "Anirudh"].map(tag => (
+                  <button 
+                    key={tag} 
+                    onClick={() => setSearch(tag)}
+                    className="px-3 py-1.5 rounded-full bg-surface-low border border-outline-variant text-[11px] font-bold text-on-surface-variant hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
