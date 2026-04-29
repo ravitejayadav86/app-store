@@ -138,7 +138,7 @@ export default function CategoriesPage() {
               >
                   <div className="h-full flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-8 bg-surface-low border border-outline-variant/30 rounded-2xl md:rounded-[2rem] hover:bg-surface-variant/30 hover:border-primary/20 transition-all p-3 md:p-6 shadow-sm hover:shadow-md">
                   <div className={`p-3 md:p-5 rounded-xl md:rounded-2xl flex-shrink-0 ${cat.color} group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm`}>
-                    {React.cloneElement(cat.icon as React.ReactElement, { className: "w-5 h-5 md:w-8 md:h-8" })}
+                    {React.cloneElement(cat.icon as React.ReactElement<any>, { className: "w-5 h-5 md:w-8 md:h-8" })}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h2 className="text-base md:text-xl font-bold text-on-surface mb-0.5 md:mb-1 truncate group-hover:text-primary transition-colors">
