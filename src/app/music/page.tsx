@@ -13,6 +13,7 @@ import { fuzzySearch } from "@/lib/search";
 import { useMusicPlayer } from "@/lib/MusicContext";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const JAMENDO_CLIENT = "b6747d04";
 const JAMENDO_BASE = "https://api.jamendo.com/v3.0";
