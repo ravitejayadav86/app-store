@@ -76,12 +76,18 @@ export default function LikedSongsPage() {
 
         // Fetch Saavn songs
         if (saavnIds.length > 0) {
-          // JioSaavn allows comma-separated IDs
-          const res = await fetch(`/api/saavn?type=song&id=${saavnIds.join(",")}`);
-          const data = await res.json();
-          if (data?.success && data.data) {
-             const results = Array.isArray(data.data) ? data.data : data.data.results || [data.data];
-             myTracks.push(...results.map((s: any) => saavnToTrack(s)));
+          // Some Saavn API mirrors fail or truncate when given comma-separated IDs.
+          // We fetch them in parallel to guarantee every single liked track is loaded.
+          const promises = saavnIds.map(id => 
+            fetch(`/api/saavn?type=song&id=${id}`).then(r => r.json().catch(() => null))
+          );
+          const results = await Promise.all(promises);
+          
+          for (const data of results) {
+            if (data?.success && data.data) {
+               const resArray = Array.isArray(data.data) ? data.data : data.data.results || [data.data];
+               myTracks.push(...resArray.map((s: any) => saavnToTrack(s)));
+            }
           }
         }
 
