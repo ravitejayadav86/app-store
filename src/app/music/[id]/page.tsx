@@ -709,63 +709,79 @@ export default function SongDetailPage() {
       <motion.footer initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...EASE_OUT, delay: 0.2 }}
         className="relative z-50 px-6 pb-12 pt-4" style={{ background: "linear-gradient(to top, #080808 60%, transparent)" }}>
 
-        {/* ── Samsung One UI 8 Futuristic Liquid Seek Bar ── */}
-        <div className="mb-6 relative group">
-          <div className="relative h-8 flex items-center cursor-pointer overflow-visible">
-            {/* Background Track with soft glow */}
+        {/* ── Samsung One UI 8 "Air Flow" Liquid Seek Bar ── */}
+        <div className="mb-8 relative group">
+          <div className="relative h-12 flex items-center cursor-pointer overflow-visible">
+            {/* Background Track */}
             <div className="absolute w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
                <motion.div 
-                className="absolute inset-0 bg-white/10"
-                animate={{ opacity: [0.1, 0.2, 0.1] }}
+                className="absolute inset-0 bg-white/5"
+                animate={{ opacity: [0.05, 0.15, 0.05] }}
                 transition={{ duration: 4, repeat: Infinity }}
                />
             </div>
             
-            {/* Liquid Progress Container */}
+            {/* Liquid Progress Mask & Container */}
             <motion.div 
-              className="absolute left-0 h-8 overflow-visible pointer-events-none"
+              className="absolute left-0 h-12 overflow-visible pointer-events-none"
               style={{ width: useTransform(springProgress, p => `${p}%`) }}
             >
-              {/* Multi-layered "Liquid" Waves */}
-              <div className="w-[100vw] h-full flex items-center relative">
-                {/* Secondary Wave (Atmosphere) */}
-                <svg width="100%" height="32" viewBox="0 0 1000 32" preserveAspectRatio="none" className="absolute w-full opacity-30 blur-[2px]">
+              <div className="w-[100vw] h-full flex items-center relative overflow-visible">
+                {/* ── Layer 1: The Deep Ambient Flow (Glow) ── */}
+                <svg width="100%" height="48" viewBox="0 0 1000 48" preserveAspectRatio="none" className="absolute w-full opacity-20 blur-xl">
                   <motion.path
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="4"
-                    strokeLinecap="round"
+                    fill={color}
                     animate={{
                       d: isCurrentlyPlaying && isPlaying 
                         ? [
-                            "M 0 16 Q 15 6 30 16 Q 45 26 60 16 T 120 16 T 180 16 T 240 16 T 300 16 T 360 16 T 420 16 T 480 16 T 540 16 T 600 16 T 660 16 T 720 16 T 780 16 T 840 16 T 900 16 T 960 16 T 1000 16",
-                            "M 0 16 Q 15 26 30 16 Q 45 6 60 16 T 120 16 T 180 16 T 240 16 T 300 16 T 360 16 T 420 16 T 480 16 T 540 16 T 600 16 T 660 16 T 720 16 T 780 16 T 840 16 T 900 16 T 960 16 T 1000 16"
+                            `M 0 24 Q 20 ${10 - (beatVal * 15)} 40 24 Q 60 ${38 + (beatVal * 15)} 80 24 T 160 24 T 240 24 T 320 24 T 400 24 T 480 24 T 560 24 T 640 24 T 720 24 T 800 24 T 880 24 T 960 24 T 1000 24 L 1000 48 L 0 48 Z`,
+                            `M 0 24 Q 20 ${38 + (beatVal * 15)} 40 24 Q 60 ${10 - (beatVal * 15)} 80 24 T 160 24 T 240 24 T 320 24 T 400 24 T 480 24 T 560 24 T 640 24 T 720 24 T 800 24 T 880 24 T 960 24 T 1000 24 L 1000 48 L 0 48 Z`
                           ]
-                        : "M 0 16 L 1000 16"
+                        : "M 0 24 L 1000 24 L 1000 48 L 0 48 Z"
                     }}
-                    transition={{
-                      d: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-                    }}
+                    transition={{ d: { duration: 2, repeat: Infinity, ease: "easeInOut" } }}
                   />
                 </svg>
 
-                {/* Primary Wave (The "Liquid" Core) */}
-                <svg width="100%" height="32" viewBox="0 0 1000 32" preserveAspectRatio="none" className="w-full relative z-10">
+                {/* ── Layer 2: The Silk Wave (Mid-tone) ── */}
+                <svg width="100%" height="48" viewBox="0 0 1000 48" preserveAspectRatio="none" className="absolute w-full opacity-40 blur-[2px]">
                   <motion.path
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="4.5"
-                    strokeLinecap="round"
+                    fill={color}
                     animate={{
                       d: isCurrentlyPlaying && isPlaying 
                         ? [
-                            `M 0 16 Q 10 ${4 - (beatVal * 8)} 20 16 Q 30 ${28 + (beatVal * 8)} 40 16 Q 50 ${4 - (beatVal * 8)} 60 16 Q 70 ${28 + (beatVal * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`,
-                            `M 0 16 Q 10 ${28 + (beatVal * 8)} 20 16 Q 30 ${4 - (beatVal * 8)} 40 16 Q 50 ${28 + (beatVal * 8)} 60 16 Q 70 ${4 - (beatVal * 8)} 80 16 T 200 16 T 400 16 T 600 16 T 800 16 T 1000 16`
+                            `M 0 24 Q 15 ${14 - (beatVal * 10)} 30 24 Q 45 ${34 + (beatVal * 10)} 60 24 T 120 24 T 180 24 T 240 24 T 300 24 T 360 24 T 420 24 T 480 24 T 540 24 T 600 24 T 660 24 T 720 24 T 780 24 T 840 24 T 900 24 T 960 24 T 1000 24 L 1000 48 L 0 48 Z`,
+                            `M 0 24 Q 15 ${34 + (beatVal * 10)} 30 24 Q 45 ${14 - (beatVal * 10)} 60 24 T 120 24 T 180 24 T 240 24 T 300 24 T 360 24 T 420 24 T 480 24 T 540 24 T 600 24 T 660 24 T 720 24 T 780 24 T 840 24 T 900 24 T 960 24 T 1000 24 L 1000 48 L 0 48 Z`
                           ]
-                        : "M 0 16 L 1000 16"
+                        : "M 0 24 L 1000 24 L 1000 48 L 0 48 Z"
+                    }}
+                    transition={{ d: { duration: 1.5, repeat: Infinity, ease: "easeInOut" } }}
+                  />
+                </svg>
+
+                {/* ── Layer 3: The Core Flow (Sharp) ── */}
+                <svg width="100%" height="48" viewBox="0 0 1000 48" preserveAspectRatio="none" className="w-full relative z-10">
+                  <defs>
+                    <linearGradient id="liquid-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor={color} />
+                      <stop offset="100%" stopColor="white" stopOpacity="0.4" />
+                    </linearGradient>
+                  </defs>
+                  <motion.path
+                    fill={color}
+                    stroke="white"
+                    strokeWidth="0.5"
+                    strokeOpacity="0.3"
+                    animate={{
+                      d: isCurrentlyPlaying && isPlaying 
+                        ? [
+                            `M 0 24 Q 10 ${18 - (beatVal * 6)} 20 24 Q 30 ${30 + (beatVal * 6)} 40 24 Q 50 ${18 - (beatVal * 6)} 60 24 Q 70 ${30 + (beatVal * 6)} 80 24 T 200 24 T 400 24 T 600 24 T 800 24 T 1000 24 L 1000 48 L 0 48 Z`,
+                            `M 0 24 Q 10 ${30 + (beatVal * 6)} 20 24 Q 30 ${18 - (beatVal * 6)} 40 24 Q 50 ${30 + (beatVal * 6)} 60 24 Q 70 ${18 - (beatVal * 6)} 80 24 T 200 24 T 400 24 T 600 24 T 800 24 T 1000 24 L 1000 48 L 0 48 Z`
+                          ]
+                        : "M 0 24 L 1000 24 L 1000 48 L 0 48 Z"
                     }}
                     transition={{
-                      d: { duration: 0.6, repeat: Infinity, ease: "linear" },
+                      d: { duration: 0.8, repeat: Infinity, ease: "linear" },
                       default: { duration: 0.5, ease: "circOut" }
                     }}
                   />
@@ -773,25 +789,27 @@ export default function SongDetailPage() {
               </div>
             </motion.div>
 
-            {/* Futuristic "Liquid" Thumb */}
+            {/* Premium "Liquid" Thumb */}
             <motion.div 
               className="absolute z-20 pointer-events-none flex items-center justify-center"
               style={{ 
-                left: useTransform(springProgress, p => `calc(${p}% - 12px)`),
-                scale: useTransform(beatScale, [0, 1], [1, 1.15])
+                left: useTransform(springProgress, p => `calc(${p}% - 14px)`),
+                scale: useTransform(beatScale, [0, 1], [1, 1.2])
               }}
             >
-               {/* Core Head */}
                <motion.div 
-                className="w-6 h-6 rounded-full bg-white relative flex items-center justify-center overflow-hidden"
-                style={{ boxShadow: `0 0 40px ${color}, 0 0 15px white` }}
+                className="w-7 h-7 rounded-full bg-white relative flex items-center justify-center shadow-2xl"
+                style={{ 
+                  boxShadow: `0 0 30px ${color}, 0 0 10px white`,
+                  border: `2px solid ${color}44`
+                }}
                >
-                  <div className="absolute inset-0 bg-white" />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+                  {/* Subtle inner pulse */}
                   <motion.div 
-                    className="w-4 h-4 rounded-full opacity-50 blur-[1px]"
-                    style={{ background: color }}
-                    animate={isCurrentlyPlaying && isPlaying ? { y: [2, -2, 2], scale: [0.8, 1.3, 0.8] } : {}}
-                    transition={{ duration: 0.4, repeat: Infinity }}
+                    className="absolute inset-0 rounded-full border border-white/40"
+                    animate={isCurrentlyPlaying && isPlaying ? { scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] } : {}}
+                    transition={{ duration: 1, repeat: Infinity }}
                   />
                </motion.div>
             </motion.div>
