@@ -101,7 +101,9 @@ export default function Home({ initialApps = [] }: Props) {
               Experience a meticulously curated world of high-fidelity applications, immersive games, and creative tools.
             </p>
             <div className="flex flex-row gap-3">
-              <Button size="lg" className="bg-white text-fuchsia-600 hover:bg-gray-100 px-6 md:px-8 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-sm md:text-base">Start Exploring</Button>
+              <Link href="/explore">
+                <Button size="lg" className="bg-white text-fuchsia-600 hover:bg-gray-100 px-6 md:px-8 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-sm md:text-base">Start Exploring</Button>
+              </Link>
             </div>
           </div>
         </div>
