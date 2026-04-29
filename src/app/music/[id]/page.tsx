@@ -200,7 +200,10 @@ export default function SongDetailPage() {
 
   // Fetch track if not in context
   useEffect(() => {
-    if (currentTrack && String(currentTrack.id) === songId) return;
+    if (currentTrack && String(currentTrack.id) === songId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchTrack = async () => {
       setLoading(true);
@@ -952,9 +955,16 @@ export default function SongDetailPage() {
             </div>
           </div>
 
-          <motion.button whileTap={{ scale: 0.9 }} className="text-white/20 hover:text-white/50 transition-colors">
-            <MoreHorizontal size={16} />
-          </motion.button>
+          <motion.a 
+            href={displayTrack.downloadUrl || displayTrack.audioUrl} 
+            download={`${displayTrack.title}.mp3`}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileTap={{ scale: 0.9 }} 
+            className="text-white/20 hover:text-white/50 transition-colors"
+          >
+            <Download size={16} />
+          </motion.a>
         </div>
       </motion.footer>
     </div>
