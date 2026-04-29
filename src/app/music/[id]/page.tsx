@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from
 import {
   ArrowLeft, Play, Pause, SkipBack, SkipForward,
   Heart, Shuffle, Repeat, Volume2, VolumeX,
-  Music2, List, Loader2, Share2, Plus, MoreHorizontal,
+  Music2, List, Loader2, Share2, Plus, MoreHorizontal, Download,
   Mic2, Info, Disc, Users, Star, Sparkles, Zap, BarChart2, Globe, FileText, RefreshCw, Languages
 } from "lucide-react";
 import { useMusicPlayer, MiniTrack } from "@/lib/MusicContext";
