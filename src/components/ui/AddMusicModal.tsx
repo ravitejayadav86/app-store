@@ -213,43 +213,43 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-2xl glass bg-surface/95 border border-outline-variant p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-2xl glass bg-surface/95 border border-outline-variant p-4 md:p-5 rounded-[1.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-low transition-colors z-10">
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3 mb-4 shrink-0">
-              <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-2xl shadow-lg">
-                <Music size={24} />
+            <div className="flex items-center gap-3 mb-3 shrink-0">
+              <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg">
+                <Music size={20} />
               </div>
               <div>
-                <h2 className="text-xl font-black tracking-tight">Batch Publish Music</h2>
-                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-1">Upload up to 5 songs</p>
+                <h2 className="text-lg font-black tracking-tight">Batch Publish Music</h2>
+                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-0.5">Upload up to 5 songs</p>
               </div>
             </div>
 
-            <div className="overflow-y-auto no-scrollbar flex-1 -mx-2 px-2 pb-4 space-y-5">
+            <div className="overflow-y-auto no-scrollbar flex-1 -mx-2 px-2 pb-2 space-y-3">
               
               {/* Movie Info & Cover Detect */}
-              <div className="space-y-3 bg-surface-low p-3 md:p-5 rounded-2xl border border-outline-variant/50">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase tracking-widest text-on-surface-variant ml-1">Movie / Album Name</label>
+              <div className="space-y-2 bg-surface-low p-3 md:p-4 rounded-2xl border border-outline-variant/50">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1">Movie / Album Name</label>
                   <input required value={movieName} onChange={e => setMovieName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                    className="w-full px-3 py-2 rounded-xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     placeholder="e.g. Pushpa 2: The Rule" />
                 </div>
 
-                <div className="p-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-3">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
-                    {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={24} className="text-indigo-500 animate-spin" /> : <Search size={24} className="text-on-surface-variant" />}
+                <div className="p-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
+                    {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={18} className="text-indigo-500 animate-spin" /> : <Search size={18} className="text-on-surface-variant" />}
                   </div>
                   <div>
-                    <h4 className="font-black text-sm text-indigo-500 flex items-center gap-1.5">
-                      <Sparkles size={14} /> Panda AI Vision
+                    <h4 className="font-black text-xs text-indigo-500 flex items-center gap-1.5">
+                      <Sparkles size={12} /> Panda AI Vision
                     </h4>
-                    <p className="text-xs text-on-surface-variant mt-1 font-medium leading-relaxed">
-                      {coverUrl ? "High-res artwork detected! It will be used for all songs." : isDetectingCover ? "Scanning global databases for artwork..." : "Type movie name to auto-detect original artwork."}
+                    <p className="text-[10px] text-on-surface-variant mt-0.5 font-medium leading-tight">
+                      {coverUrl ? "High-res artwork detected!" : isDetectingCover ? "Scanning databases..." : "Type movie name to auto-detect."}
                     </p>
                   </div>
                 </div>
@@ -257,14 +257,16 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
 
               {/* Upload Dropzone */}
               {songs.length < 5 && (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between ml-1">
-                    <label className="text-xs font-black uppercase tracking-widest text-on-surface-variant">Add Songs</label>
-                    <span className="text-xs font-bold text-primary">{songs.length}/5 Slots Used</span>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Add Songs</label>
+                    <span className="text-[10px] font-bold text-primary">{songs.length}/5 Slots Used</span>
                   </div>
-                  <label className="w-full h-16 md:h-20 rounded-2xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all group">
-                    <UploadCloud size={24} className="mb-1 text-on-surface-variant group-hover:text-primary transition-colors" />
-                    <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files</span>
+                  <label className="w-full h-14 md:h-16 rounded-2xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                    <div className="flex items-center gap-2">
+                      <UploadCloud size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                      <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files</span>
+                    </div>
                     <input type="file" multiple accept="audio/mpeg, audio/mp3, audio/wav" className="hidden" onChange={handleFileChange} />
                   </label>
                 </div>
@@ -318,9 +320,9 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
               )}
             </div>
 
-            <div className="pt-4 shrink-0 mt-2 border-t border-outline-variant/30">
-              <Button onClick={handleSubmit} disabled={isUploading || songs.length === 0 || !movieName} size="lg" className="w-full py-4 text-sm rounded-2xl shadow-xl shadow-primary/20">
-                {isUploading ? <Loader2 size={18} className="animate-spin mr-2" /> : null}
+            <div className="pt-3 shrink-0 mt-2 border-t border-outline-variant/30">
+              <Button onClick={handleSubmit} disabled={isUploading || songs.length === 0 || !movieName} size="lg" className="w-full py-3 text-sm rounded-xl shadow-xl shadow-primary/20">
+                {isUploading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
                 {isUploading ? "Publishing Batch..." : `Publish ${songs.length} Song${songs.length !== 1 ? 's' : ''}`}
               </Button>
             </div>
