@@ -27,7 +27,8 @@ export default function DiscoverPage() {
     const fetchApps = async () => {
       try {
         const res = await api.get("/apps/");
-        setApps(res.data);
+        const filtered = res.data.filter((a: App) => a.category.toLowerCase() !== "music");
+        setApps(filtered);
       } catch (error) {
         console.error("Failed to fetch apps:", error);
       } finally {

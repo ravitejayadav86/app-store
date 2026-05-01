@@ -69,12 +69,12 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
     }
 
     // Instantly search local cache
+    const filteredApps = allApps.filter((a: any) => a.category?.toLowerCase() !== "music");
+
     const localResults = fuzzySearch(
-      allApps.map((a: any) => ({
+      filteredApps.map((a: any) => ({
         ...a,
-        type: a.category?.toLowerCase() === "music" ? "music"
-             : a.category?.toLowerCase() === "games" ? "game"
-             : "app",
+        type: a.category?.toLowerCase() === "games" ? "game" : "app",
         url: `/apps/${a.id}`,
       })),
       query,
@@ -87,12 +87,11 @@ export const MobileSearch = ({ onClose }: MobileSearchProps) => {
     const timer = setTimeout(async () => {
       try {
         const res = await api.get("/apps/");
+        const freshApps = res.data.filter((a: any) => a.category?.toLowerCase() !== "music");
         const fresh = fuzzySearch(
-          res.data.map((a: any) => ({
+          freshApps.map((a: any) => ({
             ...a,
-            type: a.category?.toLowerCase() === "music" ? "music"
-                 : a.category?.toLowerCase() === "games" ? "game"
-                 : "app",
+            type: a.category?.toLowerCase() === "games" ? "game" : "app",
             url: `/apps/${a.id}`,
           })),
           query,

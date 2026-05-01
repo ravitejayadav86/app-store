@@ -47,7 +47,8 @@ export default function Home({ initialApps = [] }: Props) {
     const fetchApps = async () => {
       try {
         const res = await api.get("/apps/");
-        setApps(res.data.slice(0, 8)); // Fetch more apps for the redesign
+        const filtered = res.data.filter((a: App) => a.category.toLowerCase() !== "music");
+        setApps(filtered.slice(0, 8));
       } catch (err) {
         console.error("Failed to fetch apps", err);
       }

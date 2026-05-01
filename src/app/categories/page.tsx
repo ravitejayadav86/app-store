@@ -52,7 +52,7 @@ export default function CategoriesPage() {
     const fetchCategories = async () => {
       try {
         const res = await api.get("/apps/");
-        const apps = res.data;
+        const apps = res.data.filter((a: any) => a.category?.toLowerCase() !== "music");
         
         // Count apps per category
         const counts: Record<string, number> = {};

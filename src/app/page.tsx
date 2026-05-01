@@ -8,7 +8,7 @@ export default async function Page() {
   try {
     // This runs ON THE SERVER, sending pre-rendered HTML to the user instantly!
     const res = await api.get("/apps/");
-    initialApps = res.data.slice(0, 4);
+    initialApps = res.data.filter((a: any) => a.category?.toLowerCase() !== "music").slice(0, 4);
   } catch (error) {
     console.error("Failed to fetch initial apps on server:", error);
   }

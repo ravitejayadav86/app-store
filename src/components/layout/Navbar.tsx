@@ -49,20 +49,23 @@ export const Navbar = ({ isHidden = false }: { isHidden?: boolean }) => {
                     api.get("/music/").catch(() => ({ data: [] })),
                 ]);
 
+                const isMusicPage = pathname?.startsWith("/music");
+                const cleanApps = appsRes.data.filter((a: any) => a.category?.toLowerCase() !== "music");
+
                 const q = searchQuery;
 
                 // Advanced fuzzy search across all fields
                 const scoredApps = fuzzySearch(
-                    appsRes.data.map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` })),
+                    cleanApps.map((a: any) => ({ ...a, type: "app", url: `/apps/${a.id}` })),
                     q,
                     5
                 );
 
-                const scoredMusic = fuzzySearch(
+                const scoredMusic = isMusicPage ? fuzzySearch(
                     musicRes.data.map((m: any) => ({ ...m, name: m.title, type: "music", url: "/music" })),
                     q,
                     3
-                );
+                ) : [];
 
                 setSearchResults([...scoredApps, ...scoredMusic].slice(0, 8));
             } catch (err) {
