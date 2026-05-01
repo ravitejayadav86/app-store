@@ -30,34 +30,12 @@ const nextConfig: NextConfig = {
   // ── Compression ────────────────────────────────────────────────────────
   compress: true,
 
-  // ── HTTP caching headers ───────────────────────────────────────────────
+  // ── HTTP caching & Security headers ────────────────────────────────────
   async headers() {
     return [
       {
-        // Cache static assets aggressively (hashed filenames)
-        source: '/_next/static/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-        ],
-      },
-      {
-        // Cache public assets (fonts, images, icons)
-        source: '/:path((?!api).*)\\.(:ext(png|jpg|jpeg|webp|avif|svg|woff2|woff|ico))',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
-        ],
-      },
-      {
-        // Don't cache API routes
-        source: '/api/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'no-store' },
-        ],
-      },
-      {
-        // HTML pages — revalidate quickly, serve stale while fetching
-        source: '/(.*)',
+        // Security headers for all routes
+        source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
@@ -67,6 +45,13 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(self), geolocation=()',
           },
+        ],
+      },
+      {
+        // Explicitly prevent caching on API routes
+        source: '/api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
         ],
       },
     ];
