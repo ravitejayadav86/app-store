@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Users, MessageSquare, Heart, Trash2, Send, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { RichContent } from "@/components/ui/YouTubeEmbed";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import api from "@/lib/api";
@@ -343,7 +344,7 @@ export default function CommunityPage() {
                     )}
                   </div>
 
-                  <p className="text-sm text-on-surface leading-relaxed">{post.content}</p>
+                  <RichContent text={post.content} className="text-sm text-on-surface" />
 
                   <div className="flex items-center gap-4 pt-1">
                     <button
@@ -389,7 +390,7 @@ export default function CommunityPage() {
                                   )}
                                 </div>
                               </div>
-                              <p className="text-xs text-on-surface-variant">{reply.content}</p>
+                              <RichContent text={reply.content} className="text-xs text-on-surface-variant" compact />
                             </div>
                           </div>
                         ))}

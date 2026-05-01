@@ -12,6 +12,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRealtime, useRealtimeEvent } from "@/hooks/useRealtime";
+import { RichContent } from "@/components/ui/YouTubeEmbed";
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 interface Message {
@@ -313,7 +314,9 @@ export default function ChatClient({ username: propUsername }: { username?: stri
                     </div>
                   )}
 
-                  <p className="leading-tight">{msg.content}</p>
+                  {msg.content ? (
+                    <RichContent text={msg.content} className="leading-tight" compact />
+                  ) : null}
                 </div>
               </div>
               
