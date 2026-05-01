@@ -296,8 +296,8 @@ function UploadFormContent() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 md:py-20">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 md:mb-12">
+    <div className="max-w-3xl mx-auto px-4 py-6 md:py-12">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 md:mb-8">
         <button
           onClick={() => step === 2 ? setStep(1) : router.back()}
           className="p-3 rounded-2xl glass hover:bg-surface-low transition-colors active:scale-95"
@@ -314,7 +314,7 @@ function UploadFormContent() {
         </div>
       </div>
 
-      <div className="flex gap-1.5 md:gap-2 mb-8 md:mb-10">
+      <div className="flex gap-1.5 md:gap-2 mb-6 md:mb-8">
         {[1, 2, 3].map((s) => (
           <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= s ? "bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" : "bg-surface-low"}`} />
         ))}
@@ -324,13 +324,13 @@ function UploadFormContent() {
 
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-            <GlassCard className="p-6 md:p-10 space-y-6 md:space-y-8">
-              <form onSubmit={handleMetadataSubmit} className="space-y-6">
+            <GlassCard className="p-5 md:p-8 space-y-5 md:space-y-6">
+              <form onSubmit={handleMetadataSubmit} className="space-y-5">
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-5">
                   <div
                     onClick={() => iconInputRef.current?.click()}
-                    className="w-24 h-24 rounded-3xl bg-surface-low border-2 border-dashed border-outline-variant flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-surface-low border-2 border-dashed border-outline-variant flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden"
                   >
                     {iconPreview ? (
                       <img src={iconPreview} alt="icon" className="w-full h-full object-cover" />
@@ -348,8 +348,8 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App Name</label>
                     <div className="relative group">
                       <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" size={18} />
@@ -359,7 +359,7 @@ function UploadFormContent() {
                         onChange={(e) => setMetadata({ ...metadata, name: e.target.value })}
                         type="text"
                         placeholder="My Awesome App"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                       />
                     </div>
                   </div>
@@ -370,7 +370,7 @@ function UploadFormContent() {
                       <select
                         value={metadata.category}
                         onChange={(e) => setMetadata({ ...metadata, category: e.target.value })}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium appearance-none"
+                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium appearance-none text-sm"
                       >
                         {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
                       </select>
@@ -378,7 +378,7 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Description</label>
                   <textarea
                     required
@@ -386,12 +386,12 @@ function UploadFormContent() {
                     onChange={(e) => setMetadata({ ...metadata, description: e.target.value })}
                     placeholder="Tell users what your app does and why they'll love it..."
                     rows={4}
-                    className="w-full px-6 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none"
+                    className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none text-sm"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Price ($) — enter 0 for free</label>
                     <input
                       required
@@ -400,39 +400,39 @@ function UploadFormContent() {
                       min="0"
                       value={metadata.price}
                       onChange={(e) => setMetadata({ ...metadata, price: parseFloat(e.target.value) })}
-                      className="w-full px-6 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Version</label>
                     <input
                       required
                       value={metadata.version}
                       onChange={(e) => setMetadata({ ...metadata, version: e.target.value })}
                       placeholder="1.0.0"
-                      className="w-full px-6 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Website (optional)</label>
                     <input
                       value={metadata.website}
                       onChange={(e) => setMetadata({ ...metadata, website: e.target.value })}
                       placeholder="https://myapp.com"
-                      className="w-full px-6 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Support Email (optional)</label>
                     <input
                       type="email"
                       value={metadata.supportEmail}
                       onChange={(e) => setMetadata({ ...metadata, supportEmail: e.target.value })}
                       placeholder="support@myapp.com"
-                      className="w-full px-6 py-4 rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                 </div>
@@ -446,7 +446,7 @@ function UploadFormContent() {
                       value={metadata.external_url || ""}
                       onChange={(e) => setMetadata({ ...metadata, external_url: e.target.value })}
                       placeholder="https://soundcloud.com/you or direct link..."
-                      className="w-full px-6 py-4 rounded-2xl glass border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                     <p className="text-[10px] text-on-surface-variant mt-2 px-2 leading-relaxed">
                       If provided, users will be redirected to this link for your {metadata.category.toLowerCase()}. 
@@ -455,7 +455,7 @@ function UploadFormContent() {
                   </div>
                 )}
 
-                <Button size="lg" className="w-full py-6 text-lg" disabled={loading}>
+                <Button size="lg" className="w-full py-4 text-base mt-2" disabled={loading}>
                   {loading ? "Saving..." : "Continue to Upload"} <ArrowRight className="ml-2" />
                 </Button>
               </form>
@@ -465,9 +465,9 @@ function UploadFormContent() {
 
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <GlassCard className="p-6 md:p-10 space-y-6 md:space-y-8">
-              <form onSubmit={handleFileUpload} className="space-y-8">
-                <div className="space-y-3">
+            <GlassCard className="p-5 md:p-8 space-y-5 md:space-y-6">
+              <form onSubmit={handleFileUpload} className="space-y-6">
+                <div className="space-y-2">
                   <div className="flex justify-between items-end px-1">
                     <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">App File</label>
                     {metadata.external_url && (
@@ -481,7 +481,7 @@ function UploadFormContent() {
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-full h-48 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"} ${metadata.external_url && !file ? "opacity-60 grayscale-[0.5]" : ""}`}
+                    className={`w-full h-32 md:h-40 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"} ${metadata.external_url && !file ? "opacity-60 grayscale-[0.5]" : ""}`}
                   >
                     <input
                       ref={fileInputRef}
@@ -512,11 +512,11 @@ function UploadFormContent() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App Icon</label>
                   <div 
                     onClick={() => iconInputRef.current?.click()}
-                    className="w-24 h-24 rounded-3xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden bg-surface-low relative group"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden bg-surface-low relative group"
                   >
                     {iconPreview ? (
                       <>
@@ -542,9 +542,9 @@ function UploadFormContent() {
                   <p className="text-[10px] text-on-surface-variant px-1 italic">Square icon (recommended: 512x512)</p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Screenshots (up to 5)</label>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2 md:gap-3">
                     {screenshotPreviews.map((src, i) => (
                       <div key={i} className="relative w-28 h-20 rounded-2xl overflow-hidden border border-outline-variant group">
                         <img src={src} alt={`screenshot ${i}`} className="w-full h-full object-cover" />
@@ -587,7 +587,7 @@ function UploadFormContent() {
                       </div>
                     </div>
                   )}
-                  <Button size="lg" className="w-full py-6 text-lg" disabled={loading || (!file && !metadata.external_url)}>
+                  <Button size="lg" className="w-full py-4 text-base mt-2" disabled={loading || (!file && !metadata.external_url)}>
                     {loading ? (uploadProgress > 0 ? "Uploading..." : "Processing...") : "Publish Application"} <CheckCircle2 className="ml-2" />
                   </Button>
                 </div>
