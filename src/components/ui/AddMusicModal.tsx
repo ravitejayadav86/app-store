@@ -232,24 +232,19 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
             <div className="overflow-y-auto no-scrollbar flex-1 -mx-2 px-2 pb-2 space-y-3">
               
               {/* Movie Info & Cover Detect */}
-              <div className="space-y-2 bg-surface-low p-3 md:p-4 rounded-2xl border border-outline-variant/50">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant ml-1">Movie / Album Name</label>
+              <div className="flex flex-col md:flex-row gap-2 bg-surface-low p-2 rounded-xl border border-outline-variant/50">
+                <div className="flex-1">
                   <input required value={movieName} onChange={e => setMovieName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
-                    placeholder="e.g. Pushpa 2: The Rule" />
+                    className="w-full h-full min-h-[40px] px-3 rounded-lg bg-surface border border-outline-variant focus:outline-none focus:border-primary/50 transition-all font-medium text-sm"
+                    placeholder="Movie or Album Name" />
                 </div>
-
-                <div className="p-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
-                    {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={18} className="text-indigo-500 animate-spin" /> : <Search size={18} className="text-on-surface-variant" />}
+                <div className="flex-[0.8] p-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-md overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
+                    {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={14} className="text-indigo-500 animate-spin" /> : <Search size={14} className="text-on-surface-variant" />}
                   </div>
-                  <div>
-                    <h4 className="font-black text-xs text-indigo-500 flex items-center gap-1.5">
-                      <Sparkles size={12} /> Panda AI Vision
-                    </h4>
-                    <p className="text-[10px] text-on-surface-variant mt-0.5 font-medium leading-tight">
-                      {coverUrl ? "High-res artwork detected!" : isDetectingCover ? "Scanning databases..." : "Type movie name to auto-detect."}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] text-on-surface-variant font-medium leading-tight truncate">
+                      {coverUrl ? "Artwork detected" : isDetectingCover ? "Scanning..." : "Auto-detecting art"}
                     </p>
                   </div>
                 </div>
@@ -257,19 +252,13 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
 
               {/* Upload Dropzone */}
               {songs.length < 5 && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Add Songs</label>
-                    <span className="text-[10px] font-bold text-primary">{songs.length}/5 Slots Used</span>
+                <label className="w-full h-10 rounded-xl border border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex items-center justify-center cursor-pointer transition-all group mt-2">
+                  <div className="flex items-center gap-2">
+                    <UploadCloud size={16} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                    <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files ({songs.length}/5)</span>
                   </div>
-                  <label className="w-full h-14 md:h-16 rounded-2xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all group">
-                    <div className="flex items-center gap-2">
-                      <UploadCloud size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
-                      <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files</span>
-                    </div>
-                    <input type="file" multiple accept="audio/mpeg, audio/mp3, audio/wav" className="hidden" onChange={handleFileChange} />
-                  </label>
-                </div>
+                  <input type="file" multiple accept="audio/mpeg, audio/mp3, audio/wav" className="hidden" onChange={handleFileChange} />
+                </label>
               )}
 
               {/* Song List & Language Assignment */}
@@ -284,35 +273,27 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
                     </button>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {songs.map((song, idx) => (
                       <motion.div key={song.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-                        className="p-2 md:p-3 rounded-xl bg-surface border border-outline-variant flex items-center gap-2 md:gap-3 group relative shadow-sm hover:border-primary/40 transition-colors">
+                        className="px-2 py-1.5 rounded-lg bg-surface border border-outline-variant flex flex-col sm:flex-row sm:items-center gap-2 group shadow-sm">
                         
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Music size={14} className="text-primary" />
+                        <input value={song.name} onChange={e => updateSong(song.id, "name", e.target.value)}
+                          className="flex-1 bg-transparent border-none focus:outline-none text-xs font-bold truncate"
+                          placeholder="Song Title" />
+                          
+                        <div className="flex items-center gap-2 shrink-0">
+                          <select value={song.language} onChange={e => updateSong(song.id, "language", e.target.value)}
+                            className="text-[10px] font-bold bg-surface-low border border-outline-variant rounded px-1.5 py-1 focus:outline-none focus:border-primary cursor-pointer">
+                            {LANGUAGES.map(lang => (
+                              <option key={lang} value={lang}>{lang}</option>
+                            ))}
+                          </select>
+                          <button type="button" onClick={() => removeSong(song.id)}
+                            className="p-1 rounded text-red-500 hover:bg-red-500/10 transition-colors">
+                            <Trash2 size={12} />
+                          </button>
                         </div>
-                        
-                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                          <input value={song.name} onChange={e => updateSong(song.id, "name", e.target.value)}
-                            className="flex-1 bg-transparent border-b border-transparent hover:border-outline-variant focus:border-primary focus:outline-none text-sm font-bold pb-0.5 transition-colors truncate"
-                            placeholder="Song Title" />
-                            
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Languages size={14} className="text-on-surface-variant hidden sm:block" />
-                            <select value={song.language} onChange={e => updateSong(song.id, "language", e.target.value)}
-                              className="text-xs font-bold bg-surface-low border border-outline-variant rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
-                              {LANGUAGES.map(lang => (
-                                <option key={lang} value={lang}>{lang}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        <button type="button" onClick={() => removeSong(song.id)}
-                          className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white shrink-0 transition-all">
-                          <Trash2 size={14} />
-                        </button>
                       </motion.div>
                     ))}
                   </div>
