@@ -15,10 +15,12 @@ class ConnectionManager:
         await websocket.accept()
         if user_id not in self.active_connections:
             self.active_connections[user_id] = []
+            # Broadcast only on first connection for this user
+            await self.broadcast({"type": "PRESENCE_CHANGE", "user_id": user_id, "is_online": True})
         self.active_connections[user_id].append(websocket)
         logger.info(f"WS connected: user_id={user_id}, total={len(self.active_connections[user_id])}")
 
-    def disconnect(self, websocket: WebSocket, user_id: int):
+    async def disconnect(self, websocket: WebSocket, user_id: int):
         if user_id in self.active_connections:
             try:
                 self.active_connections[user_id].remove(websocket)
@@ -26,6 +28,8 @@ class ConnectionManager:
                 pass
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
+                # Broadcast only when last connection for this user is gone
+                await self.broadcast({"type": "PRESENCE_CHANGE", "user_id": user_id, "is_online": False})
                 logger.info(f"WS disconnected: user_id={user_id} (no more connections)")
 
     def _is_connected(self, ws: WebSocket) -> bool:
@@ -57,6 +61,9 @@ class ConnectionManager:
     async def broadcast(self, message: dict):
         for user_id in list(self.active_connections.keys()):
             await self.send_to_user(user_id, message)
+
+    def is_online(self, user_id: int) -> bool:
+        return user_id in self.active_connections
 
 manager = ConnectionManager()
 

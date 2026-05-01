@@ -151,9 +151,17 @@ def get_profile(
         "reviews_count": reviews_count,
         "apps_count": len(apps),
         "is_following": is_following,
+        "is_online": manager.is_online(user.id),
         "apps": [{"id": a.id, "name": a.name, "category": a.category, "price": a.price, "version": a.version, "description": a.description, "developer": a.developer, "is_active": a.is_active, "is_approved": a.is_approved, "file_path": a.file_path, "icon_url": a.icon_url, "screenshot_urls": a.screenshot_urls, "created_at": a.created_at} for a in apps],
         "posts": posts
     }
+
+@router.get("/status/{username}")
+def get_user_status(username: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    return {"username": username, "is_online": manager.is_online(user.id)}
 
 @router.post("/follow/{username}")
 async def toggle_follow(
@@ -740,8 +748,8 @@ async def websocket_endpoint(
 
     except WebSocketDisconnect:
         logger.info(f"WS normal disconnect: user_id={user_id}")
-        manager.disconnect(websocket, user_id)
+        await manager.disconnect(websocket, user_id)
     except Exception as e:
         logger.error(f"WS fatal error for user {user_id}: {e}")
-        manager.disconnect(websocket, user_id)
+        await manager.disconnect(websocket, user_id)
 

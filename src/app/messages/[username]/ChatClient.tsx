@@ -51,7 +51,9 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   const [sending,        setSending]        = useState(false);
   const [currentUserId,  setCurrentUserId]  = useState<number | null>(null);
   const [currentUsername,setCurrentUsername]= useState<string | null>(null);
+  const [recipientId,    setRecipientId]    = useState<number | null>(null);
   const [recipientAvatar,setRecipientAvatar]= useState<string | null>(null);
+  const [isOnline,       setIsOnline]       = useState(false);
   const [filesToUpload,  setFilesToUpload]  = useState<File[]>([]);
   const [filePreviews,   setFilePreviews]   = useState<string[]>([]);
   const [uploading,      setUploading]      = useState(false);
@@ -103,7 +105,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
   useEffect(() => {
     if (!currentUserId) return;
     fetchMessages();
-    api.get(`/social/profile/${username}`).then(r => setRecipientAvatar(r.data.avatar_url)).catch(() => {});
+    api.get(`/social/profile/${username}`).then(r => {
+      setRecipientId(r.data.id);
+      setRecipientAvatar(r.data.avatar_url);
+      setIsOnline(r.data.is_online);
+    }).catch(() => {});
   }, [currentUserId, fetchMessages, username]);
 
   /* ── Scroll ── */
@@ -118,10 +124,16 @@ export default function ChatClient({ username: propUsername }: { username?: stri
     if (el.scrollTop === 0 && hasMore && !fetchingMore) loadMore();
   };
 
-  /* ── Real-time ── */
+  /* ── Real-time Events ── */
   useRealtimeEvent(currentUserId || undefined, "MESSAGES_READ", () =>
     setMessages(p => p.map(m => ({ ...m, is_read: true })))
   );
+
+  useRealtimeEvent(currentUserId || undefined, "PRESENCE_CHANGE", (data) => {
+    if (data.user_id === recipientId) {
+      setIsOnline(data.is_online);
+    }
+  });
 
   useRealtimeEvent(currentUserId || undefined, "NEW_MESSAGE", (msg) => {
     if (msg.type === "NOTIFICATION") return;
@@ -234,7 +246,11 @@ export default function ChatClient({ username: propUsername }: { username?: stri
             </div>
             <div>
               <p className="text-sm font-black text-on-surface">@{username}</p>
-              <p className="text-[10px] text-green-500 font-bold tracking-tight">Active now</p>
+              {isOnline ? (
+                <p className="text-[10px] text-green-500 font-bold tracking-tight">Active now</p>
+              ) : (
+                <p className="text-[10px] text-on-surface-variant font-bold tracking-tight">Offline</p>
+              )}
             </div>
           </Link>
         </div>
