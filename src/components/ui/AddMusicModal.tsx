@@ -235,10 +235,10 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
               <div className="flex flex-col md:flex-row gap-2 bg-surface-low p-2 rounded-xl border border-outline-variant/50">
                 <div className="flex-1">
                   <input required value={movieName} onChange={e => setMovieName(e.target.value)}
-                    className="w-full h-full min-h-[40px] px-3 rounded-lg bg-surface border border-outline-variant focus:outline-none focus:border-primary/50 transition-all font-medium text-sm"
+                    className="w-full h-full min-h-[40px] px-3 rounded-lg bg-surface border border-outline-variant focus:outline-none focus:border-primary/50 transition-all font-medium text-sm depth-inset"
                     placeholder="Movie or Album Name" />
                 </div>
-                <div className="flex-[0.8] p-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-2">
+                <div className="flex-[0.8] p-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-2 depth-inset">
                   <div className="w-8 h-8 rounded-md overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
                     {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={14} className="text-indigo-500 animate-spin" /> : <Search size={14} className="text-on-surface-variant" />}
                   </div>
@@ -252,7 +252,7 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
 
               {/* Upload Dropzone */}
               {songs.length < 5 && (
-                <label className="w-full h-10 rounded-xl border border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex items-center justify-center cursor-pointer transition-all group mt-2">
+                <label className="w-full h-10 rounded-xl border border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex items-center justify-center cursor-pointer transition-all group mt-2 depth-inset">
                   <div className="flex items-center gap-2">
                     <UploadCloud size={16} className="text-on-surface-variant group-hover:text-primary transition-colors" />
                     <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files ({songs.length}/5)</span>
@@ -276,7 +276,7 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
                   <div className="space-y-1.5">
                     {songs.map((song, idx) => (
                       <motion.div key={song.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-                        className="px-2 py-1.5 rounded-lg bg-surface border border-outline-variant flex flex-col sm:flex-row sm:items-center gap-2 group shadow-sm">
+                        className="px-2 py-1.5 rounded-lg bg-surface border border-outline-variant flex flex-col sm:flex-row sm:items-center gap-2 group shadow-sm depth-inset">
                         
                         <input value={song.name} onChange={e => updateSong(song.id, "name", e.target.value)}
                           className="flex-1 bg-transparent border-none focus:outline-none text-xs font-bold truncate"

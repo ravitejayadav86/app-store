@@ -330,7 +330,7 @@ function UploadFormContent() {
                 <div className="flex items-center gap-5">
                   <div
                     onClick={() => iconInputRef.current?.click()}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-surface-low border-2 border-dashed border-outline-variant flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-surface-low border-2 border-dashed border-outline-variant flex items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden depth-inset"
                   >
                     {iconPreview ? (
                       <img src={iconPreview} alt="icon" className="w-full h-full object-cover" />
@@ -359,7 +359,7 @@ function UploadFormContent() {
                         onChange={(e) => setMetadata({ ...metadata, name: e.target.value })}
                         type="text"
                         placeholder="My Awesome App"
-                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                       />
                     </div>
                   </div>
@@ -370,7 +370,7 @@ function UploadFormContent() {
                       <select
                         value={metadata.category}
                         onChange={(e) => setMetadata({ ...metadata, category: e.target.value })}
-                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium appearance-none text-sm"
+                        className="w-full pl-12 pr-4 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium appearance-none text-sm"
                       >
                         {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
                       </select>
@@ -386,7 +386,7 @@ function UploadFormContent() {
                     onChange={(e) => setMetadata({ ...metadata, description: e.target.value })}
                     placeholder="Tell users what your app does and why they'll love it..."
                     rows={4}
-                    className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none text-sm"
+                    className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none text-sm"
                   />
                 </div>
 
@@ -400,7 +400,7 @@ function UploadFormContent() {
                       min="0"
                       value={metadata.price}
                       onChange={(e) => setMetadata({ ...metadata, price: parseFloat(e.target.value) })}
-                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -410,7 +410,7 @@ function UploadFormContent() {
                       value={metadata.version}
                       onChange={(e) => setMetadata({ ...metadata, version: e.target.value })}
                       placeholder="1.0.0"
-                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                 </div>
@@ -422,7 +422,7 @@ function UploadFormContent() {
                       value={metadata.website}
                       onChange={(e) => setMetadata({ ...metadata, website: e.target.value })}
                       placeholder="https://myapp.com"
-                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -432,7 +432,7 @@ function UploadFormContent() {
                       value={metadata.supportEmail}
                       onChange={(e) => setMetadata({ ...metadata, supportEmail: e.target.value })}
                       placeholder="support@myapp.com"
-                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                   </div>
                 </div>
@@ -446,7 +446,7 @@ function UploadFormContent() {
                       value={metadata.external_url || ""}
                       onChange={(e) => setMetadata({ ...metadata, external_url: e.target.value })}
                       placeholder="https://soundcloud.com/you or direct link..."
-                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
+                      className="w-full px-5 py-3 md:py-3.5 rounded-xl md:rounded-2xl glass depth-inset border border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     />
                     <p className="text-[10px] text-on-surface-variant mt-2 px-2 leading-relaxed">
                       If provided, users will be redirected to this link for your {metadata.category.toLowerCase()}. 
@@ -481,7 +481,7 @@ function UploadFormContent() {
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-full h-32 md:h-40 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"} ${metadata.external_url && !file ? "opacity-60 grayscale-[0.5]" : ""}`}
+                    className={`w-full h-32 md:h-40 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all depth-inset bg-surface-low ${dragOver ? "border-primary bg-primary/5" : "border-outline-variant hover:border-primary/50"} ${metadata.external_url && !file ? "opacity-60 grayscale-[0.5]" : ""}`}
                   >
                     <input
                       ref={fileInputRef}
@@ -516,7 +516,7 @@ function UploadFormContent() {
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">App Icon</label>
                   <div 
                     onClick={() => iconInputRef.current?.click()}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden bg-surface-low relative group"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-3xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden bg-surface-low depth-inset relative group"
                   >
                     {iconPreview ? (
                       <>
