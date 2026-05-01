@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { Star, ArrowRight, Zap, Shield, Sparkles, Layout, Database, Cloud } from "lucide-react";
-
-import React, { useEffect, useState } from "react";
+import { Star, ArrowRight, Zap, Shield, Sparkles, Layout, Database, Cloud, TrendingUp, Compass, Download, Play, ChevronRight } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "@/lib/api";
 
 interface App {
@@ -15,32 +14,40 @@ interface App {
   name: string;
   category: string;
   icon_url?: string | null;
+  developer_id?: number;
 }
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 }
   }
-} as const;
+};
 
 const ITEM_VARIANTS = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 30 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { type: "spring", stiffness: 300, damping: 25 } as const
+    transition: { type: "spring", stiffness: 200, damping: 20 } 
   }
-} as const;
+};
 
-interface Props {
-  initialApps?: App[];
-}
+const BENTO_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    scale: 1, 
+    transition: { type: "spring", stiffness: 250, damping: 25 } 
+  }
+};
 
-export default function Home({ initialApps = [] }: Props) {
-  const categories = ["Games", "Productivity", "Graphics", "Utilities", "Social", "Development"];
+export default function Home({ initialApps = [] }: { initialApps?: App[] }) {
   const [apps, setApps] = useState<App[]>(initialApps);
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
+  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   useEffect(() => {
     if (initialApps.length > 0) return;
@@ -48,7 +55,7 @@ export default function Home({ initialApps = [] }: Props) {
       try {
         const res = await api.get("/apps/");
         const filtered = res.data.filter((a: App) => a.category.toLowerCase() !== "music");
-        setApps(filtered.slice(0, 8));
+        setApps(filtered);
       } catch (err) {
         console.error("Failed to fetch apps", err);
       }
@@ -56,137 +63,230 @@ export default function Home({ initialApps = [] }: Props) {
     fetchApps();
   }, [initialApps.length]);
 
-  const getFallbackIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "productivity": return <Layout className="text-blue-500" />;
-      case "development": return <Database className="text-purple-500" />;
-      case "utilities": return <Cloud className="text-cyan-500" />;
-      case "graphics": return <Sparkles className="text-pink-500" />;
-      default: return <Zap className="text-primary" />;
-    }
-  };
+  const featuredApps = apps.slice(0, 3);
+  const trendingApps = apps.slice(3, 9);
+  const newReleases = apps.slice(9, 15);
 
-  const featuredApp = apps.length > 0 ? apps[0] : null;
-  const topApps = apps.slice(1);
+  const categories = [
+    { name: "Games", icon: <Compass size={18} />, color: "from-rose-500 to-orange-400" },
+    { name: "Productivity", icon: <Layout size={18} />, color: "from-blue-500 to-cyan-400" },
+    { name: "Development", icon: <Database size={18} />, color: "from-purple-500 to-indigo-400" },
+    { name: "Utilities", icon: <Cloud size={18} />, color: "from-emerald-500 to-teal-400" },
+  ];
 
   return (
-    <motion.div 
-      initial="hidden" 
-      animate="visible" 
-      variants={CONTAINER_VARIANTS}
-      className="flex flex-col gap-10 md:gap-14 pb-24 pt-2 md:pt-0"
-    >
-      {/* Premium Hero Section */}
-      <motion.section variants={ITEM_VARIANTS} className="px-3 md:px-8">
-        <div className="relative h-[400px] md:h-[500px] w-full max-w-7xl mx-auto rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-600 to-orange-500 p-6 md:p-14 text-white flex flex-col justify-end gap-4 shadow-2xl shadow-fuchsia-500/20">
-          
-          {/* Abstract Floating Shapes for Premium Feel */}
-          <motion.div animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-10%] right-[-5%] w-64 h-64 md:w-96 md:h-96 bg-white/20 rounded-full blur-[60px]" />
-          <motion.div animate={{ x: [0, 30, 0], scale: [1, 1.1, 1] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-[-20%] left-[-10%] w-72 h-72 bg-orange-400/30 rounded-full blur-[80px]" />
-          
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+    <div ref={containerRef} className="pb-32 overflow-hidden">
+      
+      {/* ── Immersive Hero Section ────────────────────────────────────────── */}
+      <section className="relative min-h-[85vh] md:min-h-[80vh] flex items-center justify-center pt-20 pb-10 px-4 md:px-8">
+        {/* Dynamic Background */}
+        <motion.div style={{ y: yBg }} className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary/20 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-fuchsia-500/20 blur-[140px] mix-blend-screen animate-pulse" style={{ animationDuration: '12s' }} />
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+        </motion.div>
 
-          <div className="relative z-10 max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-1.5 mb-4 bg-white/20 w-fit px-3 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest backdrop-blur-xl border border-white/30 shadow-lg"
-            >
-              <Sparkles size={14} className="text-yellow-300" />
-              <span className="text-white drop-shadow-md">PandaStore Exclusives</span>
-            </motion.div>
-            <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-3 md:mb-4 text-white drop-shadow-lg leading-[1.1]">
-              Redefining <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-orange-200">Discovery.</span>
-            </h1>
-            <p className="text-sm md:text-xl text-white/90 mb-6 md:mb-8 leading-relaxed max-w-sm md:max-w-md font-medium drop-shadow">
-              Experience a meticulously curated world of high-fidelity applications, immersive games, and creative tools.
-            </p>
-            <div className="flex flex-row gap-3">
-              <Link href="/explore">
-                <Button size="lg" className="bg-white text-fuchsia-600 hover:bg-gray-100 px-6 md:px-8 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-sm md:text-base">Start Exploring</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </motion.section>
+        <motion.div 
+          initial="hidden" 
+          animate="visible" 
+          variants={CONTAINER_VARIANTS}
+          className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-8"
+        >
+          <motion.div variants={ITEM_VARIANTS} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 shadow-[0_0_30px_rgba(0,88,187,0.15)] mb-4">
+            <Sparkles size={16} className="text-fuchsia-500" />
+            <span className="text-sm font-bold bg-gradient-to-r from-primary to-fuchsia-500 bg-clip-text text-transparent">Introducing PandaStore Next</span>
+          </motion.div>
 
-      {/* Modern Glass Categories */}
-      <motion.section variants={ITEM_VARIANTS} className="px-4 md:px-8 overflow-x-auto no-scrollbar">
-        <div className="flex gap-3 max-w-7xl mx-auto pb-4">
-          {categories.map((cat) => (
-            <Link key={cat} href={`/discover?category=${cat.toLowerCase()}`}>
-              <motion.div
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-surface-low border border-outline-variant/30 rounded-2xl text-xs md:text-sm font-black text-on-surface hover:text-primary hover:border-primary/30 hover:shadow-lg transition-all whitespace-nowrap cursor-pointer shadow-sm"
-              >
-                {cat}
-              </motion.div>
+          <motion.h1 variants={ITEM_VARIANTS} className="text-6xl md:text-8xl font-black tracking-tighter leading-[1.05] max-w-5xl">
+            Apps that push <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-on-surface via-on-surface to-on-surface/50 dark:from-white dark:via-gray-200 dark:to-gray-600">boundaries.</span>
+          </motion.h1>
+
+          <motion.p variants={ITEM_VARIANTS} className="text-lg md:text-2xl text-on-surface-variant font-medium max-w-2xl mt-2 leading-relaxed">
+            The premium open ecosystem for creators and visionaries. Download the tools of tomorrow, absolutely free.
+          </motion.p>
+
+          <motion.div variants={ITEM_VARIANTS} className="flex flex-wrap items-center justify-center gap-4 mt-4 w-full">
+            <Link href="/discover">
+              <Button size="lg" className="h-14 px-8 rounded-full text-lg font-bold shadow-2xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
+                Explore Catalog <ArrowRight className="ml-2" size={20} />
+              </Button>
             </Link>
-          ))}
-        </div>
-      </motion.section>
+            <Link href="/publisher">
+              <Button variant="secondary" size="lg" className="h-14 px-8 rounded-full text-lg font-bold border border-outline-variant/30 hover:bg-surface-low transition-all">
+                Publish an App
+              </Button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </section>
 
-      <div className="px-4 md:px-8 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 md:gap-8">
-        {/* Massive App of the Day Highlight */}
-        {featuredApp && (
-          <motion.section variants={ITEM_VARIANTS} className="w-full lg:w-1/3 flex-shrink-0">
-            <h2 className="text-xl md:text-2xl font-black text-on-surface mb-4 flex items-center gap-2">
-              <Star className="text-yellow-500 fill-yellow-500" size={20} />
-              App of the Day
-            </h2>
-            <Link href={`/apps/${featuredApp.id}`}>
-              <div className="relative h-[300px] md:h-[400px] rounded-[2rem] overflow-hidden group cursor-pointer shadow-xl shadow-primary/10">
-                {featuredApp.icon_url ? (
-                  <Image src={featuredApp.icon_url} alt={featuredApp.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-6 w-full">
-                  <span className="text-white/80 text-[10px] font-black uppercase tracking-widest mb-1 block">Featured</span>
-                  <h3 className="text-2xl md:text-3xl font-black text-white mb-1 truncate">{featuredApp.name}</h3>
-                  <p className="text-white/60 text-sm font-medium mb-4">{featuredApp.category}</p>
-                  <Button className="w-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border border-white/20 font-bold rounded-xl">Get Now</Button>
+      {/* ── Category Pills ────────────────────────────────────────────────── */}
+      <section className="px-4 md:px-8 max-w-7xl mx-auto mb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          className="flex gap-3 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0"
+        >
+          {categories.map((cat, i) => (
+            <Link key={i} href={`/discover?category=${cat.name.toLowerCase()}`}>
+              <div className="flex items-center gap-2 px-6 py-4 glass rounded-2xl hover:bg-surface-low transition-all hover:scale-[1.02] active:scale-95 cursor-pointer flex-shrink-0 group">
+                <div className={`p-2 rounded-xl bg-gradient-to-br ${cat.color} text-white shadow-lg`}>
+                  {cat.icon}
                 </div>
+                <span className="font-bold text-on-surface">{cat.name}</span>
               </div>
             </Link>
-          </motion.section>
-        )}
+          ))}
+        </motion.div>
+      </section>
 
-        {/* Sleek List of Top Apps */}
-        <motion.section variants={ITEM_VARIANTS} className="w-full lg:w-2/3 flex flex-col">
-          <div className="flex justify-between items-end mb-4">
-            <h2 className="text-xl md:text-2xl font-black text-on-surface flex items-center gap-2">
-              <Zap className="text-orange-500 fill-orange-500" size={20} />
-              Trending Now
+      {/* ── Bento Box Layout (Featured) ────────────────────────────────────── */}
+      {featuredApps.length >= 3 && (
+        <section className="px-4 md:px-8 max-w-7xl mx-auto mb-24">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl md:text-4xl font-black flex items-center gap-3">
+              <Star className="text-yellow-500 fill-yellow-500" size={32} /> Editors' Choice
             </h2>
-            <Link href="/categories" className="text-primary text-sm font-bold flex items-center gap-1 group">
-              See All <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 flex-1">
-            {topApps.map((app) => (
-              <Link key={app.id} href={`/apps/${app.id}`}>
-                <GlassCard className="flex items-center gap-4 h-full transition-all group p-3 md:p-4 hover:bg-surface-low border border-outline-variant/20 hover:border-primary/20 shadow-sm hover:shadow-md cursor-pointer rounded-2xl">
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-[1rem] bg-surface-low flex items-center justify-center text-xl shadow-sm overflow-hidden text-primary relative flex-shrink-0 group-hover:scale-105 transition-transform">
-                    {app.icon_url ? (
-                      <Image src={app.icon_url} alt={app.name} fill className="object-cover" sizes="64px" />
-                    ) : (
-                      getFallbackIcon(app.category)
-                    )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+            {/* Main Bento Item */}
+            <Link href={`/apps/${featuredApps[0].id}`} className="md:col-span-2 md:row-span-2 block group">
+              <motion.div 
+                variants={BENTO_VARIANTS} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                className="relative h-full w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/10 border border-outline-variant/10"
+              >
+                {featuredApps[0].icon_url ? (
+                  <Image src={featuredApps[0].icon_url} alt={featuredApps[0].name} fill className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col items-start">
+                  <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-black uppercase tracking-widest mb-3">App of the Week</div>
+                  <h3 className="text-4xl md:text-5xl font-black text-white mb-2">{featuredApps[0].name}</h3>
+                  <p className="text-white/80 font-medium text-lg mb-6 max-w-md line-clamp-2">Experience the standard of next-generation application design and utility.</p>
+                  <Button className="rounded-full bg-white text-black hover:bg-gray-100 px-8 h-12 font-bold">Download Now</Button>
+                </div>
+              </motion.div>
+            </Link>
+
+            {/* Smaller Bento Items */}
+            {featuredApps.slice(1, 3).map((app, idx) => (
+              <Link key={app.id} href={`/apps/${app.id}`} className="block group">
+                <motion.div 
+                  variants={BENTO_VARIANTS} initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
+                  className="relative h-full w-full rounded-[2rem] overflow-hidden shadow-xl border border-outline-variant/10"
+                >
+                  {app.icon_url ? (
+                    <Image src={app.icon_url} alt={app.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-cyan-500" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-6 w-full">
+                    <h3 className="text-2xl font-black text-white mb-1 truncate">{app.name}</h3>
+                    <p className="text-white/70 font-medium text-sm">{app.category}</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm md:text-base font-bold mb-0.5 group-hover:text-primary transition-colors truncate text-on-surface">{app.name}</h3>
-                    <p className="text-xs text-on-surface-variant font-medium truncate">{app.category}</p>
+                  <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ArrowRight className="text-white" size={20} />
                   </div>
-                  <Button size="sm" variant="secondary" className="h-8 px-4 text-xs font-bold rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-0">Get</Button>
-                </GlassCard>
+                </motion.div>
               </Link>
             ))}
           </div>
-        </motion.section>
-      </div>
-    </motion.div>
+        </section>
+      )}
+
+      {/* ── Trending Strip (Horizontal Scroll) ─────────────────────────────── */}
+      {trendingApps.length > 0 && (
+        <section className="mb-24">
+          <div className="px-4 md:px-8 max-w-7xl mx-auto flex items-end justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-black flex items-center gap-3">
+                <TrendingUp className="text-orange-500" size={32} /> Trending
+              </h2>
+              <p className="text-on-surface-variant font-medium mt-1">What everyone is downloading right now</p>
+            </div>
+            <Link href="/discover" className="hidden md:flex items-center text-primary font-bold hover:underline">
+              See All <ChevronRight size={20} />
+            </Link>
+          </div>
+
+          <div className="flex overflow-x-auto gap-6 px-4 md:px-8 pb-8 no-scrollbar scroll-smooth snap-x">
+            {/* Spacer for first item alignment to grid */}
+            <div className="hidden md:block min-w-[calc((100vw-80rem)/2)] flex-shrink-0" />
+            
+            {trendingApps.map((app, i) => (
+              <motion.div 
+                key={app.id}
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: i * 0.05 }}
+                className="w-[280px] md:w-[320px] flex-shrink-0 snap-start"
+              >
+                <Link href={`/apps/${app.id}`}>
+                  <GlassCard className="p-5 flex flex-col h-full rounded-[2rem] hover:bg-surface-low transition-all border border-outline-variant/30 hover:border-primary/30 group shadow-lg hover:shadow-xl hover:-translate-y-1">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="w-20 h-20 rounded-[1.2rem] overflow-hidden bg-surface-low border border-outline-variant/20 relative shadow-inner group-hover:scale-105 transition-transform">
+                        {app.icon_url ? (
+                          <Image src={app.icon_url} alt={app.name} fill className="object-cover" sizes="80px" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-2xl">{app.name[0]}</div>
+                        )}
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                        <Download size={18} />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-1 truncate text-on-surface group-hover:text-primary transition-colors">{app.name}</h3>
+                      <p className="text-sm text-on-surface-variant font-medium">{app.category}</p>
+                    </div>
+                  </GlassCard>
+                </Link>
+              </motion.div>
+            ))}
+            
+            {/* Spacer for last item */}
+            <div className="min-w-[4px] md:min-w-[calc((100vw-80rem)/2)] flex-shrink-0" />
+          </div>
+        </section>
+      )}
+
+      {/* ── Community Banner ──────────────────────────────────────────────── */}
+      <section className="px-4 md:px-8 max-w-7xl mx-auto">
+        <motion.div 
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={ITEM_VARIANTS}
+          className="relative w-full rounded-[2.5rem] overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 p-8 md:p-16 text-center shadow-2xl flex flex-col items-center justify-center"
+        >
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay" />
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-[-50%] left-[-10%] w-[500px] h-[500px] rounded-full bg-white/10 blur-[80px]" />
+            <div className="absolute bottom-[-50%] right-[-10%] w-[400px] h-[400px] rounded-full bg-cyan-400/20 blur-[80px]" />
+          </div>
+          
+          <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center text-white mb-6 shadow-xl border border-white/20">
+              <Compass size={32} />
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">Join the Developer Ecosystem</h2>
+            <p className="text-white/80 font-medium text-lg md:text-xl mb-8">
+              Discuss architecture, share feedback, and connect with millions of indie creators worldwide.
+            </p>
+            <Link href="/community">
+              <Button className="h-14 px-10 rounded-full bg-white text-indigo-600 hover:bg-gray-50 font-black text-lg shadow-xl hover:-translate-y-1 transition-all">
+                Enter Community
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
+    </div>
   );
 }
