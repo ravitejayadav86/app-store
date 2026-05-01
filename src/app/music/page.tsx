@@ -64,6 +64,13 @@ const LANGUAGES = [
   { label: "Kannada", tag: "kannada" }, { label: "English", tag: "english" },
 ];
 
+const TOP_CHARTS = [
+  { id: "chart_global", title: "Global Top 50", query: "Global Top 50 Billboard", color: "#f59e0b", icon: Flame },
+  { id: "chart_telugu", title: "Top Telugu Hits", query: "Top Telugu Hit Songs", color: "#ec4899", icon: Sparkles },
+  { id: "chart_hindi", title: "Top Hindi Hits", query: "Top Hindi Hit Songs", color: "#8b5cf6", icon: Radio },
+  { id: "chart_viral", title: "Viral Tracks", query: "Viral hits trending reels", color: "#06b6d4", icon: Heart },
+];
+
 const SPRING = { type: "spring", stiffness: 500, damping: 38, mass: 0.5 } as const;
 const FADE_UP = (i: number) => ({ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.04, ...SPRING } });
 const ACCENT_COLORS = ["#e91e63","#9c27b0","#3f51b5","#0058bb","#00bcd4","#009688","#ff5722","#ff9800","#4caf50","#f44336","#673ab7","#2196f3"];
@@ -86,6 +93,8 @@ export default function MusicPage() {
   const [isAddMusicOpen, setIsAddMusicOpen] = useState(false);
   const [movieSongs, setMovieSongs] = useState<Record<string, Track[]>>({});
   const [movieLoading, setMovieLoading] = useState<Record<string, boolean>>({});
+  const [charts, setCharts] = useState<Record<string, Track[]>>({});
+  const [chartsLoading, setChartsLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("pandas_liked_tracks");
@@ -122,6 +131,26 @@ export default function MusicPage() {
       setTimeout(() => loadMovieSongs(movie), i * 400);
     });
   }, [loadMovieSongs]);
+
+  useEffect(() => {
+    TOP_CHARTS.forEach((chart, i) => {
+      setTimeout(async () => {
+        setChartsLoading(prev => ({ ...prev, [chart.id]: true }));
+        try {
+          const res = await fetch(`/api/saavn?type=search&q=${encodeURIComponent(chart.query)}&limit=50`);
+          const data = await res.json();
+          const songs: Track[] = data?.success && data.data?.results
+            ? data.data.results.map((s: any) => saavnToTrack(s, undefined, chart.color))
+            : [];
+          setCharts(prev => ({ ...prev, [chart.id]: songs }));
+        } catch {
+          setCharts(prev => ({ ...prev, [chart.id]: [] }));
+        } finally {
+          setChartsLoading(prev => ({ ...prev, [chart.id]: false }));
+        }
+      }, i * 300);
+    });
+  }, []);
 
   useEffect(() => {
     setFeatLoad(true);
@@ -314,6 +343,31 @@ export default function MusicPage() {
           )}
         </section>
       )}
+
+      {/* TOP CHARTS FROM JIOSAAVN */}
+      {!search.trim() && TOP_CHARTS.map((chart) => {
+        const songs = charts[chart.id] ?? [];
+        const isLoading = chartsLoading[chart.id] ?? true;
+        const Icon = chart.icon;
+        return (
+          <section key={chart.id} className="max-w-7xl mx-auto px-4 md:px-8 mb-8 md:mb-10">
+            <div className="flex items-center gap-2 mb-4 md:mb-5">
+              <Icon size={18} style={{ color: chart.color }} />
+              <h2 className="text-lg font-black text-on-surface">{chart.title}</h2>
+              {isLoading && <Loader2 size={14} className="ml-auto animate-spin text-primary/40" />}
+            </div>
+            {isLoading ? (
+              <div className="flex gap-3 md:gap-4 overflow-hidden">
+                {[...Array(5)].map((_, i) => <div key={i} className="flex-shrink-0 w-36 md:w-44 h-36 md:h-44 rounded-2xl animate-pulse bg-surface-container-low" />)}
+              </div>
+            ) : songs.length > 0 ? (
+              <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
+                {songs.map((t, i) => <FeaturedCard key={`${chart.id}-${t.id}-${i}`} track={t} index={i} onClick={() => startPlay(songs, i)} />)}
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
 
       {/* TELUGU MOVIES — dynamic from JioSaavn */}
       {!search.trim() && TELUGU_MOVIES.map((movie) => {
