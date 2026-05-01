@@ -183,6 +183,30 @@ def download_file(app_id: int, db: Session = Depends(get_db)):
     raise HTTPException(404, "File not available")
 
 
+# ── Publisher Analytics ───────────────────────────────────────────────────
+@router.get("/analytics")
+def get_analytics(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    apps = db.query(models.App).filter(models.App.developer == current_user.username).all()
+    total_apps = len(apps)
+    approved = sum(1 for app in apps if app.is_approved)
+    pending = total_apps - approved
+    
+    app_ids = [app.id for app in apps]
+    total_downloads = 0
+    if app_ids:
+        total_downloads = db.query(models.Purchase).filter(models.Purchase.app_id.in_(app_ids)).count()
+    
+    return {
+        "total_apps": total_apps,
+        "approved": approved,
+        "pending": pending,
+        "total_downloads": total_downloads
+    }
+
+
 # ── Get single app ─────────────────────────────────────────────────────────
 @router.get("/{app_id}", response_model=schemas.AppOut)
 def get_app(app_id: int, db: Session = Depends(get_db)):
