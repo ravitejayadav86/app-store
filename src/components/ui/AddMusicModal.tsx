@@ -213,13 +213,13 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-2xl glass bg-surface/95 border border-outline-variant p-6 md:p-8 rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-2xl glass bg-surface/95 border border-outline-variant p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-low transition-colors z-10">
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3 mb-6 shrink-0">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
               <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-2xl shadow-lg">
                 <Music size={24} />
               </div>
@@ -232,16 +232,16 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
             <div className="overflow-y-auto no-scrollbar flex-1 -mx-2 px-2 pb-4 space-y-5">
               
               {/* Movie Info & Cover Detect */}
-              <div className="space-y-4 bg-surface-low p-5 rounded-3xl border border-outline-variant/50">
+              <div className="space-y-3 bg-surface-low p-3 md:p-5 rounded-2xl border border-outline-variant/50">
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase tracking-widest text-on-surface-variant ml-1">Movie / Album Name</label>
                   <input required value={movieName} onChange={e => setMovieName(e.target.value)}
-                    className="w-full px-5 py-3.5 rounded-2xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                    className="w-full px-4 py-2.5 rounded-xl bg-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm"
                     placeholder="e.g. Pushpa 2: The Rule" />
                 </div>
 
-                <div className="p-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
+                <div className="p-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex items-center gap-3">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-surface flex items-center justify-center relative shadow-sm shrink-0 border border-outline-variant">
                     {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : isDetectingCover ? <Loader2 size={24} className="text-indigo-500 animate-spin" /> : <Search size={24} className="text-on-surface-variant" />}
                   </div>
                   <div>
@@ -262,9 +262,9 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
                     <label className="text-xs font-black uppercase tracking-widest text-on-surface-variant">Add Songs</label>
                     <span className="text-xs font-bold text-primary">{songs.length}/5 Slots Used</span>
                   </div>
-                  <label className="w-full h-24 rounded-3xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all group">
-                    <UploadCloud size={28} className="mb-2 text-on-surface-variant group-hover:text-primary transition-colors" />
-                    <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files (Multiple)</span>
+                  <label className="w-full h-16 md:h-20 rounded-2xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-low hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                    <UploadCloud size={24} className="mb-1 text-on-surface-variant group-hover:text-primary transition-colors" />
+                    <span className="text-xs font-bold text-on-surface-variant group-hover:text-primary transition-colors">Select MP3 Files</span>
                     <input type="file" multiple accept="audio/mpeg, audio/mp3, audio/wav" className="hidden" onChange={handleFileChange} />
                   </label>
                 </div>
@@ -285,7 +285,7 @@ export function AddMusicModal({ isOpen, onClose, onSuccess }: AddMusicModalProps
                   <div className="space-y-2">
                     {songs.map((song, idx) => (
                       <motion.div key={song.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-                        className="p-3 rounded-2xl bg-surface border border-outline-variant flex items-center gap-3 group relative shadow-sm hover:border-primary/40 transition-colors">
+                        className="p-2 md:p-3 rounded-xl bg-surface border border-outline-variant flex items-center gap-2 md:gap-3 group relative shadow-sm hover:border-primary/40 transition-colors">
                         
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           <Music size={14} className="text-primary" />
