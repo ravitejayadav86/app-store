@@ -1,21 +1,66 @@
 {
   "name": "PandaStore",
   "short_name": "PandaStore",
-  "description": "The premium marketplace for Apps, Games, Music, and Books.",
+  "description": "Discover and publish apps, games, music & books — free on PandaStore.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "background_color": "#000000",
-  "theme_color": "#000000",
+  "theme_color": "#0058bb",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["entertainment", "productivity", "music", "games"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/paw-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/paw-logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/panda-logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "short_name": "Discover",
+      "url": "/discover",
+      "icons": [{ "src": "/paw-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Music",
+      "short_name": "Music",
+      "url": "/music",
+      "icons": [{ "src": "/paw-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Games",
+      "short_name": "Games",
+      "url": "/games",
+      "icons": [{ "src": "/paw-logo.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pandastore_walkthrough.webp",
+      "sizes": "540x720",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "PandaStore Home"
     }
   ]
 }
