@@ -16,6 +16,7 @@ interface Game {
   developer: string;
   price: number;
   version: string;
+  icon_url?: string | null;
 }
 
 interface Props {
