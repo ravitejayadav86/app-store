@@ -22,6 +22,7 @@ interface DownloadedApp {
   category: string;
   version: string;
   last_downloaded?: string;
+  icon_url?: string | null;
 }
 
 const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "wss://pandas-store-api.onrender.com";
@@ -42,7 +43,8 @@ export default function UpdatesPage() {
           name: p.app.name,
           category: p.app.category,
           version: p.app.version,
-          last_downloaded: p.purchased_at
+          last_downloaded: p.purchased_at,
+          icon_url: p.app.icon_url
         })));
       })
       .catch(() => {})
@@ -147,8 +149,12 @@ export default function UpdatesPage() {
               >
                 <GlassCard className="p-5 flex items-center justify-between group hover:bg-surface-low transition-all duration-500 border-outline-variant/40 hover:border-primary/30 shadow-sm">
                   <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500 shadow-inner group-hover:scale-105">
-                      <Package size={28} />
+                    <div className="w-16 h-16 rounded-[22%] bg-surface-low flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500 shadow-inner group-hover:scale-105 overflow-hidden">
+                      {app.icon_url ? (
+                        <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Package size={28} />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-xl text-on-surface group-hover:text-primary transition-colors">{app.name}</h3>

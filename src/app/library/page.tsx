@@ -16,6 +16,7 @@ interface PurchasedApp {
   price: number;
   version: string;
   file_path?: string | null;
+  icon_url?: string | null;
 }
 
 interface Purchase {
@@ -176,8 +177,12 @@ export default function LibraryPage() {
                   <GlassCard className="p-0 overflow-hidden group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 h-full border-outline-variant/50 hover:border-primary/30">
                     <div className="p-6">
                       <div className="flex items-start gap-5">
-                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl ${color} flex items-center justify-center text-white shadow-xl shadow-inner group-hover:scale-105 transition-transform duration-500 shrink-0`}>
-                          {getCategoryIcon(app?.category)}
+                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-[22%] ${color} flex items-center justify-center text-white shadow-xl shadow-inner group-hover:scale-105 transition-transform duration-500 shrink-0 overflow-hidden`}>
+                          {app?.icon_url ? (
+                            <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                          ) : (
+                            getCategoryIcon(app?.category)
+                          )}
                         </div>
                         <div className="flex-grow min-w-0">
                           <h3 className="text-xl font-bold text-on-surface truncate group-hover:text-primary transition-colors">{app?.name}</h3>

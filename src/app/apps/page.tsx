@@ -13,6 +13,7 @@ interface App {
   developer: string;
   price: number;
   version: string;
+  icon_url?: string | null;
 }
 
 function getCategoryIcon(category: string, size: number = 32) {
@@ -107,29 +108,30 @@ export default function AppsPage() {
           <p className="text-base font-medium">No results found for &ldquo;{search}&rdquo;</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-x-4 gap-y-8">
           {filtered.map((app) => (
             <Link
               key={app.id}
               href={`/apps/${app.id}`}
               className="group"
             >
-              <div className="glass border border-outline-variant rounded-2xl p-4 hover:border-primary/30 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 flex flex-col gap-3 h-full">
-                <div className={`w-12 h-12 rounded-xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-sm shrink-0`}>
-                  {getCategoryIcon(app.category, 24)}
+              <div className="flex flex-col gap-2 group cursor-pointer w-full">
+                <div className="w-full aspect-square rounded-[22%] bg-surface-low shadow-sm border border-outline-variant/10 relative overflow-hidden group-hover:shadow-md transition-all">
+                  {app.icon_url ? (
+                    <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-primary/10 text-primary">
+                      {getCategoryIcon(app.category, 32)}
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors truncate">{app.name}</h3>
-                  <p className="text-[10px] text-on-surface-variant truncate mt-0.5">{app.category} • {app.developer}</p>
-                </div>
-                <div className="flex items-center justify-between mt-auto pt-1">
-                  <div className="flex items-center gap-1 text-[10px] text-on-surface-variant">
-                    <Star size={10} className="fill-yellow-400 text-yellow-400" />
-                    <span>4.8</span>
+                <div className="mt-1 px-0.5">
+                  <h3 className="text-[13px] md:text-sm font-medium text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{app.name}</h3>
+                  <div className="flex items-center gap-1 mt-1 text-[11px] text-on-surface-variant">
+                    <span className="font-semibold">{app.price === 0 ? "Free" : `$${app.price}`}</span>
+                    <span>•</span>
+                    <span className="truncate">{app.category || "App"}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${app.price === 0 ? "bg-green-500/10 text-green-500" : "bg-primary/10 text-primary"}`}>
-                    {app.price === 0 ? "Free" : `$${app.price}`}
-                  </span>
                 </div>
               </div>
             </Link>
