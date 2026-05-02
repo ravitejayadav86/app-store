@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Gamepad2, Trophy } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Game {
   id: number;
@@ -79,25 +80,27 @@ export default function GamesClient({ initialGames = [] }: Props) {
         </div>
         
         {games.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-x-4 gap-y-8">
             {games.map((game, index) => (
-              <motion.div key={game.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + index * 0.08 }}>
+              <motion.div key={game.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + index * 0.05 }}>
                 <Link href={`/apps/${game.id}`}>
-                  <GlassCard className="flex flex-col gap-4 h-full hover:bg-surface-low transition-colors group">
-                    <div className="w-14 h-14 rounded-2xl bg-surface-low flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform">
-                      <Gamepad2 className="text-primary" />
+                  <div className="flex flex-col gap-2 group cursor-pointer w-full">
+                    <div className="w-full aspect-square rounded-[22%] bg-surface-low shadow-sm border border-outline-variant/10 relative overflow-hidden group-hover:shadow-md transition-all">
+                      {game.icon_url ? (
+                        <Image src={game.icon_url} alt={game.name} fill className="object-cover" sizes="(max-width: 768px) 110px, 130px" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-primary/10 text-primary">{game.name[0]}</div>
+                      )}
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{game.name}</h3>
-                      <p className="text-sm text-on-surface-variant">{game.developer}</p>
+                    <div className="mt-1 px-0.5">
+                      <h3 className="text-[13px] md:text-sm font-medium text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{game.name}</h3>
+                      <div className="flex items-center gap-1 mt-1 text-[11px] text-on-surface-variant">
+                        <span className="font-semibold">{game.price === 0 ? "Free" : `$${game.price}`}</span>
+                        <span>•</span>
+                        <span className="truncate">{game.developer || "Unknown"}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">
-                        {game.price === 0 ? "Free" : `$${game.price}`}
-                      </span>
-                      <Button size="sm">Details</Button>
-                    </div>
-                  </GlassCard>
+                  </div>
                 </Link>
               </motion.div>
             ))}

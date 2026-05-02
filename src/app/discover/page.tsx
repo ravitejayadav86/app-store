@@ -100,38 +100,32 @@ export default function DiscoverPage() {
               <Flame className="text-primary" />
               <h2 className="text-3xl font-bold text-on-surface">Trending Now</h2>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-x-4 gap-y-8">
               {trending.map((app, index) => (
                 <motion.div 
                   key={app.id} 
                   initial={{ opacity: 0, y: 20 }} 
                   animate={{ opacity: 1, y: 0 }} 
-                  transition={{ delay: 0.3 + index * 0.08 }}
+                  transition={{ delay: 0.3 + index * 0.05 }}
                 >
                   <Link href={`/apps/${app.id}`}>
-                    <GlassCard className="flex flex-col gap-4 md:gap-6 h-full hover:bg-surface-low transition-colors group p-4 md:p-6">
-                      <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white group-hover:scale-110 transition-transform overflow-hidden`}>
+                    <div className="flex flex-col gap-2 group cursor-pointer w-full">
+                      <div className="w-full aspect-square rounded-[22%] bg-surface-low shadow-sm border border-outline-variant/10 relative overflow-hidden group-hover:shadow-md transition-all">
                         {app.icon_url ? (
                           <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                         ) : (
-                          <Star size={24} className="md:w-7 md:h-7" />
+                          <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-primary/10 text-primary">{app.name[0]}</div>
                         )}
                       </div>
-                      <div>
-                        <h3 className="text-sm md:text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
-                        <p className="text-[10px] md:text-sm text-on-surface-variant">{app.category}</p>
-                      </div>
-                      <div className="flex flex-col md:flex-row md:items-center justify-between mt-auto gap-2">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[8px] md:text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase w-fit">
-                            {app.price === 0 ? "Free" : `$${app.price}`}
-                          </span>
+                      <div className="mt-1 px-0.5">
+                        <h3 className="text-[13px] md:text-sm font-medium text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{app.name}</h3>
+                        <div className="flex items-center gap-1 mt-1 text-[11px] text-on-surface-variant">
+                          <span className="font-semibold">{app.price === 0 ? "Free" : `$${app.price}`}</span>
+                          <span>•</span>
+                          <span className="truncate">{app.category || "App"}</span>
                         </div>
-                        <Button size="xs" variant={app.file_path ? "primary" : "secondary"} className="w-full md:w-auto h-7">
-                          {app.category?.toLowerCase() === "music" ? "Play" : (app.file_path ? "Get" : "View")}
-                        </Button>
                       </div>
-                    </GlassCard>
+                    </div>
                   </Link>
                 </motion.div>
               ))}
@@ -144,32 +138,32 @@ export default function DiscoverPage() {
                 <TrendingUp className="text-primary" />
                 <h2 className="text-2xl md:text-3xl font-bold text-on-surface">Rising Stars</h2>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-x-4 gap-y-8">
                 {risingStars.map((app, index) => (
                   <motion.div 
                     key={app.id} 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    transition={{ delay: 0.5 + index * 0.08 }}
+                    transition={{ delay: 0.5 + index * 0.05 }}
                   >
                     <Link href={`/apps/${app.id}`}>
-                      <GlassCard className="flex flex-col gap-4 md:gap-6 h-full hover:bg-surface-low transition-colors group p-4 md:p-6">
-                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${getCategoryColor(app.category)} flex items-center justify-center shadow-inner text-white opacity-80 backdrop-grayscale-[0.5] group-hover:scale-110 transition-transform`}>
-                          <TrendingUp size={24} className="md:w-7 md:h-7" />
+                      <div className="flex flex-col gap-2 group cursor-pointer w-full">
+                        <div className="w-full aspect-square rounded-[22%] bg-surface-low shadow-sm border border-outline-variant/10 relative overflow-hidden group-hover:shadow-md transition-all">
+                          {app.icon_url ? (
+                            <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-primary/10 text-primary">{app.name[0]}</div>
+                          )}
                         </div>
-                        <div>
-                          <h3 className="text-sm md:text-xl font-bold mb-1 truncate group-hover:text-primary transition-colors">{app.name}</h3>
-                          <p className="text-[10px] md:text-sm text-on-surface-variant">{app.category}</p>
-                        </div>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mt-auto gap-2">
-                          <div className="flex flex-col gap-0.5">
-                             <span className="text-[8px] md:text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase w-fit">NEW</span>
+                        <div className="mt-1 px-0.5">
+                          <h3 className="text-[13px] md:text-sm font-medium text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{app.name}</h3>
+                          <div className="flex items-center gap-1 mt-1 text-[11px] text-on-surface-variant">
+                            <span className="font-semibold text-primary">NEW</span>
+                            <span>•</span>
+                            <span className="truncate">{app.category || "App"}</span>
                           </div>
-                          <Button size="xs" variant={app.file_path ? "primary" : "secondary"} className="w-full md:w-auto h-7">
-                            {app.file_path ? "Get" : "View"}
-                          </Button>
                         </div>
-                      </GlassCard>
+                      </div>
                     </Link>
                   </motion.div>
                 ))}

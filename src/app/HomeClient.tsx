@@ -227,27 +227,24 @@ export default function Home({ initialApps = [] }: { initialApps?: App[] }) {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: i * 0.05 }}
-                className="w-[280px] md:w-[320px] flex-shrink-0 snap-start"
+                className="w-[110px] md:w-[130px] flex-shrink-0 snap-start"
               >
                 <Link href={`/apps/${app.id}`}>
-                  <GlassCard className="p-5 flex flex-col h-full rounded-[2rem] hover:bg-surface-low transition-all border border-outline-variant/30 hover:border-primary/30 group shadow-lg hover:shadow-xl hover:-translate-y-1">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="w-20 h-20 rounded-[1.2rem] overflow-hidden bg-surface-low border border-outline-variant/20 relative shadow-inner group-hover:scale-105 transition-transform">
-                        {app.icon_url ? (
-                          <Image src={app.icon_url} alt={app.name} fill className="object-cover" sizes="80px" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-2xl">{app.name[0]}</div>
-                        )}
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                        <Download size={18} />
+                  <div className="flex flex-col gap-2 group cursor-pointer w-full">
+                    <div className="w-full aspect-square rounded-[22%] bg-surface-low shadow-sm border border-outline-variant/10 relative overflow-hidden group-hover:shadow-md transition-all">
+                      {app.icon_url ? (
+                        <Image src={app.icon_url} alt={app.name} fill className="object-cover" sizes="(max-width: 768px) 110px, 130px" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-4xl">{app.name[0]}</div>
+                      )}
+                    </div>
+                    <div className="mt-1 px-0.5">
+                      <h3 className="text-[13px] md:text-sm font-medium text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{app.name}</h3>
+                      <div className="flex items-center gap-1 mt-1 text-[11px] text-on-surface-variant">
+                        <span className="font-semibold">{app.category}</span>
                       </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1 truncate text-on-surface group-hover:text-primary transition-colors">{app.name}</h3>
-                      <p className="text-sm text-on-surface-variant font-medium">{app.category}</p>
-                    </div>
-                  </GlassCard>
+                  </div>
                 </Link>
               </motion.div>
             ))}
