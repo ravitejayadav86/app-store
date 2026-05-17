@@ -7,7 +7,7 @@ import {
   Flame, Radio, Heart, Disc3, Shuffle,
   Sparkles, X } from "lucide-react";
 import { Track } from "@/components/ui/MusicPlayer";
-import { TELUGU_MOVIES, MovieMeta } from "@/data/teluguMovies";
+import { ALL_MOVIES, MOVIES_BY_LANGUAGE, MovieMeta } from "@/data/allMovies";
 import { AddMusicModal } from "@/components/ui/AddMusicModal";
 import { fuzzySearch } from "@/lib/search";
 import { useMusicPlayer } from "@/lib/MusicContext";
@@ -59,9 +59,13 @@ function saavnToTrack(s: any, fallbackCover?: string, fallbackColor?: string): T
 }
 
 const LANGUAGES = [
-  { label: "Telugu", tag: "telugu" }, { label: "Hindi", tag: "hindi" },
-  { label: "Tamil", tag: "tamil" }, { label: "Malayalam", tag: "malayalam" },
-  { label: "Kannada", tag: "kannada" }, { label: "English", tag: "english" },
+  { label: "🎬 All", tag: "all" },
+  { label: "🇮🇳 Telugu", tag: "telugu" },
+  { label: "🎵 Hindi", tag: "hindi" },
+  { label: "🌟 Tamil", tag: "tamil" },
+  { label: "🌴 Malayalam", tag: "malayalam" },
+  { label: "🏔️ Kannada", tag: "kannada" },
+  { label: "🌍 English", tag: "english" },
 ];
 
 const TOP_CHARTS = [
@@ -80,7 +84,7 @@ function trackColor(t: Track, i: number) { return t.color ?? ACCENT_COLORS[i % A
 export default function MusicPage() {
   const router = useRouter();
   const { play } = useMusicPlayer();
-  const [genre, setGenre] = useState(LANGUAGES[0].tag);
+  const [genre, setGenre] = useState("all");
   const [tracks, setTracks] = useState<Track[]>([]);
   const [featured, setFeatured] = useState<Track[]>([]);
   const [ownTracks, setOwnTracks] = useState<Track[]>([]);
@@ -126,9 +130,11 @@ export default function MusicPage() {
     }
   }, []);
 
+  const visibleMovies = genre === "all" ? ALL_MOVIES : (MOVIES_BY_LANGUAGE[genre] ?? []);
+
   useEffect(() => {
-    TELUGU_MOVIES.forEach((movie, i) => {
-      setTimeout(() => loadMovieSongs(movie), i * 400);
+    ALL_MOVIES.forEach((movie, i) => {
+      setTimeout(() => loadMovieSongs(movie), i * 250);
     });
   }, [loadMovieSongs]);
 
@@ -369,8 +375,8 @@ export default function MusicPage() {
         );
       })}
 
-      {/* TELUGU MOVIES — dynamic from JioSaavn */}
-      {!search.trim() && TELUGU_MOVIES.map((movie) => {
+      {/* MOVIES BY LANGUAGE — dynamic from JioSaavn */}
+      {!search.trim() && visibleMovies.map((movie) => {
         const songs = movieSongs[movie.id] ?? [];
         const isLoading = movieLoading[movie.id] ?? true;
         return (
@@ -390,7 +396,7 @@ export default function MusicPage() {
                 {songs.map((t, i) => <FeaturedCard key={`${movie.id}-${t.id}-${i}`} track={t} index={i} onClick={() => startPlay(songs, i)} />)}
               </div>
             ) : (
-              <p className="text-xs text-on-surface-variant/40 py-4">Songs unavailable right now.</p>
+              <p className="text-xs text-on-surface-variant/40 py-4">Songs loading from JioSaavn…</p>
             )}
           </section>
         );
