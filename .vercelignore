@@ -1,8 +1,33 @@
-# backend/ removed to allow Vercel deployment
+# Python / backend env (deployed separately as Vercel Functions)
 .venv/
 venv/
-scratch/
+__pycache__/
+*.pyc
+*.pyo
+
+# Local dev / Docker
 docker-compose.yml
 nginx.conf
-# requirements.txt removed to allow Vercel deployment
+Dockerfile
 dockerfile
+*.sh
+*.ps1
+
+# Mobile / Capacitor build artifacts
+android/
+capacitor.config.ts
+
+# DB files & uploads (managed via external storage)
+appstore.db
+uploads/
+
+# Build artifacts & scripts not needed at deploy
+out/
+build_output.txt
+fetch_posters.py
+update_songs.py
+scratch/
+
+# Misc
+*.log
+.DS_Store

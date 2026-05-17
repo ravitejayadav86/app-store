@@ -1,60 +1,50 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/main.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+
   "rewrites": [
-    {
-      "source": "/api/auth/:path*",
-      "destination": "/api/auth/:path*"
-    },
-    {
-      "source": "/api/v1/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/apps/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/users/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/admin/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/reviews/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/notifications/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/community/:path*",
-      "destination": "backend/main.py"
-    },
-    {
-      "source": "/api/social/:path*",
-      "destination": "backend/main.py"
-    }
+    { "source": "/api/auth/:path*",          "destination": "/api/auth/:path*" },
+    { "source": "/api/v1/:path*",            "destination": "backend/main.py" },
+    { "source": "/api/apps/:path*",          "destination": "backend/main.py" },
+    { "source": "/api/users/:path*",         "destination": "backend/main.py" },
+    { "source": "/api/admin/:path*",         "destination": "backend/main.py" },
+    { "source": "/api/reviews/:path*",       "destination": "backend/main.py" },
+    { "source": "/api/notifications/:path*", "destination": "backend/main.py" },
+    { "source": "/api/community/:path*",     "destination": "backend/main.py" },
+    { "source": "/api/social/:path*",        "destination": "backend/main.py" }
   ],
+
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+        { "key": "X-Content-Type-Options",    "value": "nosniff" },
+        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection",          "value": "1; mode=block" },
+        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",        "value": "camera=(), microphone=(self), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.(?:ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2|ttf|otf))",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
       ]
     },
     {
@@ -62,6 +52,39 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, s-maxage=300, stale-while-revalidate=86400" }
       ]
+    },
+    {
+      "source": "/api/auth/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
+      ]
     }
-  ]
+  ],
+
+  "functions": {
+    "backend/main.py": {
+      "runtime": "python3.12",
+      "maxDuration": 30
+    },
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+
+  "crons": [],
+
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+
+  "cleanUrls": true,
+  "trailingSlash": false
 }
