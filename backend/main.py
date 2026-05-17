@@ -1,6 +1,8 @@
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import traceback
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, inspect, create_engine
@@ -144,6 +146,13 @@ app = FastAPI(title="PandaStore API", version="2.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.middleware("http")(add_security_headers)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"message": str(exc), "traceback": traceback.format_exc()}
+    )
 
 app.add_middleware(
     CORSMiddleware,
