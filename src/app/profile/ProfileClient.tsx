@@ -259,7 +259,7 @@ export default function ProfileClient() {
                     className="object-cover"
                     sizes="80px"
                   />
-                ) : profile?.username[0].toUpperCase()}
+                ) : (profile?.username?.[0]?.toUpperCase() || "U")}
               </div>
             </motion.div>
             <label className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full border-2 border-surface flex items-center justify-center text-white cursor-pointer shadow-lg">
@@ -383,7 +383,7 @@ export default function ProfileClient() {
                           className="object-cover"
                           sizes="192px"
                         />
-                      ) : profile?.username[0].toUpperCase()}
+                      ) : (profile?.username?.[0]?.toUpperCase() || "U")}
                     </div>
                   </motion.div>
                   <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-surface rounded-2xl shadow-xl flex items-center justify-center text-primary cursor-pointer border border-outline-variant hover:scale-110 active:scale-95 transition-all">
@@ -602,7 +602,7 @@ export default function ProfileClient() {
                       className="object-cover"
                       sizes="56px"
                     />
-                  ) : profile?.username[0].toUpperCase()}
+                  ) : (profile?.username?.[0]?.toUpperCase() || "U")}
                 </div>
                 <div>
                   <p className="font-bold text-on-surface">@{profile?.username}</p>
